@@ -1066,7 +1066,6 @@ sub printrule {
 sub mkrules {
     # compile the list hashes into rules
     my @fr;
-    my $cc = -1;
 
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
@@ -1089,37 +1088,37 @@ sub mkrules {
     };
 
     sub dofr {
-        my ($r_fr, $r_cc) = @_;
+        my $current = shift;
 
-        $$r_cc++;
-        if ($$r_cc >= scalar @$r_fr) {
-            # we are done: put it on output and exit
-            printrule(); }
-        else {
-            # loop over all keys in this level (only 1)
-            while (my ($key, $value_string) = each %{$r_fr->[$$r_cc]}) {
-                # preparse value stuff: is unsplit value negated???
-                my $negated = $value_string =~ /^\x21/;
+        # loop over all keys in this level (only 1)
+        while (my ($key, $value_string) = each %$current) {
+            # preparse value stuff: is unsplit value negated???
+            my $negated = $value_string =~ /^\x21/;
 
-                # recurse for every value
-                foreach my $value ( split ("," , $value_string) ) {
-                    # if so, make sure the '!' is put before every value in it
-                    if ( $negated ) {
-                        for ($value) {
-                            !/^\x21/ && do { $value = "\x21" . $value; }
-                        }
+            # recurse for every value
+            foreach my $value (split ",", $value_string) {
+                # if so, make sure the '!' is put before every value in it
+                if ( $negated ) {
+                    for ($value) {
+                        !/^\x21/ && do { $value = "\x21" . $value; }
                     }
-                    $value =~ s/^!/! /;
-                    # set this one and recurse
-                    $rule{$key} = $value;
-                    dofr($r_fr, $r_cc);
                 }
-                delete $rule{$key};
+                $value =~ s/^!/! /;
+                # set this one and recurse
+                $rule{$key} = $value;
+
+                if (@_) {
+                    dofr(@_);
+                } else {
+                    printrule();
+                }
             }
+
+            delete $rule{$key};
         }
-        $$r_cc--;
     }
-    dofr(\@fr, \$cc);
+
+    dofr(@fr);
 }
 
 
