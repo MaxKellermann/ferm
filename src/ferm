@@ -906,6 +906,7 @@ sub tables {
         # check for unknown jump target
         if (defined $rule{action} and
             not is_netfilter_builtin_target($rule{action}) and
+            $rule{action} ne 'NOP' and
             not exists $chains{$rule{table}}{$rule{action}}{was_created}) {
             push @rules, $rrr . "-N $rule{action}\n";
             $chains{$rule{table}}{$rule{action}}{was_created} = 1;
