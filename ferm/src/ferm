@@ -345,19 +345,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[!,=&\$]|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
-        # explanation of all sections:
-        # \x22[^\x22]+\x22 == "*"
-        # \x27[^\x27]+\x27 == '*'
-        # \x60[^\x60]+\x60 == `*`
-        # [0-9a-zA-Z\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+
-        #        == anything which is not one of these:
-        # \x28 == (
-        # \x29 == )
-        # \x7b == }
-        # \x7d == {
-        # \x3b == ;
-
+    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-\w\/\.:]+)/g) {
         $word =~ s/^(["'])(.*)\1$/$2/s;
 
         push @ret, $word;
@@ -620,7 +608,7 @@ sub require_next_token {
       unless defined $token;
 
     error("'$token' not allowed here")
-      if $token =~ /^[;{}]/;
+      if $token =~ /^[;{}]$/;
 
     return $token;
 }
@@ -651,13 +639,13 @@ sub resolve_variable_refs {
     # resolve all variable references in the string - may be an array!
     my $token = shift;
 
-    if ($token =~ /^\%([0-9a-zA-Z\x2d\x5f]+)$/) {
+    if ($token =~ /^\%(\w+)$/) {
         # if the token only of the reference, return the pure value
         return variable_value($1);
     } else {
         # a reference in the middle of the string. replace, but only
         # allow string variables, no arrays here
-        $token =~ s/\%([0-9a-zA-Z\x2d\x5f]+)/string_variable_value($1)/eg;
+        $token =~ s/\%(\w+)/string_variable_value($1)/eg;
 
         return $token;
     }
@@ -722,7 +710,7 @@ sub getvalues {
         $output =~ s/#.*//mg;
 
         # tokenize
-        my @tokens = tokenize_string($output);
+        my @tokens = split /\s+/, $output;
 
         my @values;
         while (@tokens) {
@@ -759,8 +747,8 @@ sub getvalues {
         error('comma is not allowed here');
     } elsif ($token eq '=') {
         error('equals operator ("=") is not allowed here');
-    } elsif ($token eq '$') {
-        my $name = require_next_token;
+    } elsif ($token eq '$' or $token eq '%') {
+        my $name = require_next_token($code, $param);
         error('variable name expected')
           unless $name =~ /^\w+$/;
 
