@@ -2,74 +2,38 @@
 # Makefile for ferm
 #
 
-VPATH		= man:info
+TOPDIR = .
+include $(TOPDIR)/config.mk
 
-PREFIX		= /usr
-INSTDIR		= $(PREFIX)/sbin
-MANDIR		= $(PREFIX)/man/man1
-DOCDIR		= $(PREFIX)/doc/packages/ferm
-SHELL		= /bin/bash
-SRC		= src/ferm
-MANSRC		= src/ferm.pod
-
-VERSION := $(shell ${SRC} --version | awk '{print $$2}' | head -1 | tr -d ',')
+VERSION := $(shell perl src/ferm --version | awk '{print $$2}' | head -1 | tr -d ',')
 
 DISTDIR = build/ferm-$(VERSION)
 
 TARFILE = build/ferm-${VERSION}.tar.gz
 LSMFILE	= build/ferm-${VERSION}.lsm
 
-SIZE = $(shell du -h -D $(TARFILE) | awk '{print $$1}')
-DATE            = `date '+%Y-%m-%d'`
+.PHONY: all clean check
 
-WEBDIR		= /home/web/users/koka/ferm
-FTPDIR		= /home/tecguest/ises/koka/anonftp
-
-all: man
-
-pub:	www ftp
-
-.phony:
-
-manobjects = ferm.txt ferm.html man/ferm.1
-tmpfiles = pod2html-dircache pod2html-itemcache 'pod2htmd.x~~' 'pod2htmsid.x~~' 'pod2htmi.x~~'
-
-$(manobjects): $(MANSRC)
-
-man:	$(manobjects)
+all:
+	make -C doc $@
+	make -C test $@
 
 clean:
-	@rm -f man/ferm.* $(tmpfiles) *.tar.gz
-	$(MAKE) -C test $@
+	rm -rf build
+	make -C doc $@
 
-#
-# test suite
-#
-
-.PHONY: check
 check:
-	$(MAKE) -C test $@
+	make -C test $@
 
 #
-# compiling targets
+# distribution
 #
-
-man/ferm.1: src/ferm.pod
-	pod2man --section=1 --release="ferm $(VERSION)" \
-		--center="FIREWALL RULES MADE EASY" \
-		--official $< > $@
-
-man/ferm.html: src/ferm.pod
-	pod2html $< --netscape --flush > $@
-
-man/ferm.txt: src/ferm.pod
-	pod2text $< > $@
 
 build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
 	install -d -m 755 build $(DISTDIR) $(DISTDIR)/doc $(DISTDIR)/examples
 	install -m 755 src/ferm $(DISTDIR)
-	install -m 644 scripts/Makefile info/AUTHORS info/CHANGES info/COPYING info/README info/TODO $(DISTDIR)
+	install -m 644 scripts/Makefile AUTHORS NEWS COPYING README TODO $(DISTDIR)
 	install -m 644 man/ferm.1 man/ferm.html man/ferm.txt $(DISTDIR)/doc
 	install -m 644 examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(DISTDIR)/examples
 	cd build && tar czf ferm-$(VERSION).tar.gz ferm-$(VERSION)
@@ -77,35 +41,55 @@ build/ferm-$(VERSION).tar.gz: all
 dist: build/ferm-$(VERSION).tar.gz
 
 #
+# installation
+#
+
+.PHONY: install uninstall
+
+install: all
+	install -d -m 755 $(DOCDIR)/examples $(PREFIX)/sbin
+	install -m 644 AUTHORS COPYING NEWS README TODO $(DOCDIR)
+	install -m 644 examples/* $(DOCDIR)/examples
+	install -m 755 src/ferm $(PREFIX)/sbin/ferm
+	make -C doc $@ PREFIX=$(PREFIX)
+
+uninstall:
+	rm -rf $(DOCDIR)
+	rm -f $(MANDIR)/ferm.1 $(MANDIR)/ferm.1.gz
+	rm -f $(PREFIX)/sbin/ferm
+	make -C doc $@ PREFIX=$(PREFIX)
+
+#
 # misc targets
 #
 
-install uninstall: dist
-	make -C $(DISTDIR) $@
-
-www:	tar
+www: dist
 	@echo "Publishing tarfiles in $(WEBDIR)..."
-	@rm -f $(WEBDIR)/ferm.tar.gz
-	@cp $(TARFILE) $(WEBDIR)
-	@cp info/CHANGES $(WEBDIR)
-	@cp man/ferm.html $(WEBDIR)
-	@echo $(VERSION) > $(WEBDIR)/VERSION
-	@ln -s $(TARFILE) $(WEBDIR)/ferm.tar.gz
-	@chmod ugo+r $(WEBDIR)/$(TARFILE) $(WEBDIR)/ferm.tar.gz \
-		$(WEBDIR)/CHANGES $(WEBDIR)/VERSION $(WEBDIR)/ferm.html
+	rm -f $(WEBDIR)/$(notdir $(TARFILE))
+	cp $(TARFILE) $(WEBDIR)
+	cp NEWS $(WEBDIR)
+	cp doc/ferm.html $(WEBDIR)
+	echo $(VERSION) > $(WEBDIR)/VERSION
+	ln -s $(notdir $(TARFILE)) $(WEBDIR)/ferm.tar.gz
+	chmod ugo+r $(WEBDIR)/$(notdir $(TARFILE)) $(WEBDIR)/ferm.tar.gz \
+		$(WEBDIR)/NEWS $(WEBDIR)/VERSION $(WEBDIR)/ferm.html
 	@echo "Done."
 
-ftp:	tar
+ftp: dist
 	@echo "Publishing tarfiles in $(FTPDIR)..."
-	@rm -f $(FTPDIR)/ferm.tar.gz
-	@cp $(TARFILE) $(FTPDIR)
-	@cp info/CHANGES $(FTPDIR)
-	@echo $(VERSION) > $(FTPDIR)/VERSION
-	@ln -s $(TARFILE) $(FTPDIR)/ferm.tar.gz
-	@chmod ugo+r $(FTPDIR)/$(TARFILE) $(FTPDIR)/ferm.tar.gz \
-		$(FTPDIR)/CHANGES $(FTPDIR)/VERSION
+	rm -f $(FTPDIR)/$(notdir $(TARFILE))
+	cp $(TARFILE) $(FTPDIR)
+	cp NEWS $(FTPDIR)
+	echo $(VERSION) > $(FTPDIR)/VERSION
+	ln -s $(notdir $(TARFILE)) $(FTPDIR)/ferm.tar.gz
+	chmod ugo+r $(FTPDIR)/$(notdir $(TARFILE)) $(FTPDIR)/ferm.tar.gz \
+		$(FTPDIR)/NEWS $(FTPDIR)/VERSION
 	@echo "Done."
 
+pub: www ftp
+
+$(LSMFILE): DATE = `date '+%Y-%m-%d'`
+$(LSMFILE): SIZE = $(shell du -h -D $(TARFILE) | awk '{print $$1}')
 $(LSMFILE): dist
 	@echo "Making lsm entry file..."
 	@echo "Begin4" > $@
