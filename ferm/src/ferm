@@ -917,7 +917,10 @@ sub tables {
       if exists $rule{ahspi};
 
     # ipt_conntrack parameters
-    foreach (qw(ctstate ctproto ctorigsrc ctorigdst),
+    $rr .= '--ctstate ' . join(',', split(/:/, $rule{ctstate})) . ' '
+      if exists $rule{ctstate};
+
+    foreach (qw(ctproto ctorigsrc ctorigdst),
              qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
         $rr .= "--$_ $rule{$_} "
           if exists $rule{$_};
@@ -1532,7 +1535,14 @@ sub enter {
             };
 
             # ipt_conntrack switches
-            /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
+            /^ctstate$/ && do {
+                $current->{$keyword} = getvalues();
+                $current->{$keyword} =~ s/,/:/g;
+                $current->{auto_modules}{conntrack} = 1;
+                next;
+            };
+
+            /^(?:ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
                 $current->{$keyword} = getvalues();
                 $current->{auto_modules}{conntrack} = 1;
                 next;
