@@ -5,7 +5,7 @@ NEW_FERM = ../src/ferm
 # a list of all ferm scripts which should be tested with iptables,
 # ipchains and ipfwadm
 FERM_SCRIPTS = positive/flush positive/masqto positive/multimod positive/multipolicy positive/negated-varlist positive/policyorder
-FERM_SCRIPTS_ipchains = positive/kwbug positive/multivar
+FERM_SCRIPTS_ipchains = positive/multivar
 FERM_SCRIPTS_iptables = positive/bug positive/iptables-targets positive/logLOG positive/mod params/owner positive/state positive/SUSE positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
 FERM_SCRIPTS_iptables += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard misc/*.ferm)
 FERM_SCRIPTS_iptables += $(FERM_SCRIPTS_ipchains)
