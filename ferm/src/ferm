@@ -650,8 +650,7 @@ sub tables {
             $rule{'chain'} = uc $rule{'chain'} ; } };
 
     # should we set a policy?
-    if (exists $chains{$rule{table}}{$rule{chain}}{policy} and
-        not exists $chains{$rule{table}}{$rule{chain}}{policy_set}) {
+    if (exists $chains{$rule{table}}{$rule{chain}}{set_policy}) {
         mydie('cannot set the policy for non-built in chains, exiting')
           unless grep { $_ eq $rule{chain} }
             qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
@@ -660,7 +659,7 @@ sub tables {
 
         push @rules, $rrr . "-P $rule{chain} $policy\n";
 
-        $chains{$rule{table}}{$rule{chain}}{policy_set} = 1;
+        delete $chains{$rule{table}}{$rule{chain}}{set_policy};
     }
 
     if ( $option{'createchains'} ) {
@@ -1325,6 +1324,7 @@ sub enter {
                             warning('policy for this chain is specified for the second time');
                         } else {
                             $chains{$table}{uc $chain}{policy} = $policy;
+                            $chains{$table}{uc $chain}{set_policy} = 1;
                         }
                     }
                 }
