@@ -211,6 +211,9 @@ $option{'flushall'} && flushall();
 $verbose && print "Parsing files\n";
 enter(0);
 
+# check consistency
+check();
+
 # and execute all generated rules
 $verbose && print "\nExecuting rules\n";
 foreach my $rr (@rules) {
@@ -827,6 +830,11 @@ sub tables {
     }
 
     if ($option{createchains}) {
+        # mark this chain as "non-empty" because we will add stuff to
+        # it now; this flag is later used to check if a custom chain
+        # referenced by "goto" was actually defined
+        $chains{$rule{table}}{$rule{chain}}{non_empty} = 1;
+
         # check if the chain is already defined
         unless (exists $chains{$rule{table}}{$rule{chain}}{was_created} or
                 is_netfilter_builtin_chain($rule{table}, $rule{chain})) {
@@ -2156,6 +2164,15 @@ sub enter {
     # the ';' before the last statement
     error("Missing semicolon before end of file")
       if keys %$current;
+}
+
+sub check {
+    while (my ($table_name, $chains) = each %chains) {
+        while (my ($chain_name, $chain) = each %$chains) {
+            warning("chain $chain_name (table $table_name) was created, but not used")
+              if $chain->{was_created} and not $chain->{non_empty};
+        }
+    }
 }
 
 # end of ferm
