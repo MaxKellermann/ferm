@@ -651,10 +651,6 @@ sub tables {
 
     # should we set a policy?
     if (exists $chains{$rule{table}}{$rule{chain}}{set_policy}) {
-        mydie('cannot set the policy for non-built in chains, exiting')
-          unless grep { $_ eq $rule{chain} }
-            qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
-
         my $policy = $chains{$rule{table}}{$rule{chain}}{policy};
 
         push @rules, $rrr . "-P $rule{chain} $policy\n";
@@ -1320,6 +1316,10 @@ sub enter {
 
                 foreach my $table (to_array $tables) {
                     foreach my $chain (to_array $chains) {
+                        error('cannot set the policy for non-built in chains, exiting')
+                          unless grep { $_ eq uc $chain }
+                            qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
+
                         if (exists $chains{$table}{uc $chain}{policy}) {
                             warning('policy for this chain is specified for the second time');
                         } else {
