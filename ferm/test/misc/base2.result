@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT ! -f -j LOG

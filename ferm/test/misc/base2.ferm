@@ -1,0 +1,4 @@
+# test base iptables parameters which were not supported by ferm 1.1
+table filter chain INPUT {
+    !fragment LOG;
+}
