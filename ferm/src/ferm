@@ -400,12 +400,7 @@ sub prepare_tokens {
 
     while (@$tokens == 0) {
         my $line = $script->{handle}->getline;
-        unless (defined $line) {
-            # end of file, switch to the next in the chain and recurse
-            # to read tokens from this file
-            $script = $script->{parent};
-            return prepare_tokens();
-        }
+        return unless defined $line;
 
         $script->{line} ++;
 
