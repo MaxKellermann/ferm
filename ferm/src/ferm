@@ -615,6 +615,13 @@ sub is_netfilter_builtin_target {
                        )/x;
 }
 
+sub is_netfilter_builtin_chain {
+    my ($table, $chain) = @_;
+
+    return grep { $_ eq $chain }
+      qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
+}
+
 sub shell_escape {
     my $token = shift;
     return $token
@@ -653,20 +660,22 @@ sub tables {
         delete $chains{$rule{table}}{$rule{chain}}{set_policy};
     }
 
-    if ( $option{'createchains'} ) {
+    if ($option{createchains}) {
         # check if the chain is already defined
-        if ( ! exists $tables{$rule{'table'}.'_'.(lc $rule{'chain'})} ) {
-            push @rules, $rrr . "-N $rule{'chain'}\n" ;
-            $tables{$rule{'table'} . '_' . lc $rule{'chain'}} = 0 };
+        unless (exists $chains{$rule{table}}{$rule{chain}}{was_created} or
+                is_netfilter_builtin_chain($rule{table}, $rule{chain})) {
+            push @rules, $rrr . "-N $rule{chain}\n";
+            $chains{$rule{table}}{$rule{chain}}{was_created} = 1;
+        }
 
         # check for unknown jump target
-        for ( $rule{'action'} ) {
-            last unless $rule{action} and
-              not is_netfilter_builtin_target($rule{action});
-            if ( ! exists ($tables{$rule{'table'}.'_'.(lc $_)}) ) {
-                push @rules, $rrr . "-N $_\n";
-                $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
-    else {
+        if (defined $rule{action} and
+            not is_netfilter_builtin_target($rule{action}) and
+            not exists $chains{$rule{table}}{$rule{action}}{was_created}) {
+            push @rules, $rrr . "-N $rule{action}\n";
+            $chains{$rule{table}}{$rule{action}}{was_created} = 1;
+        }
+    } else {
         # tag em so were not flushing it empty...
         if ( ! exists $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} ) {
             $tables{$rule{'table'} . '_' . lc $rule{'chain'}} = 0 };
