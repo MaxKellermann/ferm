@@ -973,6 +973,10 @@ sub tables {
 };
 
 sub ip_tables_names {
+    # return all possible tables in emulation mode
+    return qw(filter nat mangle)
+      if $option{noexec};
+
     my @tables;
 
     local *TABLES;
@@ -1221,6 +1225,14 @@ sub enter {
                 error('Table is already specified')
                   if exists $current->{table};
                 $current->{table} = getvalues();
+
+                my @all_tables = ip_tables_names;
+
+                foreach my $table (to_array $current->{table}) {
+                    error("Table '$table' does not exist")
+                      unless grep { $_ eq $table } @all_tables;
+                }
+
                 next;
             }
 
