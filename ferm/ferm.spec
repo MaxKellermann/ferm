@@ -6,10 +6,10 @@ Group: system/firewalls
 Copyright: GPL
 Source: %{name}-%{version}.tar.gz
 BuildRoot: /tmp/%{name}-%{version}-root
-URL: http://ferm.sourceforge.net/
+URL: http://ferm.foo-projects.org/
 BuildArchitectures: noarch
 Requires: perl
-Packager: A. Kok <koka@geo.vu.nl>
+Packager: A. Kok <sofar@foo-projects.org>
 
 %description
 Ferm is a tool to maintain complex firewalls, without having the
@@ -37,6 +37,7 @@ rm -rf $RPM_BUILD_ROOT
 /AUTHORS
 /COPYING
 /README
+/TODO
 /ferm.txt
 /ferm.html
 /ferm.1

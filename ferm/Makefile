@@ -131,7 +131,7 @@ lsm: .phony
 	@echo "Keywords:       iptables ipchains ipfwadm firewall rules rule" >> ${LSMFILE}
 	@echo "Author:         sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
 	@echo "Maintained-by:  sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
-	@echo "Primary-site:   ferm.sourceforge.net /" >> ${LSMFILE}
+	@echo "Primary-site:   ferm.foo-projects.org /" >> ${LSMFILE}
 	@echo "                $(SIZE) ferm.tar.gz" >> ${LSMFILE}
 	@echo "Alternate-site:" >> ${LSMFILE}
 	@echo "Original-site:" >> ${LSMFILE}
