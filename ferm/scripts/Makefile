@@ -4,7 +4,7 @@
 
 PREFIX		= /usr
 INSTDIR		= $(PREFIX)/sbin
-MANDIR		= $(PREFIX)/man/man1
+MANDIR		= $(PREFIX)/share/man/man1
 DOCDIR		= $(PREFIX)/share/doc/ferm
 SHELL		= /bin/sh
 
