@@ -234,6 +234,10 @@ there is no ';' after the closing curly brace. Translated to iptables:
 Variable expansion. Replaces '$FOO' by the value of the variable. See
 the section I<VARIABLES> for details.
 
+=item B<&>
+
+Function call. See the section I<FUNCTIONS> for details.
+
 =item B<()>
 
 The array symbol. Using the parentheses, you can define
@@ -858,6 +862,10 @@ parameter:
 
     chain INPUT interface $DEV_INTERNET proto tcp dport $MORE_PORTS ACCEPT;
 
+Note that variables can only be used in keyword parameters
+("192.168.1.1", "http"); they cannot contain ferm keywords like
+"proto" or "interface".
+
 Variables are only valid in the current block:
 
     def $DEV_INTERNET = eth1;
@@ -884,6 +892,31 @@ the parent block still knows "set $DEV_INTERNET = eth1".
 Include files are special - variables declared in an included file are
 still available in the calling block. This is useful when you include
 a file which only declares variables.
+
+=head1 FUNCTIONS
+
+Functions are similar to variables, except that they may have
+parameters, and they provide ferm commands, not values.
+
+    def &FOO() = proto (tcp udp) dport domain;
+    &FOO() ACCEPT;
+
+    def &TCP_TUNNEL($port, $dest) = {
+        table filter chain FORWARD interface ppp0 proto tcp dport $port daddr $dest outerface eth0 ACCEPT;
+        table nat chain PREROUTING interface ppp0 proto tcp dport $port daddr 1.2.3.4 DNAT to $dest;
+    }
+
+    &TCP_TUNNEL(http, 192.168.1.33);
+    &TCP_TUNNEL(ftp, 192.168.1.30);
+    &TCP_TUNNEL((ssh smtp), 192.168.1.2);
+
+A function call which contains a block (like '{...}') must be the last
+command in a ferm rule, i.e. it must be followed by ';'. The '&FOO()'
+example does not contain a block, thus you may write 'ACCEPT' after
+the call. To circumvent this, you can reorder the keywords:
+
+    def &IPSEC() = { proto (esp ah); proto udp dport 500; }
+    ACCEPT &IPSEC();
 
 =head1 BACKTICKS
 
