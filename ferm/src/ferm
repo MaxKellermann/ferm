@@ -1076,11 +1076,13 @@ sub mkrules {
     };
 
     for (my $i = 0; $i <= $#fw; $i++) {
-            foreach ( keys %{$fw[$i]} ) {
-            if ($debug) {
-                $db .= "$_" . "[$i]=" . $fw[$i]{$_} . " ";
-            };
-            push @fr, { $_ => $fw[$i]{$_} }; } }
+        while (my ($key, $value) = each %{$fw[$i]}) {
+            $db .= "${key}[$i]=$value "
+              if $debug;
+
+            push @fr, { $key => $value };
+        }
+    }
 
     if ($debug) {
         push @rules, "$db\n ";
