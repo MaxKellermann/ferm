@@ -1570,6 +1570,8 @@ sub enter {
 
                         if ($keyword =~ /^[\{\(]$/) {
                             push @level, $keyword;
+                            $function{block} = 1
+                              if $keyword eq '{';
                         } elsif ($keyword =~ /^[\}\)]$/) {
                             my $expected = $keyword;
                             $expected =~ tr/\}\)/\{\(/;
@@ -1606,16 +1608,25 @@ sub enter {
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
-                my $def = $functions{$name};
+                my $function = $functions{$name};
                 error("no such function: \&$name")
-                  unless defined $def;
+                  unless defined $function;
 
                 my $params = getvalues();
                 error('function name must be followed by "()"')
                   unless ref $params and @$params == 0;
 
+                if ($function->{block}) {
+                    # block {} always ends the current rule, so if the
+                    # function contains a block, we have to require
+                    # the calling rule also ends here
+                    my $token = next_token();
+                    error("';' expected after block function call '\&$name'")
+                      unless defined $token and $token eq ';';
+                }
+
                 # XXX: functions not yet implemented
-                unshift @{$script->{tokens}}, @{$def->{tokens}};
+                unshift @{$script->{tokens}}, @{$function->{tokens}};
 
                 next;
             }
