@@ -1748,3 +1748,5 @@ B<ferm> I<options> I<inputfiles>
                    Either iptables or ipchains
  --location /path/to/iptables
                    Specify the location and name of the kernel program
+
+=cut
