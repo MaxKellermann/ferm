@@ -106,6 +106,8 @@ use vars qw(%deprecated_keywords);
                          psddelaythreshold => 'psd-delay-threshold',
                          psdloportsweight => 'psd-lo-ports-weight',
                          psdhiportsweight => 'psd-hi-ports-weight',
+                         MASQ => 'MASQUERADE',
+                         masq => 'MASQUERADE',
                        );
 
 # Get command line stuff
@@ -1688,9 +1690,6 @@ sub enter {
             };
 
             # action keywords
-            s/^MASQ$/MASQUERADE/i
-              and warning('Target \'MASQ\' is deprecated, please use \'MASQUERADE\'');
-
             if ($keyword =~ /^(?:ACCEPT|DROP|RETURN|QUEUE|NOP
                                 |BALANCE|DNAT|MASQUERADE|MIRROR|REDIRECT|REJECT
                                 |SNAT|TCPMSS|TTL|ULOG
