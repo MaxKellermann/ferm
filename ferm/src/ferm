@@ -1327,19 +1327,8 @@ sub enter {
             /^settos$/ && do {
                 $current->{'settos'}=getvar();
                 ; next; };
-            /^tos$/ && do {
-                $current->{'tos'}=getvar();
-                $current->{auto_modules}{tos} = 1;
-                ; next; };
             /^setftos$|^set-ftos$/ && do {
                 $current->{'setftos'}=getvar();
-                ; next; };
-            /^mark$/ && do {
-                $current->{'mark'}=getvar();
-                $current->{auto_modules}{mark} = 1;
-                ; next; };
-            /^set-mark$|^setmark$/ && do {
-                $current->{'setmark'}=getvar();
                 ; next; };
             /^tcp-flags$|^tcpflags$|^flags$/ && do {
                 $current->{'tcpflags'}='1';
@@ -1348,66 +1337,6 @@ sub enter {
                 ; next; };
             /^tcp-option$|^tcpoption$/ && do {
                 $current->{'tcpoption'}=getvalues();
-                ; next; };
-            /^mac$|^mac-source$|^macsource$/ && do {
-                $current->{'macsource'}=getvalues();
-                $current->{auto_modules}{mac} = 1;
-                ; next; };
-            /^limit$/ && do {
-                $current->{'limit'}=getvar();
-                $current->{auto_modules}{limit} = 1;
-                ; next; };
-            /^iplimitabove$|^ip-limit-above$/ && do {
-                $current->{'iplimitabove'}=getvar();
-                $current->{auto_modules}{iplimit} = 1;
-                ; next; };
-            /^iplimitmask$|^ip-limit-mask$/ && do {
-                $current->{'iplimitmask'}=getvar();
-                $current->{auto_modules}{iplimit} = 1;
-                ; next; };
-            /^burst$|^limit-burst$|^limitburst$/ && do {
-                $current->{'limitburst'}=getvar();
-                $current->{auto_modules}{limit} = 1;
-                ; next; };
-            /^uid-owner$|^uidowner$|^uid$/ && do {
-                $current->{'uidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^gid-owner$|^gidowner$|^gid$/ && do {
-                $current->{'gidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^pid-owner$|^pidowner$|^pid$/ && do {
-                $current->{'pidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^sid-owner$|^sidowner$|^sid$/ && do {
-                $current->{'sidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^psdweightthreshold$|^psd-weight-threshold$/ && do {
-                $current->{'psdweightthreshold'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^psddelaythreshold$|^psd-delay-threshold$/ && do {
-                $current->{'psddelaythreshold'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
-                $current->{'psdloportsweight'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
-                $current->{'psdhiportsweight'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^length$/ && do {
-                $current->{'length'}=getvar();
-                $current->{auto_modules}{length} = 1;
-                ; next; };
-            /^state$/ && do {
-                $current->{'state'}=join(':',split(/\x2c/,getvalues()));
-                $current->{auto_modules}{state} = 1;
                 ; next; };
             /^log-level$|^loglev$/ && do {
                 $current->{'loglevel'}=getvar();
@@ -1435,53 +1364,9 @@ sub enter {
             /^reject-with$|^rejectwith$/ && do {
                 $current->{'rejectwith'}=getvar();
                 ; next; };
-            /^ttl$/ && do {
-                $current->{'ttl'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-set$|^ttlset$/ && do {
-                $current->{'ttlset'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-inc$|^ttlinc$/ && do {
-                $current->{'ttlinc'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-dec$|^ttldec$/ && do {
-                $current->{'ttldec'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-eq$|^ttleq$/ && do {
-                $current->{'ttleq'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-lt$|^ttllt$/ && do {
-                $current->{'ttllt'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-gt$|^ttlgt$/ && do {
-                $current->{'ttlgt'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^every$|^counter$|^start$|^packet$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{nth} = 1;
-                ; next; };
-            /^average$/ && do {
-                $current->{'average'}=getvar();
-                $current->{auto_modules}{random} = 1;
-                ; next; };
-            /^pkttype$|^pkt-type$/ && do {
-                $current->{'pkttype'}=getvalues();
-                $current->{auto_modules}{pkttype} = 1;
-                ; next; };
             /^string$/ && do {
                 $current->{'string'}=getvalues();
-                # XXX: what's this? $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^timestart$|^timestop$|^days$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{time} = 1;
+                # XXX: what's this?
                 ; next; };
             /^nldrop$/ && do {
                 $current->{'nldrop'}=1;
@@ -1489,33 +1374,6 @@ sub enter {
             /^nlmark$|^nlsize$/ && do {
                 $current->{$keyword}=getvar();
                 ; next; };
-
-            # ipt_recent switches
-            /^(?:name|seconds|hitcount)$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{recent} = 1;
-                next;
-            };
-            /^(?:set|rcheck|update|remove|rttl)$/ && do {
-                $current->{$keyword}=1;
-                $current->{auto_modules}{recent} = 1;
-                next;
-            };
-
-            # ipt_addrtype switches
-            /^(?:src|dst)-?type$/ && do {
-                s/-//;
-                $current->{$_} = getvalues();
-                $current->{modules}{addrtype} = 1;
-                next;
-            };
-
-            # ipt_conntrack switches
-            /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{conntrack} = 1;
-                next;
-            };
 
             # miscelleanous switches
             /^reverse$|^bidirectional$|^swap$/ && do {
@@ -1625,6 +1483,178 @@ sub enter {
                 $current->{'action'} = lc $keyword;
                 next;
             };
+
+            # ipt_addrtype switches
+            /^(?:src|dst)-?type$/ && do {
+                s/-//;
+                $current->{$_} = getvalues();
+                $current->{modules}{addrtype} = 1;
+                next;
+            };
+
+            # ipt_conntrack switches
+            /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
+                $current->{$keyword}=getvar();
+                $current->{auto_modules}{conntrack} = 1;
+                next;
+            };
+
+            # ipt_iplimit switches
+            /^iplimitabove$|^ip-limit-above$/ && do {
+                $current->{'iplimitabove'}=getvar();
+                $current->{auto_modules}{iplimit} = 1;
+                ; next; };
+            /^iplimitmask$|^ip-limit-mask$/ && do {
+                $current->{'iplimitmask'}=getvar();
+                $current->{auto_modules}{iplimit} = 1;
+                ; next; };
+
+            # ipt_length switches
+            /^length$/ && do {
+                $current->{'length'}=getvar();
+                $current->{auto_modules}{length} = 1;
+                ; next; };
+
+            # ipt_limit switches
+            /^limit$/ && do {
+                $current->{'limit'}=getvar();
+                $current->{auto_modules}{limit} = 1;
+                ; next; };
+            /^burst$|^limit-burst$|^limitburst$/ && do {
+                $current->{'limitburst'}=getvar();
+                $current->{auto_modules}{limit} = 1;
+                ; next; };
+
+            # ipt_mac switches
+            /^mac$|^mac-source$|^macsource$/ && do {
+                $current->{'macsource'}=getvalues();
+                $current->{auto_modules}{mac} = 1;
+                ; next; };
+
+            # ipt_mark switches
+            /^mark$/ && do {
+                $current->{'mark'}=getvar();
+                $current->{auto_modules}{mark} = 1;
+                ; next; };
+            /^set-mark$|^setmark$/ && do {
+                $current->{'setmark'}=getvar();
+                $current->{auto_modules}{mark} = 1;
+                # XXX: MARK/CONNMARK conflict
+                ; next; };
+
+            # ipt_nth switches
+            /^every$|^counter$|^start$|^packet$/ && do {
+                $current->{$keyword}=getvar();
+                $current->{auto_modules}{nth} = 1;
+                ; next; };
+
+            # ipt_owner switches
+            /^uid-owner$|^uidowner$|^uid$/ && do {
+                $current->{'uidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
+                ; next; };
+            /^gid-owner$|^gidowner$|^gid$/ && do {
+                $current->{'gidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
+                ; next; };
+            /^pid-owner$|^pidowner$|^pid$/ && do {
+                $current->{'pidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
+                ; next; };
+            /^sid-owner$|^sidowner$|^sid$/ && do {
+                $current->{'sidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
+                ; next; };
+
+            # ipt_pkttype switches
+            /^pkttype$|^pkt-type$/ && do {
+                $current->{'pkttype'}=getvalues();
+                $current->{auto_modules}{pkttype} = 1;
+                ; next; };
+
+            # ipt_psd switches
+            /^psdweightthreshold$|^psd-weight-threshold$/ && do {
+                $current->{'psdweightthreshold'}=getvar();
+                $current->{auto_modules}{psd} = 1;
+                ; next; };
+            /^psddelaythreshold$|^psd-delay-threshold$/ && do {
+                $current->{'psddelaythreshold'}=getvar();
+                $current->{auto_modules}{psd} = 1;
+                ; next; };
+            /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
+                $current->{'psdloportsweight'}=getvar();
+                $current->{auto_modules}{psd} = 1;
+                ; next; };
+            /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
+                $current->{'psdhiportsweight'}=getvar();
+                $current->{auto_modules}{psd} = 1;
+                ; next; };
+
+            # ipt_random switches
+            /^average$/ && do {
+                $current->{'average'}=getvar();
+                $current->{auto_modules}{random} = 1;
+                ; next; };
+
+            # ipt_recent switches
+            /^(?:name|seconds|hitcount)$/ && do {
+                $current->{$keyword}=getvar();
+                $current->{auto_modules}{recent} = 1;
+                next;
+            };
+            /^(?:set|rcheck|update|remove|rttl)$/ && do {
+                $current->{$keyword}=1;
+                $current->{auto_modules}{recent} = 1;
+                next;
+            };
+
+            # ipt_state switches
+            /^state$/ && do {
+                $current->{'state'}=join(':',split(/\x2c/,getvalues()));
+                $current->{auto_modules}{state} = 1;
+                ; next; };
+
+            # ipt_time switches
+            /^timestart$|^timestop$|^days$/ && do {
+                $current->{$keyword}=getvar();
+                $current->{auto_modules}{time} = 1;
+                ; next; };
+
+            # ipt_tos switches
+            /^tos$/ && do {
+                $current->{'tos'}=getvar();
+                $current->{auto_modules}{tos} = 1;
+                ; next; };
+
+            # ipt_ttl switches
+            /^ttl$/ && do {
+                $current->{'ttl'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
+            /^ttl-set$|^ttlset$/ && do {
+                $current->{'ttlset'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
+            /^ttl-inc$|^ttlinc$/ && do {
+                $current->{'ttlinc'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
+            /^ttl-dec$|^ttldec$/ && do {
+                $current->{'ttldec'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
+            /^ttl-eq$|^ttleq$/ && do {
+                $current->{'ttleq'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
+            /^ttl-lt$|^ttllt$/ && do {
+                $current->{'ttllt'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
+            /^ttl-gt$|^ttlgt$/ && do {
+                $current->{'ttlgt'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
+                ; next; };
 
             # effectuation operator
             /(\x3b)/ && do {
