@@ -41,7 +41,7 @@ man:	$(manobjects)
 tar:	man $(tarobjects)
 
 clean:
-	@rm -f man/* $(tmpfiles) $(tarobjects)
+	@rm -f man/ferm.* $(tmpfiles) $(tarobjects)
 
 #
 # compiling targets
@@ -69,14 +69,13 @@ ferm.tar.gz:
 	@cp $(SRC) $(TARDIR)
 	@cp $(MANSRC) $(TARDIR)
 	@cp scripts/Makefile $(TARDIR)
-	@cp man/* $(TARDIR)
-	@cp info/* $(TARDIR)
-	@cp examples/* $(TARDIR)/examples
+	@cp man/ferm.* $(TARDIR)
+	@cp info/AUTHORS info/CHANGES info/COPYING info/README $(TARDIR)
+	@cp examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(TARDIR)/examples
 	@echo "Making tar file..."
 	@tar cf $(TARDIR).tar $(TARDIR)
 	@gzip -f $(TARDIR).tar
-	@rm -f ferm.tar.gz
-	@ln -s $(TARFILE) ferm.tar.gz
+	@rm -rf $(TARDIR)
 	@echo "Done."
 
 #
