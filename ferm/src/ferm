@@ -45,10 +45,11 @@ use vars qw(%option $verbose $debug);
 
 ## parser variables
 # $script: current script file
+# %oldvars = ferm 1.1 compatibility variables, name => value
 # %vars = ferm variables, name => value
 # %functions = ferm functions and variables
 # @rules = the rules which are being created
-use vars qw($script %vars %functions @rules);
+use vars qw($script %oldvars %vars %functions @rules);
 
 ## netfilter variables
 # @ip_tables_names = a list of supported table names (filter, nat, mangle)
@@ -404,6 +405,8 @@ sub read_header {
             my $name = getvar(\&next_array_token, \@line);
             my $value = getvalues(\&next_array_token, \@line);
 
+            warning('"set" is deprecated, please use "def $NAME = VALUE;"');
+
             if (@line and $line[0] eq ',') {
                 warning('Arrays without parantheses are deprecated');
 
@@ -420,7 +423,7 @@ sub read_header {
             error('spare tokens after "set"')
               if @line;
 
-            $vars{$name} = $value;
+            $oldvars{$name} = $value;
         } else {
             # the next parser stage eats this
             push @$tokens, @line;
@@ -613,21 +616,21 @@ sub require_next_token {
     return $token;
 }
 
-sub variable_value {
+sub old_variable_value {
     # determine the value of a variable, die if the variable is
     # unknown
     my $name = shift;
 
-    error("undefined variable: $name")
-      unless exists $vars{$name};
+    error("no such variable: \%$name")
+      unless exists $oldvars{$name};
 
-    return $vars{$name};
+    return $oldvars{$name};
 }
 
-sub string_variable_value {
+sub string_old_variable_value {
     # determine the value of a variable, die if the value is an array
     my $name = shift;
-    my $value = variable_value($name);
+    my $value = old_variable_value($name);
 
     error("variable '$name' must be a string, is an array")
       if ref $value;
@@ -635,17 +638,17 @@ sub string_variable_value {
     return $value;
 }
 
-sub resolve_variable_refs {
+sub resolve_old_variable_refs {
     # resolve all variable references in the string - may be an array!
     my $token = shift;
 
     if ($token =~ /^\%(\w+)$/) {
         # if the token only of the reference, return the pure value
-        return variable_value($1);
+        return old_variable_value($1);
     } else {
         # a reference in the middle of the string. replace, but only
         # allow string variables, no arrays here
-        $token =~ s/\%(\w+)/string_variable_value($1)/eg;
+        $token =~ s/\%(\w+)/string_old_variable_value($1)/eg;
 
         return $token;
     }
@@ -735,7 +738,7 @@ sub getvalues {
         warning('Arrays within a string are deprecated, please use parantheses');
 
         my @array = map {
-            my $value = resolve_variable_refs($_);
+            my $value = resolve_old_variable_refs($_);
             ref $value ? @$value : $value;
         } split(/,/, $token);
 
@@ -747,19 +750,25 @@ sub getvalues {
         error('comma is not allowed here');
     } elsif ($token eq '=') {
         error('equals operator ("=") is not allowed here');
-    } elsif ($token eq '$' or $token eq '%') {
+    } elsif ($token eq '$') {
         my $name = require_next_token($code, $param);
         error('variable name expected')
           unless $name =~ /^\w+$/;
 
-        error("no such variable: $name")
+        error("no such variable: \$$name")
           unless exists $vars{$name};
 
         return $vars{$name};
+    } elsif ($token eq '%') {
+        my $name = require_next_token($code, $param);
+        error('variable name expected')
+          unless $name =~ /^\w+$/;
+
+        return old_variable_value($name);
     } elsif ($token eq '&') {
         error("function calls are not allowed as keyword parameter");
     } else {
-        return resolve_variable_refs($token);
+        return resolve_old_variable_refs($token);
     }
 }
 
