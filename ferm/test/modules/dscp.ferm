@@ -1,0 +1,4 @@
+chain INPUT {
+    dscp (1 2) ACCEPT;
+    dscp-class FOO BAR DROP;
+}
