@@ -1,3 +1,3 @@
 iptables -t filter -A INPUT -j ACCEPT -m dscp --dscp 1
 iptables -t filter -A INPUT -j ACCEPT -m dscp --dscp 2
-iptables -t filter -A INPUT -j DROP -m dscp --dscp-class FOO BAR
+iptables -t filter -A INPUT -j DROP -m dscp --dscp-class AF41
