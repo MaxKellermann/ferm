@@ -639,6 +639,8 @@ sub tables {
         else {
             $rr .= '! --syn '; } ;
         } ;
+    $rr .= "--mss $rule{mss} "
+      if exists $rule{mss};
 
     if (defined $rule{'mark'} ) {
         $rr .= "--mark " . $rule{'mark'} . " "; } ;
@@ -1013,6 +1015,14 @@ sub mkrules {
     dofr({}, @fr);
 }
 
+sub find_option {
+    my ($fw, $key) = @_;
+
+    my $item = (grep { exists $_->{$key} } reverse @$fw)[0];
+    return unless defined $item;
+
+    return $item->{$key};
+}
 
 sub enter {
     my $lev = shift;  # current recursion depth
@@ -1088,16 +1098,7 @@ sub enter {
             /^protocol$|^proto$/ && do {
                 $current->{'proto'}=getvalues();
                 ; next; } ;
-            /^sport$/ && do {
-                $current->{'sport'}=getvalues();
-                ; next; } ;
-            /^dport$/ && do {
-                $current->{'dport'}=getvalues();
-                ; next; };
 
-            /^icmptype$|^icmp-type$/ && do {
-                $current->{'icmptype'}=getvalues();
-                ; next; } ;
             /^saddr$/ && do {
                 $current->{'saddr'}=getvalues();
                 ; next; };
@@ -1111,14 +1112,6 @@ sub enter {
                 ; next; };
             /^set-?ftos$/ && do {
                 $current->{'setftos'}=getvar();
-                ; next; };
-            /^(?:tcp-?)flags$/ && do {
-                $current->{'tcpflags'}='1';
-                $current->{'flagsmask'}=join(':',split(/\x2c/,getvalues()));
-                $current->{'flagsmatch'}=join(':',split(/\x2c/,getvalues()));
-                ; next; };
-            /^tcp-?option$/ && do {
-                $current->{'tcpoption'}=getvalues();
                 ; next; };
             /^module$|^mod$|^match$/ && do {
                 foreach my $module (split /\x2c|:/, getvalues()) {
@@ -1140,14 +1133,6 @@ sub enter {
                 ; next; };
 
             # miscelleanous switches
-            /^syn$/ && do {
-                # match tcp packages with syn-byte set
-                if ($negated) {
-                    $current->{'syn'}='unset';
-                    undef $negated;
-                } else {
-                    $current->{'syn'}='set';}
-                ; next; } ;
             /^fragment$|^frag$/ && do {
                 if ($negated) {
                     $current->{'fragment'}='unset';
@@ -1183,6 +1168,65 @@ sub enter {
                 $current->{'action'} = lc $keyword;
                 next;
             };
+
+            ###
+            # protocol specific options
+            #
+
+            my $proto = find_option(\@fw, 'proto');
+
+            # icmp protocol switches
+            if (defined $proto and
+                $proto eq 'icmp' and
+                $keyword =~ /^icmp-?type$/) {
+                $current->{icmptype} = getvalues();
+                next;
+            }
+
+            # tcp protocol switches
+            if (defined $proto and
+                $proto eq 'tcp') {
+                if ($keyword =~ /^[sd]port$/) {
+                    $current->{$keyword} = getvalues();
+                    next;
+                }
+                if ($keyword =~ /^(?:tcp-?)flags$/) {
+                    $current->{tcpflags} = 1;
+                    $current->{flagsmask} = join(':',split(/\x2c/,getvalues()));
+                    $current->{flagsmatch} = join(':',split(/\x2c/,getvalues()));
+                    next;
+                }
+                if ($keyword eq 'syn') {
+                    # match tcp packages with syn-byte set
+                    if ($negated) {
+                        $current->{syn} = 'unset';
+                        undef $negated;
+                    } else {
+                        $current->{syn} = 'set';
+                    }
+                    next;
+                }
+                if ($keyword =~ /^tcp-?option$/) {
+                    $current->{tcpoption} = getvalues();
+                    next;
+                }
+                if ($keyword eq 'mss') {
+                    $current->{mss} = getvalues();
+                    next;
+                }
+            }
+
+            # udp protocol switches
+            if (defined $proto and
+                $proto eq 'udp' and
+                $keyword =~ /^[sd]port$/) {
+                $current->{$keyword} = getvalues();
+                next;
+            }
+
+            ###
+            # module specific options
+            #
 
             # ipt_addrtype switches
             /^(?:src|dst)-?type$/ && do {
@@ -1336,7 +1380,10 @@ sub enter {
                 next;
             };
 
-            # target switches
+            ###
+            # target specific options
+            #
+
             if (defined $current->{action}) {
                 # DNAT target switches
                 if ($current->{action} eq 'dnat' and
