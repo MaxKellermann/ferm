@@ -790,21 +790,12 @@ sub tables {
     return
       unless $rule{has_rule};
 
-    $rr .= "$option{'location'} ";
+    shell_append(\$rr, $option{location});
 
-    if (defined $rule{'table'} ) {
-        $rr .= "-t " . $rule{'table'} . " "; };
+    shell_append(\$rr, '-t', $rule{table})
+      if defined $rule{'table'};
 
-    $rr .= "-A ";
-
-    $rr .= $rule{'chain'} . " ";
-    if (defined $rule{'interface'} ) {
-        $rr .= "-i " . $rule{'interface'} . " " ; };
-    if (defined $rule{'outerface'} ) {
-        $rr .= "-o " . $rule{'outerface'} . " " ; };
-
-    shell_append(\$rr, '-p', $rule{proto})
-      if defined $rule{proto};
+    shell_append(\$rr, '-A', $rule{chain});
 
     # modules
     my %modules = ( ( exists $rule{modules}
@@ -819,6 +810,14 @@ sub tables {
       foreach (keys %modules);
 
     # general iptables options
+    shell_append(\$rr, '-i', $rule{interface})
+      if defined $rule{'interface'};
+    shell_append(\$rr, '-o', $rule{outerface})
+      if defined $rule{'outerface'};
+
+    shell_append(\$rr, '-p', $rule{proto})
+      if defined $rule{proto};
+
     shell_append(\$rr, '-s', $rule{saddr})
       if defined $rule{saddr};
     shell_append(\$rr, '-d', $rule{daddr})
@@ -933,13 +932,13 @@ sub tables {
     }
 
     # ipt_addrtype parameters
-    $rr .= "--src-type " . $rule{srctype} . " "
+    shell_append(\$rr, '--src-type', $rule{srctype})
       if exists $rule{srctype};
-    $rr .= "--dst-type " . $rule{dsttype} . " "
+    shell_append(\$rr, '--dst-type', $rule{dsttype})
       if exists $rule{dsttype};
 
     # ipt_ah parameters
-    $rr .= "--ahspi $rule{ahspi} "
+    shell_append(\$rr, '--ahspi', $rule{ahspi})
       if exists $rule{ahspi};
 
     # ipt_conntrack parameters
@@ -948,30 +947,28 @@ sub tables {
 
     foreach (qw(ctproto ctorigsrc ctorigdst),
              qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
-        $rr .= "--$_ $rule{$_} "
+        shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
     }
 
     # ipt_iplimit parameters
-    $rr .= "--iplimit-above $rule{iplimitabove} "
+    shell_append(\$rr, '--iplimit-above', $rule{iplimitabove})
       if exists $rule{iplimitabove};
-
-    $rr .= "--iplimit-mask $rule{iplimitmask} "
+    shell_append(\$rr, '--iplimit-mask', $rule{iplimitmask})
       if exists $rule{iplimitmask};
 
     # ipt_length parameters
-    $rr .= "--length $rule{length} "
+    shell_append(\$rr, '--length', $rule{length})
       if exists $rule{length};
 
     # ipt_limit parameters
-    $rr .= "--limit $rule{limit} "
+    shell_append(\$rr, '--limit', $rule{limit})
       if exists $rule{limit};
-
-    $rr .= "--limit-burst $rule{limitburst} "
+    shell_append(\$rr, '--limit-burst', $rule{limitburst})
       if exists $rule{limitburst};
 
     # ipt_mac parameters
-    $rr .= "--mac-source $rule{macsource} "
+    shell_append(\$rr, '--mac-source', $rule{macsource})
       if exists $rule{macsource};
 
     # ipt_mark, ipt_connmark
@@ -980,41 +977,41 @@ sub tables {
 
     # ipt_nth parameters
     foreach (qw(every counter start packet)) {
-        $rr .= "--$_ $rule{$_} "
+        shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
     }
 
     # ipt_owner parameters
     foreach (qw(uid gid pid sid cmd)) {
-        $rr .= "--${_}-owner $rule{${_} . 'owner'} "
+        shell_append(\$rr, "--${_}-owner", $rule{${_} . 'owner'})
           if exists $rule{${_} . 'owner'};
     }
 
     # ipt_pkttype switches
-    $rr .= "--pkt-type $rule{pkttype} "
+    shell_append(\$rr, '--pkt-type', $rule{pkttype})
       if exists $rule{pkttype};
 
     # ipt_psd switches
-    $rr .= "--psd-weight-threshold $rule{psdweightthreshold} "
+    shell_append(\$rr, '--psd-weight-threshold', $rule{psdweightthreshold})
       if exists $rule{psdweightthreshold};
-    $rr .= "--psd-delay-threshold $rule{psddelaythreshold} "
+    shell_append(\$rr, '--psd-delay-threshold', $rule{psddelaythreshold})
       if exists $rule{psddelaythreshold};
-    $rr .= "--psd-lo-ports-weight $rule{psdloportsweight} "
+    shell_append(\$rr, '--psd-lo-ports-weight', $rule{psdloportsweight})
       if exists $rule{psdloportsweight};
-    $rr .= "--psd-hi-ports-weight $rule{psdhiportsweight} "
+    shell_append(\$rr, '--psd-hi-ports-weight', $rule{psdhiportsweight})
       if exists $rule{psdhiportsweight};
 
     # ipt_random parameters
-    $rr .= "--average $rule{average} "
+    shell_append(\$rr, '--average', $rule{average})
       if exists $rule{average};
 
     # ipt_recent parameters
     foreach (qw(name seconds hitcount)) {
-        $rr .= "--$_ $rule{$_} "
+        shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
     }
     foreach (qw(set rcheck update remove rttl)) {
-        $rr .= "--$_ "
+        shell_append(\$rr, "--$_")
           if exists $rule{$_};
     }
 
@@ -1027,7 +1024,7 @@ sub tables {
       if exists $rule{days};
 
     foreach (qw(timestart timestop datestart datestop)) {
-        $rr .= "--$_ $rule{$_} "
+        shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
     }
 
@@ -1040,7 +1037,7 @@ sub tables {
         $rule{tos} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
         $rule{tos} =~ s/^clear$/0x00/;
 
-        $rr .= "--tos $rule{tos} ";
+        shell_append(\$rr, "--tos", $rule{tos})
     }
 
     # ipt_ttl parameters
@@ -1048,7 +1045,7 @@ sub tables {
         my $key = $_;
         $key =~ s/-//;
 
-        $rr .= "--$_ $rule{$key} "
+        shell_append(\$rr, "--$_", $rule{$key})
           if exists $rule{$key};
     }
 
