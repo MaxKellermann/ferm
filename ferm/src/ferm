@@ -962,6 +962,15 @@ sub tables {
           if exists $rule{$key};
     }
 
+    # ROUTE parameters
+    foreach (qw(oif iif gw)) {
+        shell_append(\$rr, "--$_", $rule{$_})
+          if exists $rule{$_};
+    }
+
+    shell_append(\$rr, '--continue')
+      if exists $rule{continue};
+
     # this line is done
     $rr .= "\n";
     push @rules, $rr;
@@ -1204,7 +1213,7 @@ sub enter {
             }
 
             # routing base parameters
-            /^interface$|if$/ && do {
+            /^(?:interface|if)$/ && do {
                 $current->{'interface'}=getvalues();
                 ; next; } ;
             /^outerface$|^out-interface$|^of$/ && do {
@@ -1559,6 +1568,18 @@ sub enter {
                     $keyword =~ /^reject-?with$/) {
                     $current->{rejectwith} = getvar();
                     next;
+                }
+
+                # ROUTE target switches
+                if ($current->{action} eq 'ROUTE') {
+                    if ($keyword =~ /^(?:oif|iif|gw)$/) {
+                        $current->{$keyword} = getvar();
+                        next;
+                    }
+                    if ($keyword =~ /^(?:continue)$/) {
+                        $current->{$keyword} = 1;
+                        next;
+                    }
                 }
 
                 # SNAT target switches
