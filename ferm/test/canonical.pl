@@ -73,7 +73,7 @@ while (<>) {
         s/-s\b/--source/g;
 
         # evaluate options with zero, one, two parameters
-        s/(!\s*)?--(syn|clamp-mss-to-pmtu|set|rcheck|log-tcp-sequence|log-tcp-options|log-ip-options|continue)(\s|$)/$item->{$2} = $1; ''/eg;
+        s/(!\s*)?--(syn|clamp-mss-to-pmtu|set|rcheck|log-tcp-sequence|log-tcp-options|log-ip-options|continue|save-mark|restore-mark)(\s|$)/$item->{$2} = $1; ''/eg;
         s/--(tcp-flags)\s+(\S+)\s+(\S+)/$item->{$1} = [ $2, $3 ]; ''/eg;
         s/--(\w[-\w]*)\s+(".*?"|'.*?'|(?:!\s*)?\S+)/$item->{$1} = shell_unescape($2); ''/eg;
 
