@@ -227,61 +227,14 @@ sub tokenize_string {
         # \x7b == }
         # \x7d == {
         # \x3b == ;
+
+        $word =~ s/^(["'])(.*)\1$/$2/s;
+
         push @ret, $word;
     }
 
     return @ret;
 }
-
-sub getvar2 {
-    # see if $array->[0] is contains variables, and try to substitute
-    # them with their values
-    my $array = shift;
-    die unless ref $array eq 'ARRAY';
-
-    my $w = shift @$array;
-    # Substitute all variables in this strings if present
-    while ( $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/ ) {
-        if ($debug) {
-            my $db = "# substituting variables: \%$1 ";
-            push @rules, "$db -\> $vars{$1}\n";
-        }
-    }
-    return $w;
-}
-
-
-sub getvalues2 {
-    # retrieves a list of parameters given, syntax:
-    # [keyword]|"("{keyword}")"
-    # starts to read at $c++
-    my $array = shift;
-
-    my @wordlist;
-    my $firstword = getvar2($array);
-
-    return $firstword
-      if $firstword =~ /^[\x22\x27\x60]/;
-    if ($firstword eq '(') {
-        # read a list until ")"
-        my $nextword;
-        do {
-            $nextword = getvar2($array);
-            if ( $nextword ne ')' ) {
-                if ( $nextword eq '!' ) {
-                    $nextword .= getvar2($array);
-                };
-                push @wordlist, $nextword;
-            };
-        } until ( $nextword eq ')' );
-        return (join(',', @wordlist));
-    } elsif ( $firstword eq '!' ) {
-        return $firstword . getvar2($array);
-    } else {
-        return $firstword;
-    };
-}
-
 
 sub setvar {
     my $vname = shift;
@@ -309,6 +262,11 @@ sub setvar {
     }
 
     $vars{$vname} = $vval;
+}
+
+sub next_array_token {
+    my $array = shift;
+    shift @$array;
 }
 
 sub prepare_tokens {
@@ -357,7 +315,7 @@ sub prepare_tokens {
             # set: set a variable
             shift @line;
             my $name = shift @line;
-            my $value = getvalues2(\@line);
+            my $value = getvalues(\&next_array_token, \@line);
             setvar($name, $value);
         } elsif ($line[0] eq 'include') {
             # include: include another file
@@ -469,53 +427,135 @@ sub next_token {
     return $token;
 }
 
-sub getvar {
-    # see if the next_token() contains variables, and try to
-    # substitute them with their values
+sub require_next_token {
+    # require that another token exists, and that it's not a "special"
+    # token, e.g. ";" and "{"
+    my $code = shift || \&next_token;
 
-    my $w = next_token();
+    my $token = &$code(@_);
 
-    # a parameter is expected, EOF is fatal
     error('unexpected end of file')
-      unless defined $w;
+      unless defined $token;
 
-    # a parameter cannot be one of the "special" tokens
-    error("unexpected '$w'")
-      if $w =~ /^[;{}]/;
+    error("unexpected '$token'")
+      if $token =~ /^[;{}]/;
 
-    # Substitute all variables in this strings if present
-    while ( $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/ ) {
-        if ($debug) {
-            my $db = "# substituting variables: \%$1 ";
-            push @rules, "$db -\> $vars{$1}\n";
-        }
-    }
-    return $w;
+    return $token;
 }
 
+sub variable_value {
+    # determine the value of a variable, die if the variable is
+    # unknown
+    my $name = shift;
+
+    error("undefined variable: $name")
+      unless exists $vars{$name};
+
+    return $vars{$name};
+}
+
+sub string_variable_value {
+    # determine the value of a variable, die if the value is an array
+    my $name = shift;
+    my $value = variable_value($name);
+
+    error("variable '$name' must be a string, is a list")
+      if ref $value;
+
+    return $value;
+}
+
+sub resolve_variable_refs {
+    # resolve all variable references in the string - may be an array!
+    my $token = shift;
+
+    if ($token =~ /^\%([0-9a-zA-Z\x2d\x5f]+)$/) {
+        # if the token only of the reference, return the pure value
+        return variable_value($1);
+    } else {
+        # a reference in the middle of the string. replace, but only
+        # allow string variables, no arrays here
+        $token =~ s/\%([0-9a-zA-Z\x2d\x5f]+)/string_variable_value($1)/eg;
+
+        return $token;
+    }
+}
 
 sub getvalues {
-    # retreives a list of parameters given, syntax:
-    # [keyword]|"("{keyword}")"
-    # starts to read at $c++
-
-    my $token = getvar();
+    # returns the next parameter, which may either be a scalar or an
+    # array
+    my $token = require_next_token(@_);
 
     if ($token eq '(') {
         # read a list until ")"
         my @wordlist;
 
-        while (($token = getvar()) ne ')') {
-            $token .= getvar()
-              if $token eq '!';
-            push @wordlist, $token;
+        for (;;) {
+            $token = getvalues(@_);
+
+            unless (ref $token) {
+                last if $token eq ')';
+
+                error('items cannot be negated in a list')
+                  if $token =~ /^!/;
+
+                $token .= getvar(@_)
+                  if $token eq '!';
+
+                push @wordlist, $token;
+            } elsif (ref $token eq 'ARRAY') {
+                push @wordlist, @$token;
+            } else {
+                error('unknown toke type');
+            }
         }
 
-        return (join(',', @wordlist));
+        return @wordlist == 1
+          ? $wordlist[0]
+            : \@wordlist;
     } elsif ($token eq '!') {
-        return $token . getvar();
+        $token = getvalues(@_);
+
+        error('it is not possible to negate a list')
+          if ref $token;
+        error('double negation is not allowed')
+          if $token =~ /^!/;
+
+        return '! ' . $token;
+    } elsif ($token =~ /^.+,.+$/) {
+        my @array = map {
+            my $value = resolve_variable_refs($_);
+            ref $value ? @$value : $value;
+        } split(/,/, $token);
+
+        return \@array;
     } else {
-        return $token;
+        return resolve_variable_refs($token);
+    }
+}
+
+sub getvar {
+    # returns the next parameter, but only allow a scalar
+    my $token = getvalues(@_);
+
+    error('list not allowed here')
+      if ref $token;
+
+    return $token;
+}
+
+
+sub to_array {
+    # returns the specified value as an array. dereference arrayrefs
+    my $value = shift;
+    die unless wantarray;
+    die if @_;
+    unless (ref $value) {
+        return $value;
+    } elsif (ref $value eq 'ARRAY') {
+        return @$value;
+    } else {
+        die;
     }
 }
 
@@ -530,6 +570,24 @@ sub is_netfilter_builtin_target {
                          |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
                          |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
                        )/x;
+}
+
+sub shell_escape {
+    my $token = shift;
+    return $token
+      if $token =~ /^\`.*\`$/;
+    $token =~ s/'/\\'/g;
+    $token = '\'' . $token . '\''
+      if $token =~ /[\s\"\\]/s;
+    return $token;
+}
+
+sub shell_append {
+    my $ref = shift;
+
+    foreach (@_) {
+        $$ref .= shell_escape($_) . ' ';
+    }
 }
 
 sub tables {
@@ -668,9 +726,9 @@ sub tables {
         } ;
 
     # iptables extensions:
-    if (defined $rule{'tcpflags'} ) {
-        $rr .= "--tcp-flags " . join(',',split(/:/,$rule{'flagsmask'})) . " "
-                                . join(',',split(/:/,$rule{'flagsmatch'})) . " ";};
+    shell_append(\$rr, '--tcp-flags', $rule{flagsmask}, $rule{flagsmatch})
+      if exists $rule{tcpflags};
+
     if (defined $rule{'tcpoption'} ) {
         $rr .= "--tcp-option " . $rule{'tcpoption'} . " "; } ;
 
@@ -712,8 +770,8 @@ sub tables {
 
     if (defined $rule{'loglevel'} ) {
         $rr .= "--log-level " . $rule{'loglevel'} . " "; };
-    if (defined $rule{'logprefix'} ) {
-        $rr .= "--log-prefix " . $rule{'logprefix'} . " "; };
+    shell_append(\$rr, '--log-prefix', $rule{'logprefix'})
+      if exists $rule{'logprefix'};
     if (defined $rule{'logsequence'} ) {
         $rr .= "--log-tcp-sequence "; };
     if (defined $rule{'logtcpoptions'} ) {
@@ -749,7 +807,7 @@ sub tables {
       if exists $rule{ahspi};
 
     # ipt_conntrack parameters
-    $rr .= '--ctstate ' . join(',', split(/:/, $rule{ctstate})) . ' '
+    shell_append(\$rr, '--ctstate', $rule{ctstate})
       if exists $rule{ctstate};
 
     foreach (qw(ctproto ctorigsrc ctorigdst),
@@ -825,11 +883,11 @@ sub tables {
     }
 
     # ipt_state parameters
-    $rr .= "--state " . join(',', split(/:/, $rule{state})) . " "
+    shell_append(\$rr, '--state', $rule{state})
       if exists $rule{state};
 
     # ipt_time parameters
-    $rr .= "--days " . join(',', split(/:/, $rule{days})) . " "
+    shell_append(\$rr, '--days', $rule{days})
       if exists $rule{days};
 
     foreach (qw(timestart timestop datestart datestop)) {
@@ -956,18 +1014,20 @@ sub mkrules {
 
         # loop over all keys in this level (only 1)
         while (my ($key, $value_string) = each %$current) {
-            # preparse value stuff: is unsplit value negated???
-            my $negated = $value_string =~ /^\x21/;
-
             unless (ref $value_string) {
+                # set this one and recurse
+                $rule->{$key} = $value_string;
+
+                if (@_) {
+                    dofr($rule, @_);
+                } else {
+                    printrule($rule);
+                }
+
+                delete $rule->{$key};
+            } elsif (ref $value_string eq 'ARRAY') {
                 # recurse for every value
-                foreach my $value (split ",", $value_string) {
-                    # if so, make sure the '!' is put before every value in it
-                    if ( $negated ) {
-                        for ($value) {
-                            !/^\x21/ && do { $value = "\x21" . $value; }
-                        }
-                    }
+                foreach my $value (@$value_string) {
                     $value =~ s/^!/! /;
                     # set this one and recurse
                     $rule->{$key} = $value;
@@ -1117,7 +1177,7 @@ sub enter {
 
             # extended parameters:
             /^module$|^mod$|^match$/ && do {
-                foreach my $module (split /\x2c|:/, getvalues()) {
+                foreach my $module(to_array getvalues) {
                     $current->{modules}{$module} = 1;
                 }
                 ; next; };
@@ -1186,8 +1246,8 @@ sub enter {
                 }
                 if ($keyword =~ /^(?:tcp-?)flags$/) {
                     $current->{tcpflags} = 1;
-                    $current->{flagsmask} = join(':',split(/\x2c/,getvalues()));
-                    $current->{flagsmatch} = join(':',split(/\x2c/,getvalues()));
+                    $current->{flagsmask} = join(',', to_array getvalues());
+                    $current->{flagsmatch} = join(',', to_array getvalues());
                     next;
                 }
                 if ($keyword eq 'syn') {
@@ -1240,8 +1300,7 @@ sub enter {
 
             # ipt_conntrack switches
             /^ctstate$/ && do {
-                $current->{$keyword} = getvalues();
-                $current->{$keyword} =~ s/,/:/g;
+                $current->{$keyword} = join(',', to_array getvalues());
                 $current->{auto_modules}{conntrack} = 1;
                 next;
             };
@@ -1344,13 +1403,13 @@ sub enter {
 
             # ipt_state switches
             /^state$/ && do {
-                $current->{'state'}=join(':',split(/\x2c/,getvalues()));
+                $current->{state} = join(',', to_array getvalues());
                 $current->{auto_modules}{state} = 1;
                 ; next; };
 
             # ipt_time switches
             /^days$/ && do {
-                $current->{days} = join(':', split(/,/, getvalues()));
+                $current->{days} = join(',', to_array getvalues());
                 $current->{auto_modules}{time} = 1;
                 next;
             };
