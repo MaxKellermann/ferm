@@ -37,16 +37,6 @@ $DATE = '19 oct 2004';
 
 # global data vars
 my @rules;     # will contain all rules
-my %tables;    # chain box for iptables
-    $tables{'filter_input'} = 0;
-    $tables{'filter_forward'} = 0;
-    $tables{'filter_output'} = 0;
-    $tables{'nat_prerouting'} = 0;
-    $tables{'nat_postrouting'} = 0;
-    $tables{'nat_output'} = 0;
-    $tables{'mangle_prerouting'} = 0;
-    $tables{'mangle_output'} = 0;
-               # 0=made;1=policy set;2=flushed;3=all
 my %option;    # some configuration options
 my %vars;      # holds variable data
 
@@ -675,32 +665,24 @@ sub tables {
             push @rules, $rrr . "-N $rule{action}\n";
             $chains{$rule{table}}{$rule{action}}{was_created} = 1;
         }
-    } else {
-        # tag em so were not flushing it empty...
-        if ( ! exists $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} ) {
-            $tables{$rule{'table'} . '_' . lc $rule{'chain'}} = 0 };
-        for ( $rule{'action'} ) {
-            last unless $rule{action} and
-              not is_netfilter_builtin_target($rule{action});
-            if ( ! exists ($tables{$rule{'table'} . '_' . lc $_}) ) {
-                $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
+    }
 
     # flush neccesary chains before referencing them
-    if ( $option{'flushchains'} && (! ($option{'flushall'} || $option{'clearall'}) ) ) {
+    if ($option{flushchains} and (not $option{flushall} or $option{clearall})) {
         # check if the chain is already defined
-        if ( ($tables{$rule{'table'} . '_' . (lc $rule{'chain'})} & 2) != 2 ) {
-            push @rules, $rrr . "-F $rule{'chain'}\n" ;
-            $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2; };
-        # check for unknown jump target
-        for ( $rule{'action'} ) {
-            last unless $rule{action} and
-              not is_netfilter_builtin_target($rule{action});
-            if (($tables{$rule{'table'} . '_' . (lc $rule{'chain'})}&  2) != 2 ) {
-                push @rules, $rrr . "-F $rule{'chain'}\n";
-                $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2;
-            };
-        };
-    };
+        unless (exists $chains{$rule{table}}{$rule{chain}}{was_flushed} or
+                is_netfilter_builtin_chain($rule{table}, $rule{chain})) {
+            push @rules, $rrr . "-F $rule{chain}\n";
+            $chains{$rule{table}}{$rule{chain}}{was_flushed} = 1;
+        }
+
+        if (defined $rule{action} and
+            not is_netfilter_builtin_target($rule{action}) and
+            not exists $chains{$rule{table}}{$rule{action}}{was_flushed}) {
+            push @rules, $rrr . "-F $rule{action}\n";
+            $chains{$rule{table}}{$rule{action}}{was_flushed} = 1;
+        }
+    }
 
     # exit if no action is present - in case of policy only
     if ( !defined $rule{'action'} ) {
@@ -1012,14 +994,6 @@ sub flushall {
     foreach my $table (ip_tables_names) {
         push @rules, "$option{'location'} \-F -t $table\n";
     }
-    $tables{'filter_input'} |= 2;
-    $tables{'filter_forward'} |= 2;
-    $tables{'filter_output'} |= 2;
-    $tables{'nat_prerouting'} |= 2;
-    $tables{'nat_postrouting'} |= 2;
-    $tables{'nat_output'} |= 2;
-    $tables{'mangle_prerouting'} |= 2;
-    $tables{'mangle_output'} |= 2;
 }
 
 
