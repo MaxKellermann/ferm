@@ -891,6 +891,23 @@ Include files are special - variables declared in an included file are
 still available in the calling block. This is useful when you include
 a file which only declares variables.
 
+=head1 AUTOMATIC VARIABLES
+
+Some variables are set internally by ferm. Ferm scripts can use them
+just like any other variable.
+
+=over 8
+
+=item B<$TABLE>
+
+The current netfilter table.
+
+=item B<$CHAIN>
+
+The current netfilter chain.
+
+=back
+
 =head1 FUNCTIONS
 
 Functions are similar to variables, except that they may have

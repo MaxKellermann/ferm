@@ -1,0 +1,5 @@
+table filter chain INPUT {
+    LOG log-prefix "in $TABLE ";
+    LOG log-prefix "in $CHAIN ";
+    LOG log-prefix "in $TABLE/$CHAIN ";
+}

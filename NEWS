@@ -51,6 +51,7 @@ v1.1+cvs - 5 Apr 2005
   - options --clearall, --createchains are implied and deprecated
   - reset all policies to ACCEPT
   - variables expansion happens within double quotes
+  - implemented automatic variables: $TABLE, $CHAIN
 
 
 v1.1 - 5 May 2003

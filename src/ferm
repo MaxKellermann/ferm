@@ -714,6 +714,9 @@ sub variable_value {
           if exists $_->{vars}{$name};
     }
 
+    return $stack[0]{auto}{$name}
+      if exists $stack[0]{auto}{$name};
+
     return;
 }
 
@@ -1510,7 +1513,7 @@ sub enter {
                 # push stack
                 my $old_stack_depth = @stack;
 
-                unshift @stack, {};
+                unshift @stack, { auto => { %{$stack[0]{auto} || {}} } };
 
                 # recurse
                 enter($lev + 1, @fw);
@@ -1562,6 +1565,7 @@ sub enter {
                         # include files may set variables for their parent
                         $stack->{vars} = ($stack[0]{vars} ||= {});
                         $stack->{functions} = ($stack[0]{functions} ||= {});
+                        $stack->{auto} = { %{ $stack[0]{auto} || {} } };
                     }
 
                     unshift @stack, $stack;
@@ -1768,7 +1772,7 @@ sub enter {
             if ($keyword eq 'table') {
                 error('Table is already specified')
                   if exists $current->{table};
-                $current->{table} = getvalues();
+                $current->{table} = $stack[0]{auto}{TABLE} = getvalues();
 
                 foreach my $table (to_array $current->{table}) {
                     error("Table '$table' does not exist")
@@ -1781,7 +1785,7 @@ sub enter {
             if ($keyword eq 'chain') {
                 error('Chain is already specified')
                   if exists $current->{chain};
-                $current->{chain} = getvalues();
+                $current->{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
                 # ferm 1.1 compatibility: uppercase built-in chain
                 # names
