@@ -1,0 +1,5 @@
+chain INPUT mod realm {
+    realm 5 ACCEPT;
+    realm !2 DROP;
+    realm (8 9) REJECT;
+}

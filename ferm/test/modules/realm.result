@@ -1,0 +1,4 @@
+iptables -t filter -A INPUT -m realm -j ACCEPT --realm 5
+iptables -t filter -A INPUT -m realm -j DROP --realm ! 2
+iptables -t filter -A INPUT -m realm -j REJECT --realm 8
+iptables -t filter -A INPUT -m realm -j REJECT --realm 9
