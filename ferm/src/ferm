@@ -146,26 +146,20 @@ while (<>) {
 
         # sneak preview: scan for the 'option' word and see what kernel program
         # we will be using and which path/name we should use for it
-        if ($words[$#words-1] eq 'option') {
-            for ($word) {
-                /^ipfwadm$|^ipchains$|^iptables$/ && do {
-                    # found match: set kernel interface program
-                    $option{$word} = 1;
-                    $#words -= 2;
-                }
-            }
+        if ($words[$#words-1] eq 'option' and
+            $word =~ /^(?:ipfwadm|ipchains|iptables)$/) {
+            # found match: set kernel interface program
+            $option{$word} = 1;
+            $#words -= 2;
         }
-        if ($words[$#words-2] eq 'option') {
-            for ($words[$#words-1]) {
-                /^location$/ && do {
-                    # found match: set the /path/to/name
-                    $option{'location'} = $word;
-                    $#words -= 3;
-                    # check if it is executable anyway:
-                    if ( ! -X $option{'location'}) {
-                        mydie("Specified location is not executable or does not exist! Exiting");
-                    }
-                }
+        if ($words[$#words-2] eq 'option' and
+            $words[$#words-1] eq 'location') {
+            # found match: set the /path/to/name
+            $option{'location'} = $word;
+            $#words -= 3;
+            # check if it is executable anyway:
+            if ( ! -X $option{'location'}) {
+                mydie("Specified location is not executable or does not exist! Exiting");
             }
         }
     }
@@ -300,17 +294,13 @@ sub getvar {
     # them with their values
 
     my $w = $words[$c++];
-    for ($w) {
-        # Substitute all variables in this strings if present
-        while ( /\x25[0-9a-zA-Z\x2d\x5f]+/ ) {
-            my $db;
-            if ($debug) {
-                $db = "# substituting variables: $w "; };
-            $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/g;
-            if ($debug) {
-                push @rules, "$db -\> $w\n"; };
-        };
-    };
+    # Substitute all variables in this strings if present
+    while ( $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/ ) {
+        if ($debug) {
+            my $db = "# substituting variables: \%$1 ";
+            push @rules, "$db -\> $vars{$1}\n";
+        }
+    }
     return $w;
 }
 
@@ -323,11 +313,8 @@ sub getvalues {
     my @wordlist;
     my $firstword = getvar();
 
-    for ($firstword) {
-        /^\x22/ || /^\x27/ || /^\x60/ && do {
-            return $firstword;
-        }
-    }
+    return $firstword
+      if $firstword =~ /^[\x22\x27\x60]/;
     if ($firstword eq '(') {
         # read a list until ")"
         my $nextword;
