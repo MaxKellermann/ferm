@@ -35,7 +35,7 @@ Introduction to ferm
 
 Installing ferm
 
-	./make install
+	# make install
 
 	The package does not need to be compiled, just make sure
 	you have perl (which is present in any base linux system)
@@ -52,7 +52,7 @@ Installing ferm
 
 Uninstalling ferm
 
-	./make uninstall
+	# make uninstall
 
 	Ferm can now be quickly removed from the system by issuing
 	a "make uninstall" command (as root, of course). This
@@ -68,7 +68,7 @@ Basic use of ferm
 	file that suits your needs, store it into a good spot
 	like /etc/firewall.conf and execute:
 
-		ferm /etc/firewall.conf
+		/sbin/ferm /etc/firewall.conf
 
 	ferm will read the file, translate it into your
 	[ipchains|iptables|ipfwadm] rules, and install these
@@ -80,7 +80,7 @@ Basic use of ferm
 
 	- testing a firewall.conf file:
 
-		ferm -li -n /etc/firewall.conf
+		/usr/sbin/ferm --lines --noexec /etc/firewall.conf
 
 	This way, the actual firewall is not implemented, but the
 	resulting rules are printed so you may check them. Add
@@ -88,7 +88,7 @@ Basic use of ferm
 
 	- implementing a ferm setup manually:
 
-		ferm -li /etc/firewall.conf
+		/usr/sbin/ferm --lines --noexec /etc/firewall.conf
 
 	This way, you may check any iptables generated errors and
 	check again rules are implemented correctly. It is
@@ -100,7 +100,7 @@ Basic use of ferm
 	a wrong configuration may lead to terrible things. The
 	line you need to insert will look like this:
 
-		ferm /etc/firewall.conf
+		/usr/sbin/ferm /etc/firewall.conf
 
 	Note that some system scripts remove any PATH settings and
 	ferm might want to know the location of the iptables or ipchains

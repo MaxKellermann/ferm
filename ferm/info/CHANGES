@@ -6,7 +6,7 @@
     Auke Kok <auke.kok@planet.nl>
 
 
-v1.1 - 2 December 2001
+v1.1 - 5 May 2003
   - Removed 'mark' as possible target due to nameclash
   - Fixed typo in tos values with missing space
   - Added support for shell escapes
@@ -27,9 +27,11 @@ v1.1 - 2 December 2001
     --time[start|stop] and --days, ip-limit-[above|mask]
     --psd-[weight-threshold|delay-threshold|[lo|hi]-ports-weight]
     --to-[source|ports|destination], --set-ftos 
-  - Added BALANCE, FTOS, SAME targets
+  - Added BALANCE, FTOS, SAME, TCPMSS targets and more
   - Fixed bug on log/goto combination (missing space) -debian bugs
   - Allow lists in set statements -debian bugs
+  - Added several patches from misc sources (thanks everyone)
+  - Cleaned up order of builtin targets (now alphabetically ordered)
 
 
 v1.0pl8 - 13 july 2001
