@@ -1439,9 +1439,6 @@ sub enter {
             /^to$/ && do {
                 $current->{'to'}=getvar();
                 ; next; };
-            /^toports$|^to-ports$/ && do {
-                $current->{'toports'}=getvar();
-                ; next; };
             /^tosrc$|^to-source$/ && do {
                 $current->{'tosrc'}=getvar();
                 ; next; };
@@ -1502,6 +1499,7 @@ sub enter {
 
             s/^deny$/drop/i;
             s/^proxy$/redirect/i;
+            s/^masquerade$/masq/i;
 
             ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
                    netlink|nop|queue|reject|return|tcpmss|ttl|ulog)$/ix or
@@ -1678,7 +1676,16 @@ sub enter {
                 ($current->{action} eq 'mark' or
                  $current->{action} eq 'connmark') and
                 $keyword =~ /^set-?mark$/) {
-                $current->{'setmark'} = getvar();
+                $current->{setmark} = getvar();
+                next;
+            }
+
+            # MASQUERADE/REDIRECT target switches
+            if (defined $current->{action} and
+                ($current->{action} eq 'masq' or
+                 $current->{action} eq 'redirect') and
+                $keyword =~ /^to-?ports$/) {
+                $current->{toports} = getvar();
                 next;
             }
 
