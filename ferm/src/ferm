@@ -1230,12 +1230,20 @@ sub enter {
                 $current->{table} = getvalues();
                 next;
             }
+
             if ($keyword eq 'chain') {
                 error('Chain is already specified')
                   if exists $current->{chain};
                 $current->{chain} = getvalues();
+
+                $current->{table} = 'filter'
+                  unless defined find_option(\@fw, 'table');
+
                 next;
             }
+
+            error('Chain and table must be specified')
+              unless defined find_option(\@fw, 'chain');
 
             # choose a side
             if ($keyword =~ /^(?:source|src)$/) {
