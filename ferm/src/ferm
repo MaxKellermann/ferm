@@ -1668,30 +1668,30 @@ sub enter {
                 next;
             };
 
-            # MARK/CONNMARK target switches
-            if (defined $current->{action} and
-                ($current->{action} eq 'mark' or
-                 $current->{action} eq 'connmark') and
-                $keyword =~ /^set-?mark$/) {
-                $current->{setmark} = getvar();
-                next;
-            }
+            # target switches
+            if (defined $current->{action}) {
+                # MARK/CONNMARK target switches
+                if (($current->{action} eq 'mark' or
+                     $current->{action} eq 'connmark') and
+                    $keyword =~ /^set-?mark$/) {
+                    $current->{setmark} = getvar();
+                    next;
+                }
 
-            # MASQUERADE/REDIRECT target switches
-            if (defined $current->{action} and
-                ($current->{action} eq 'masq' or
-                 $current->{action} eq 'redirect') and
-                $keyword =~ /^to-?ports$/) {
-                $current->{toports} = getvar();
-                next;
-            }
+                # MASQUERADE/REDIRECT target switches
+                if (($current->{action} eq 'masq' or
+                     $current->{action} eq 'redirect') and
+                    $keyword =~ /^to-?ports$/) {
+                    $current->{toports} = getvar();
+                    next;
+                }
 
-            # REJECT target switches
-            if (defined $current->{action} and
-                $current->{action} eq 'reject' and
-                $keyword =~ /^reject-?with$/) {
-                $current->{rejectwith} = getvar();
-                next;
+                # REJECT target switches
+                if ($current->{action} eq 'reject' and
+                    $keyword =~ /^reject-?with$/) {
+                    $current->{rejectwith} = getvar();
+                    next;
+                }
             }
 
             # effectuation operator
