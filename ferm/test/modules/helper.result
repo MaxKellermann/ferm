@@ -1,0 +1,4 @@
+iptables -t filter -A INPUT -m helper -j ACCEPT --helper irc
+iptables -t filter -A INPUT -m helper -j DROP --helper ftp-21
+iptables -t filter -A INPUT -m helper -j REJECT --helper irc
+iptables -t filter -A INPUT -m helper -j REJECT --helper h323

@@ -1,0 +1,5 @@
+chain INPUT mod helper {
+    helper irc ACCEPT;
+    helper ftp-21 DROP;
+    helper (irc h323) REJECT;
+}
