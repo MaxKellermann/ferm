@@ -1580,12 +1580,10 @@ sub enter {
                 next;
             }
 
-            /^saddr$/ && do {
-                $current->{'saddr'}=getvalues();
-                ; next; };
-            /^daddr$/ && do {
-                $current->{'daddr'}=getvalues();
-                ; next; };
+            if (/^[sd]addr$/) {
+                $current->{$keyword} = getvalues();
+                next;
+            }
 
             # extended parameters:
             if (/^mod(?:ule)?$/) {
