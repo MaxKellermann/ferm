@@ -978,6 +978,12 @@ sub tables {
           if exists $rule{$_};
     }
 
+    # ipt_addrtype parameters
+    $rr .= "--src-type " . $rule{srctype} . " "
+      if exists $rule{srctype};
+    $rr .= "--dst-type " . $rule{dsttype} . " "
+      if exists $rule{dsttype};
+
     # ipt_conntrack parameters
     foreach (qw(ctstate ctproto ctorigsrc ctorigdst),
              qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
@@ -1493,6 +1499,14 @@ sub enter {
             /^(?:set|rcheck|update|remove|rttl)$/ && do {
                 $current->{$keyword}=1;
                 $current->{auto_modules}{recent} = 1;
+                next;
+            };
+
+            # ipt_addrtype switches
+            /^(?:src|dst)-?type$/ && do {
+                s/-//;
+                $current->{$_} = getvalues();
+                $current->{modules}{addrtype} = 1;
                 next;
             };
 
