@@ -1389,9 +1389,12 @@ sub enter {
                 ; next; };
 
             # miscelleanous switches
-            /^reverse$|^bidirectional$|^swap$/ && do {
+            if ($option{frontend} eq 'ipchains' and
+                $keyword =~ /^reverse$|^bidirectional$|^swap$/) {
                 $current->{'reverse'}='1';
-                ; next; };
+                next;
+            }
+
             /^syn$/ && do {
                 # match tcp packages with syn-byte set
                 if ($negated) {
