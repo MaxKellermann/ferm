@@ -1015,7 +1015,7 @@ sub tables {
     }
 
     # ipt_ttl parameters
-    foreach (qw(ttl ttl-eq ttl-lt ttl-gt)) {
+    foreach (qw(ttl-eq ttl-lt ttl-gt)) {
         my $key = $_;
         $key =~ s/-//;
 
@@ -1662,7 +1662,7 @@ sub enter {
                 ; next; };
 
             # ipt_ttl switches
-            /^ttl(?:-?(?:|set|inc|dec|eq|lt|gt))$/ && do {
+            /^ttl(?:-?(?:set|inc|dec|eq|lt|gt))$/ && do {
                 s/-//;
                 $current->{$_} = getvar();
                 $current->{auto_modules}{ttl} = 1;
