@@ -180,7 +180,7 @@ left of it.
 
 Example:
 
-    proto ( tcp udp icmp )
+    protocol ( tcp udp icmp )
 
 this will result in three rules:
 
@@ -210,47 +210,67 @@ the end of line is ignored.
 =back
 
 
-Two types of keys exist:
+=head2 Keywords
+
+In the previous section, we already introduced some basic keywords
+like "chain", "protocol" and "ACCEPT". Let's explore their nature.
+
+There are three kinds of keywords:
 
 =over 8
 
-=head2 Firewall keys
+=item
 
-Firewall keys define a set of firewall packet matching
-criteria that is supported by the kernel backend. They
-look like 'name value' pairs or like 'switch'. For
-instance:
+B<location> keywords define where a rule will be created. Example:
+"table", "chain".
 
-    proto tcp
+=item
 
-or:
+B<match> keywords perform a test on all passing packets. The current
+rule is without effect if one (or more) of the matches does not
+pass. Example: "proto", "daddr".
 
-    syn
+Most matches are followed by a parameter: "proto tcp", "daddr
+172.16.0.0/12".
 
-A 'name value' pair lets you fill in a value for a certain
-condition you would like to match packets against, switches
-are like on/off light switches on the wall, if you specify
-a switch, you turn paket matching for whatever the switch
-stands, on. In the latter example, you turn SYN-packet
-matching on for this rule.
+=item
 
-Both types can optionally be preceded by a B<!>. This will
-be handled that you don't want something to be matching
-it:
+B<target> keywords state what to do with a packet. Example: "ACCEPT",
+"REJECT", "goto".
 
-    !syn
+Some targets define more keywords to specify details: "REJECT
+reject-with icmp-net-unreachable".
 
-or:
+=back
 
-    ! syn
+Every rule consists of a B<location> and a B<target>, plus any number
+of B<matches>:
 
-Means you want packets which *don't* have the syn-flag set to
-be matched. Or even:
+    table filter                  # location
+    proto tcp dport (http https)  # match
+    ACCEPT;                       # target
 
-    proto ! tcp
+Strictly speaking, there is a fourth kind: B<ferm> keywords (which
+control ferm's internal behaviour), but they will be explained later.
 
-Means you want to match *anything but* packets from the tcp
-protocol.
+
+=head2 Parameters
+
+Many keywords take parameters. These can be specified as literals,
+variable references or lists (arrays):
+
+    proto udp
+    saddr %TRUSTED_HOSTS;
+    proto tcp dport (http https ssh);
+
+Some of them can be negated (lists cannot be negated):
+
+    proto !esp;
+    proto udp dport !domain;
+
+Keywords which take no parameters are negated by a prefixed '!':
+
+    proto tcp !syn;
 
 Read iptables(8) to see where the B<!> can be used.
 
@@ -267,8 +287,6 @@ Example:
 
 This option makes B<ferm> show a lot of information about what
 it is doing.
-
-=back
 
 The syntax is very simple, let's start with a simple
 example:
