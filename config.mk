@@ -10,4 +10,4 @@ OLD_FERM = $(TOPDIR)/test/ferm1.1
 OLD_OPTIONS = --use iptables --lines --noexec --clearall --flushall --createchains
 
 NEW_FERM = $(TOPDIR)/src/ferm
-NEW_OPTIONS = --test --clearall --flushall --createchains
+NEW_OPTIONS = --test

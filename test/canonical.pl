@@ -41,7 +41,13 @@ while (<>) {
         my ($command, $chain);
 
         if (s/-P (\w+) (\w+)//g) {
-            $data->{iptables}{$table}{$1}{policy} = $2;
+            if ($2 eq 'ACCEPT') {
+                delete $data->{iptables}{$table}{$1}{policy}
+                  if exists $data->{iptables}{$table}
+                    and exists $data->{iptables}{$table}{$1};
+            } else {
+                $data->{iptables}{$table}{$1}{policy} = $2;
+            }
             next;
         }
 

@@ -48,6 +48,9 @@ v1.1+cvs - 9 Mar 2005
   - escape shell parameters
   - warn about unused custom chains
   - ignore empty rules
+  - options --clearall, --createchains are implied and deprecated
+  - reset all policies to ACCEPT
+
 
 v1.1 - 5 May 2003
   - Removed 'mark' as possible target due to nameclash
