@@ -7,3 +7,5 @@ iptables -t filter -A OUTPUT -p tcp --dport ftp -j REJECT
 iptables -t filter -A OUTPUT -p tcp --dport ntp -j REJECT 
 iptables -t filter -A OUTPUT -p ah -j ACCEPT 
 iptables -t filter -A OUTPUT -p esp -j ACCEPT 
+iptables -t filter -A FORWARD -p tcp --dport http -j ACCEPT 
+iptables -t filter -A FORWARD -p udp --dport domain -j ACCEPT 

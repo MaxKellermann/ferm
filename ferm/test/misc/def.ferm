@@ -6,6 +6,8 @@ def &level() = {
     proto esp;
 }
 
+def &proto_port($a, $b) = proto $a dport $b;
+
 chain INPUT {
     &mytcp() ACCEPT;
     &myrule();
@@ -13,4 +15,8 @@ chain INPUT {
 chain OUTPUT {
     proto tcp dport (https $myports ntp) REJECT;
     ACCEPT &level();
+}
+chain FORWARD &proto_port(tcp, http) ACCEPT;
+chain FORWARD {
+    &proto_port(udp, domain) ACCEPT;
 }
