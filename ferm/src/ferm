@@ -62,9 +62,6 @@ use subs qw(open_script);
 
 # Get command line stuff
 {
-    #use vars qw($opt_noexec $opt_lines $opt_verbose $opt_debug $opt_location),
-    #  qw($opt_clearall $opt_flushall $opt_createchains),
-    #    qw($opt_flushchains $opt_help $opt_automod $opt_version $opt_use);
     my ($opt_noexec, $opt_lines, $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
         $opt_version, $opt_use);
@@ -97,8 +94,6 @@ use subs qw(open_script);
 
     $option{'noexec'} = (defined $opt_noexec);
     $option{'lines'} = (defined $opt_lines);
-    $verbose = (defined $opt_verbose);
-    $debug = (defined $opt_debug);
     $option{'clearall'} = (defined $opt_clearall);
     $option{'flushall'} = (defined $opt_flushall);
     $option{'flushchains'} = (defined $opt_flushchains);
