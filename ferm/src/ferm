@@ -388,13 +388,21 @@ sub getvalues {
     my @wordlist;
     my $firstword = getvar();
 
+    return
+      unless defined $firstword;
+
     return $firstword
       if $firstword =~ /^[\x22\x27\x60]/;
+
     if ($firstword eq '(') {
         # read a list until ")"
         my $nextword;
         do {
             $nextword = getvar();
+
+            error('unexpected end of file in list')
+              unless defined $nextword;
+
             if ( $nextword ne ')' ) {
                 if ( $nextword eq '!' ) {
                     $nextword .= getvar();
