@@ -684,10 +684,9 @@ sub tables {
         }
     }
 
-    # exit if no action is present - in case of policy only
-    if ( !defined $rule{'action'} ) {
-        push @rules, $rr;
-        return; };
+    # return if this is a policy-only rule
+    return
+      unless $rule{has_rule};
 
     $rr .= "$option{'location'} ";
 
@@ -1157,13 +1156,23 @@ sub enter {
         {
             # effectuation operator
             if ($keyword eq ';') {
-                # check for action (required)
-                error("no action or policy defined, exiting")
-                  unless defined find_option(\@fw, 'action')
-                    or defined find_option(\@fw, 'policy');
-                # check for chain (required)
-                error("no chain defined, exiting")
-                  unless defined find_option(\@fw, 'chain');
+                my $has_rule = find_option(\@fw, 'has_rule');
+                my $action = find_option(\@fw, 'action');
+                my $policy = find_option(\@fw, 'policy');
+
+                if ($has_rule) {
+                    unless (defined $action) {
+                        if (defined $policy) {
+                            warning('Using policy as action is deprecated');
+                            $current->{action} = $policy;
+                        } else {
+                            error('No action defined');
+                        }
+                    }
+                } else {
+                    error('No policy defined')
+                      unless defined $policy;
+                }
 
                 mkrules(\@fw);
 
@@ -1238,6 +1247,38 @@ sub enter {
             error('Chain and table must be specified')
               unless defined find_option(\@fw, 'chain');
 
+            # policy for built-in chain
+            if ($keyword eq 'policy') {
+                my $tables = find_option(\@fw, 'table');
+                my $chains = find_option(\@fw, 'chain');
+
+                my $policy = uc getvar();
+                error('invalid policy target, exiting')
+                  unless $policy =~ /^(?:ACCEPT|DROP)$/;
+
+                foreach my $table (to_array $tables) {
+                    foreach my $chain (to_array $chains) {
+                        error("cannot set the policy for non-builtin chain '$chain'")
+                          unless grep { $_ eq $chain }
+                            qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
+
+                        if (exists $chains{$table}{$chain}{policy}) {
+                            warning('policy for this chain is specified for the second time');
+                        } else {
+                            $chains{$table}{$chain}{policy} = $policy;
+                            $chains{$table}{$chain}{set_policy} = 1;
+                        }
+                    }
+                }
+
+                $current->{policy} = $policy;
+                next;
+            }
+
+            # everything else must be part of a "real" rule, not just
+            # "policy only"
+            $current->{has_rule}++;
+
             # choose a side
             if ($keyword =~ /^(?:source|src)$/) {
                 $current->{side} = 'source';
@@ -1304,34 +1345,6 @@ sub enter {
                 $current->{action} = getvar();
                 next;
             };
-
-            # policy keywords
-            if ($keyword eq 'policy') {
-                my $tables = find_option(\@fw, 'table');
-                my $chains = find_option(\@fw, 'chain');
-
-                my $policy = uc getvar();
-                error('invalid policy target, exiting')
-                  unless $policy =~ /^(?:ACCEPT|DROP)$/;
-
-                foreach my $table (to_array $tables) {
-                    foreach my $chain (to_array $chains) {
-                        error("cannot set the policy for non-builtin chain '$chain'")
-                          unless grep { $_ eq $chain }
-                            qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
-
-                        if (exists $chains{$table}{$chain}{policy}) {
-                            warning('policy for this chain is specified for the second time');
-                        } else {
-                            $chains{$table}{$chain}{policy} = $policy;
-                            $chains{$table}{$chain}{set_policy} = 1;
-                        }
-                    }
-                }
-
-                $current->{policy} = $policy;
-                next;
-            }
 
             # action keywords
             s/^MASQ$/MASQUERADE/i
