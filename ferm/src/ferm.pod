@@ -1221,20 +1221,6 @@ be put between "". Make sure you don't use the bracket {} and []
 characters, the ! and , are also not correctly parsed.
 
 
-=head1 TODO
-
-* Improve ipfwadm(8) handling or removing it altogether
-
-* Add more examples, with modularized snipplets (include option)
-
-* Make rpm's for RH and SuSE, or better: get you to do that!
-
-* Review the second half of the manual page
-
-* Make ferm bug you more about errors, i.e. increase validity
-  checking to high levels
-
-
 =head1 COPYRIGHT
 
 Copyright (C) 2001-2003, Auke Kok <auke.kok@planet.nl>

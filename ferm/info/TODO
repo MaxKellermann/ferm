@@ -1,0 +1,14 @@
+TODO
+
+* Improve ipfwadm(8) handling or removing it altogether
+
+* Add more examples, with modularized snipplets (include option)
+
+* Make rpm's for RH and SuSE, or better: get you to do that!
+
+* Review the second half of the manual page
+
+* Make ferm bug you more about errors, i.e. increase validity
+  checking to high levels
+
+
