@@ -1008,11 +1008,11 @@ sub mkrules {
             printrule(); }
         else {
             # loop over all keys in this level (only 1)
-            foreach my $key ( keys %{$r_fr->[$$r_cc]} ) {
+            while (my ($key, $value_string) = each %{$r_fr->[$$r_cc]}) {
                 # recurse for every value
-                foreach my $value ( split ("," , $r_fr->[$$r_cc]{$key})) {
+                foreach my $value ( split ("," , $value_string) ) {
                     # preparse value stuff: is unsplit value negated???
-                    for ( $r_fr->[$$r_cc]{$key} ) {
+                    for ( $value_string ) {
                         /^\x21/ && do { $$r_negated = 1; } || do { $$r_negated = 0; };
                     }
                     # if so, make sure the '!' is put before every value in it
