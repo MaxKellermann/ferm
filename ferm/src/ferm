@@ -59,7 +59,7 @@ use vars qw(@ip_tables_names %chains);
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 ## constants
-use vars qw(%deprecated_keywords);
+use vars qw(%deprecated_keywords %automod);
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
 %deprecated_keywords = ( macsource => 'mac-source',
@@ -124,6 +124,41 @@ use vars qw(%deprecated_keywords);
                          ttl => 'TTL',
                          ulog => 'ULOG',
                        );
+
+# support for the deprecated "automod" option. provide a mapping
+# between keywords and modules required for that
+%automod = ( tos => 'tos',
+             mark => 'mark',
+             'mac-source' => 'mac',
+             limit => 'limit',
+             'limit-burst' => 'limit',
+             'iplimit-above' => 'iplimit',
+             'iplimit-mask' => 'iplimit',
+             'uid-owner' => 'owner',
+             'gid-owner' => 'owner',
+             'pid-owner' => 'owner',
+             'sid-owner' => 'owner',
+             'psd-weight-threshold' => 'psd',
+             'psd-delay-threshold' => 'psd',
+             'psd-lo-ports-weight' => 'psd',
+             'psd-hi-ports-weight' => 'psd',
+             length => 'length',
+             average => 'random',
+             every => 'nth',
+             counter => 'nth',
+             start => 'nth',
+             packet => 'nth',
+             'pkt-type' => 'pkttype',
+             state => 'state',
+             'ttl-eq' => 'ttl',
+             'ttl-gt' => 'ttl',
+             'ttl-lt' => 'ttl',
+             timestart => 'time',
+             timestop => 'time',
+             days => 'time',
+             datestart => 'time',
+             datestop => 'time',
+           );
 
 # Get command line stuff
 {
@@ -869,16 +904,10 @@ sub tables {
     shell_append(\$rr, '-A', $rule{chain});
 
     # modules
-    my %modules = ( ( exists $rule{modules}
-                      ? %{$rule{modules}}
-                      : () ),
-                    ( $option{automod} && exists $rule{auto_modules}
-                      ? %{$rule{auto_modules}}
-                      : () )
-                  );
-
-    shell_append(\$rr, '-m', $_)
-      foreach (keys %modules);
+    if (exists $rule{modules}) {
+        shell_append(\$rr, '-m', $_)
+          foreach keys %{$rule{modules}};
+    }
 
     # general iptables options
     shell_append(\$rr, '-i', extract_negation $rule{interface})
@@ -1357,6 +1386,8 @@ sub enter {
     my $current = {};
     push @fw, $current;
 
+    my %modules = map { $_->{modules} ? %{$_->{modules}} : () } @fw;
+
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
         $verbose && print ".";
@@ -1693,6 +1724,7 @@ sub enter {
             if (/^mod(?:ule)?$/) {
                 foreach my $module(to_array getvalues) {
                     $current->{modules}{$module} = 1;
+                    $modules{$module} = 1;
                 }
                 next;
             }
@@ -1794,227 +1826,237 @@ sub enter {
             # module specific options
             #
 
+            if ($option{automod} and exists $automod{$keyword}) {
+                # suport the deprecated 'automod' option
+                $current->{modules}{$automod{$keyword}} = 1;
+                $modules{$automod{$keyword}} = 1;
+            }
+
             # ipt_addrtype switches
-            /^(?:src|dst)-type$/ && do {
+            if (exists $modules{addrtype} and
+                /^(?:src|dst)-type$/) {
                 $current->{$_} = getvalues();
-                $current->{auto_modules}{addrtype} = 1;
                 next;
-            };
+            }
 
-            # ipt_ah/ipt_esp switches
-            if ($keyword =~ /^(ah|esp)spi$/) {
+            # ipt_ah switches
+            if (exists $modules{ah} and $keyword eq 'ahspi') {
                 $current->{$keyword} = getvalues();
-                $current->{auto_modules}{ah} = $1;
-                next;
-            }
-
-            # ipt_conntrack switches
-            if ($keyword eq 'ctstate') {
-                my @params = to_array getvalues(undef, undef,
-                                                non_empty => 1);
-                $current->{$keyword} = join(',', @params);
-                $current->{auto_modules}{conntrack} = 1;
-                next;
-            }
-
-            /^(?:ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{conntrack} = 1;
-                next;
-            };
-
-            /^ctexpire$/ && do {
-                $current->{$keyword} = getvar();
-                $current->{auto_modules}{conntrack} = 1;
-                next;
-            };
-
-            # ipt_dscp switches
-            if ($keyword eq 'dscp') {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{dscp} = 1;
-                next;
-            }
-
-            if ($keyword eq 'dscp-class') {
-                $current->{$keyword} = getvar() . "\0" . getvar();
-                $current->{auto_modules}{dscp} = 1;
-                next;
-            }
-
-            # ipt_ecn switches
-            if ($keyword =~ /^ecn-tcp-(?:cwr|ece)$/) {
-                $current->{$keyword} = 1;
-                $current->{auto_modules}{ecn} = 1;
-                next;
-            }
-
-            if ($keyword eq 'ecn-ip-ect') {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{ecn} = 1;
-                next;
-            }
-
-            # ipt_helper switches
-            if ($keyword eq 'helper') {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{helper} = 1;
-                next;
-            }
-
-            # ipt_iplimit switches
-            if ($keyword eq 'iplimit-above') {
-                $current->{$keyword} = getvar();
-                $current->{auto_modules}{iplimit} = 1;
-                next;
-            };
-            if ($keyword eq 'iplimit-mask') {
-                $current->{$keyword} = getvar();
-                $current->{auto_modules}{iplimit} = 1;
-                next;
-            };
-
-            # ipt_iprange switches
-            if ($keyword =~ /^(?:src|dst)-range$/) {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{iprange} = 1;
-                next;
-            };
-
-            # ipt_length switches
-            if ($keyword eq 'length') {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{length} = 1;
-                next;
-            }
-
-            # ipt_limit switches
-            if ($keyword =~ /^limit(?:-burst)?$/) {
-                $current->{$keyword} = getvar();
-                $current->{auto_modules}{limit} = 1;
-                next;
-            }
-
-            # ipt_mac switches
-            if ($keyword eq 'mac-source') {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{mac} = 1;
                 next;
             }
 
             # ipt_mark switches
-            if ($keyword eq 'mark') {
+            if (exists $modules{connmark} and $keyword eq 'mark') {
                 $current->{$keyword} = getvar();
-                $current->{auto_modules}{mark} = 1;
+                next;
+            }
+
+            # ipt_conntrack switches
+            if (exists $modules{conntrack}) {
+
+                if ($keyword eq 'ctstate') {
+                    my @params = to_array getvalues(undef, undef,
+                                                    non_empty => 1);
+                    $current->{$keyword} = join(',', @params);
+                    next;
+                }
+
+                if (/^(?:ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/) {
+                    $current->{$keyword} = getvalues();
+                    next;
+                }
+
+                if ($keyword eq 'ctexpire') {
+                    $current->{$keyword} = getvar();
+                    next;
+                }
+            }
+
+            # ipt_dscp switches
+            if (exists $modules{dscp}) {
+                if ($keyword eq 'dscp') {
+                    $current->{$keyword} = getvalues();
+                    next;
+                }
+
+                if ($keyword eq 'dscp-class') {
+                    $current->{$keyword} = getvar() . "\0" . getvar();
+                    next;
+                }
+            }
+
+            # ipt_ecn switches
+            if (exists $modules{ecn}) {
+                if ($keyword =~ /^ecn-tcp-(?:cwr|ece)$/) {
+                    $current->{$keyword} = 1;
+                    next;
+                }
+
+                if ($keyword eq 'ecn-ip-ect') {
+                    $current->{$keyword} = getvalues();
+                    next;
+                }
+            }
+
+            # ipt_esp switches
+            if (exists $modules{esp} and $keyword eq 'espspi') {
+                $current->{$keyword} = getvalues();
+                next;
+            }
+
+            # ipt_helper switches
+            if (exists $modules{helper} and $keyword eq 'helper') {
+                $current->{$keyword} = getvalues();
+                next;
+            }
+
+            # ipt_iplimit switches
+            if (exists $modules{iplimit}) {
+                if ($keyword eq 'iplimit-above') {
+                    $current->{$keyword} = getvar();
+                    next;
+                }
+                if ($keyword eq 'iplimit-mask') {
+                    $current->{$keyword} = getvar();
+                    next;
+                }
+            }
+
+            # ipt_iprange switches
+            if (exists $modules{iprange} and
+                $keyword =~ /^(?:src|dst)-range$/) {
+                $current->{$keyword} = getvalues();
+                next;
+            };
+
+            # ipt_length switches
+            if (exists $modules{length} and $keyword eq 'length') {
+                $current->{$keyword} = getvalues();
+                next;
+            }
+
+            # ipt_limit switches
+            if (exists $modules{limit} and $keyword =~ /^limit(?:-burst)?$/) {
+                $current->{$keyword} = getvar();
+                next;
+            }
+
+            # ipt_mac switches
+            if (exists $modules{mac} and $keyword eq 'mac-source') {
+                $current->{$keyword} = getvalues();
+                next;
+            }
+
+            # ipt_mark switches
+            if (exists $modules{mark} and $keyword eq 'mark') {
+                $current->{$keyword} = getvar();
                 next;
             }
 
             # ipt_multiport switches
-            if ($keyword =~ /^(?:(?:source-|destination-|)ports)$/ and
+            if (exists $modules{multiport} and
+                $keyword =~ /^(?:(?:source-|destination-|)ports)$/ and
                 defined $proto and
                 grep { /^(?:tcp|udp)$/ } to_array $proto) {
                 $current->{$keyword} = join(',', to_array getvalues());
-                $current->{auto_modules}{multiport} = 1;
                 next;
             }
 
             # ipt_nth switches
-            /^every$|^counter$|^start$|^packet$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{nth} = 1;
-                ; next; };
+            if (exists $modules{nth} and
+                /^every$|^counter$|^start$|^packet$/) {
+                $current->{$keyword} = getvar();
+                next;
+            }
 
             # ipt_owner switches
-            if (/^(?:uid|gid|pid|sid|cmd)-owner$/) {
+            if (exists $modules{owner} and /^(?:uid|gid|pid|sid|cmd)-owner$/) {
                 $current->{$keyword} = getvalues();
-                $current->{auto_modules}{owner} = 1;
                 next;
             }
 
             # ipt_pkttype switches
-            if ($keyword eq 'pkt-type') {
+            if (exists $modules{pkttype} and $keyword eq 'pkt-type') {
                 $current->{$_} = getvalues();
-                $current->{auto_modules}{pkttype} = 1;
                 next;
             }
 
             # ipt_psd switches
-            if (/^psd-(?:(?:weight|delay)-threshold|(?:lo|hi)-ports-weight)$/) {
+            if (exists $modules{psd} and
+                /^psd-(?:(?:weight|delay)-threshold|(?:lo|hi)-ports-weight)$/) {
                 $current->{$keyword} = getvar();
-                $current->{auto_modules}{psd} = 1;
                 next;
             }
 
             # ipt_physdev switches
-            if (/^physdev-(?:in|out)$/) {
-                $current->{$keyword} = getvalues();
-                $current->{auto_modules}{physdev} = 1;
-                next;
-            }
+            if (exists $modules{physdev}) {
+                if (/^physdev-(?:in|out)$/) {
+                    $current->{$keyword} = getvalues();
+                    next;
+                }
 
-            if (/^physdev-is-(?:in|out|bridged)$/) {
-                $current->{$keyword} = 1;
-                $current->{auto_modules}{physdev} = 1;
-                next;
+                if (/^physdev-is-(?:in|out|bridged)$/) {
+                    $current->{$keyword} = 1;
+                    next;
+                }
             }
 
             # ipt_random switches
-            /^average$/ && do {
-                $current->{'average'}=getvar();
-                $current->{auto_modules}{random} = 1;
-                ; next; };
+            if (exists $modules{random} and $keyword eq 'average') {
+                $current->{average} = getvar();
+                next;
+            }
 
             # ipt_realm switches
-            if ($keyword eq 'realm') {
+            if (exists $modules{realm} and $keyword eq 'realm') {
                 $current->{$keyword} = getvalues();
-                $current->{auto_modules}{realm} = 1;
                 next;
             }
 
             # ipt_recent switches
-            /^(?:name|seconds|hitcount)$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{recent} = 1;
-                next;
-            };
-            /^(?:set|rcheck|update|remove|rttl)$/ && do {
-                $current->{$keyword}=1;
-                $current->{auto_modules}{recent} = 1;
-                next;
-            };
+            if (exists $modules{recent}) {
+                if (/^(?:name|seconds|hitcount)$/) {
+                    $current->{$keyword} = getvar();
+                    next;
+                }
+                if (/^(?:set|rcheck|update|remove|rttl)$/) {
+                    $current->{$keyword} = 1;
+                    next;
+                }
+            }
 
             # ipt_state switches
-            /^state$/ && do {
+            if (exists $modules{state} and $keyword eq 'state') {
                 my @params = to_array getvalues(undef, undef,
                                                 non_empty => 1);
                 $current->{state} = join(',', @params);
-                $current->{auto_modules}{state} = 1;
-                ; next; };
+                next;
+            }
 
             # ipt_time switches
-            /^days$/ && do {
-                my @params = to_array getvalues(undef, undef,
-                                                non_empty => 1);
-                $current->{days} = join(',', @params);
-                $current->{auto_modules}{time} = 1;
-                next;
-            };
+            if (exists $modules{time}) {
+                if ($keyword eq 'days') {
+                    my @params = to_array getvalues(undef, undef,
+                                                    non_empty => 1);
+                    $current->{days} = join(',', @params);
+                    next;
+                }
 
-            /^(?:timestart|timestop|datestart|datestop)$/ && do {
-                $current->{$keyword}=getvar();
-                $current->{auto_modules}{time} = 1;
-                ; next; };
+                if (/^(?:timestart|timestop|datestart|datestop)$/) {
+                    $current->{$keyword} = getvar();
+                    next;
+                }
+            }
 
             # ipt_tos switches
-            /^tos$/ && do {
-                $current->{'tos'}=getvar();
-                $current->{auto_modules}{tos} = 1;
-                ; next; };
+            if (exists $modules{tos} and $keyword eq 'tos') {
+                $current->{tos} = getvar();
+                next;
+            }
 
             # ipt_ttl switches
-            if (/^ttl-(?:eq|lt|gt)$/) {
+            if (exists $modules{ttl} and /^ttl-(?:eq|lt|gt)$/) {
                 $current->{$_} = getvar();
-                $current->{auto_modules}{ttl} = 1;
                 next;
             }
 
@@ -2220,7 +2262,6 @@ B<ferm> I<options> I<inputfiles>
  --flushall        Flush all chains before adding rules
  --createchains    Create all neccesary chains
  --flushchains     Flush all used chains
- --automod         Enable automatic module parameters for iptables
  -h, --help        Look at this text
  --use [kernel firewall program]
                    Obsolete option, only iptables is supported
