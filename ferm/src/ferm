@@ -619,7 +619,7 @@ sub require_next_token {
     error('unexpected end of file')
       unless defined $token;
 
-    error("unexpected '$token'")
+    error("'$token' not allowed here")
       if $token =~ /^[;{}]/;
 
     return $token;
