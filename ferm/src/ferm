@@ -1240,9 +1240,12 @@ sub enter {
             #
 
             # jump action
-            /^goto$|^jump$/ && do {
-                $current->{'action'}=getvar();
-                ; next; };
+            if (/^(?:goto|jump)$/) {
+                error('There is only one action per rule')
+                  if exists $current->{action};
+                $current->{action} = getvar();
+                next;
+            };
 
             # policy keywords
             if ($keyword eq 'policy') {
@@ -1263,6 +1266,8 @@ sub enter {
                 $keyword =~ /^(?:CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
                                 |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
                               )$/) {
+                error('There is only one action per rule')
+                  if exists $current->{action};
                 $current->{'action'} = uc $keyword;
                 next;
             }
