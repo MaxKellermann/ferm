@@ -13,3 +13,11 @@ iptables -t filter -A FORWARD -p tcp --dport 8080 -j REJECT
 iptables -t filter -A FORWARD -p tcp --dport 3128 -j REJECT 
 iptables -t filter -A FORWARD -p tcp --dport http -j ACCEPT 
 iptables -t filter -A FORWARD -p tcp --dport ftp -j ACCEPT 
+iptables -t filter -A FORWARD -i ppp0 -o eth0 -p tcp -d 192.168.1.33 --dport http -j ACCEPT 
+iptables -t nat -A PREROUTING -i ppp0 -p tcp -d 1.2.3.4 --dport http -j DNAT --to-destination 192.168.1.33 
+iptables -t filter -A FORWARD -i ppp0 -o eth0 -p tcp -d 192.168.1.30 --dport ftp -j ACCEPT 
+iptables -t nat -A PREROUTING -i ppp0 -p tcp -d 1.2.3.4 --dport ftp -j DNAT --to-destination 192.168.1.30 
+iptables -t filter -A FORWARD -i ppp0 -o eth0 -p tcp -d 192.168.1.2 --dport ssh -j ACCEPT 
+iptables -t filter -A FORWARD -i ppp0 -o eth0 -p tcp -d 192.168.1.2 --dport smtp -j ACCEPT 
+iptables -t nat -A PREROUTING -i ppp0 -p tcp -d 1.2.3.4 --dport ssh -j DNAT --to-destination 192.168.1.2 
+iptables -t nat -A PREROUTING -i ppp0 -p tcp -d 1.2.3.4 --dport smtp -j DNAT --to-destination 192.168.1.2 

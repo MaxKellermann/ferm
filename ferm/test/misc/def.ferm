@@ -8,6 +8,11 @@ def &level() = {
 
 def &proto_port($a, $b) = proto $a dport $b;
 
+def &TCP_TUNNEL($port, $dest) = {
+    table filter chain FORWARD interface ppp0 proto tcp dport $port daddr $dest outerface eth0 ACCEPT;
+    table nat chain PREROUTING interface ppp0 proto tcp dport $port daddr 1.2.3.4 DNAT to $dest;
+}
+
 chain INPUT {
     &mytcp() ACCEPT;
     &myrule();
@@ -22,3 +27,7 @@ chain FORWARD {
     &proto_port(tcp, (8080 3128)) REJECT;
     &proto_port(tcp, $myports) ACCEPT;
 }
+
+&TCP_TUNNEL(http, 192.168.1.33);
+&TCP_TUNNEL(ftp, 192.168.1.30);
+&TCP_TUNNEL((ssh smtp), 192.168.1.2);
