@@ -436,42 +436,18 @@ for a packet, as in iptables(8).
 Currently supported by the kernel are tcp, udp and icmp, or
 their respective numbers.
 
-=item B<port [port-spec]>
-
-Specify a port number, name or range
-
-=item B<addr [address-spec]>
-
-Specify a network address, a hostname or ip-number.
-
-=item B<source|destination>
-
-Specify that the values provided for B<port> and B<addr>
-above should be either B<source> or <destination> ports
-and addresses. This works like a toggle, which can be left on
-for the entire configuration file. So, if you say B<source> once,
-all occurences of B<port> will be B<source port>'s, as well as for
-addresses.
-
 =item B<saddr|daddr [address-spec]>
 
-Specify an address specifically for the B<source> or B<destination>
-side, read it as a shorthand for B<source address> and B<destination
-address>, although it does not 'toggle' the B<source|destination>
-state, which is remembered.
+Matches on packets originating from the specified address (saddr) or
+targeted at the address (daddr).
 
 =item B<sport|dport [port-spec]>
 
-Specify a port number, name or range for the B<source> or B<destination>
-side, read it as a shorthand for B<source port> and B<destination
-port>>, although it does not 'toggle' the B<source|destination>
-state, which is remembered. Ports can be specified for tcp and udp,
-as well as icmp, only in that case it means 'icmp-type' and only
-works when you specify the type numerically.
+Matches on packets on the specified TCP or UDP port. "sport" matches
+the source port, and dport matches the destination port.
 
-Note that you need to specify a protocol, before you can use
-ports, that is because not all protocols support the ideas
-of ports.
+This match can be used only after you specified "proto tcp" or "proto
+udp", because only these two protocols actually have ports.
 
 Here are some examples of valid addresses:
 
@@ -568,12 +544,6 @@ See also B<log-[level|prefix|tcp-sequence|tcp-options|ip-options]>
 
 Specify that matching packets should jump to this chain, only user
 defined chains are valid jump targets.
-
-=item B<reverse>
-
-Instructs the kernel to use this rule twice, the second time with
-source and destination swapped. Unfortunately, this doesn't work
-with iptables.
 
 =item B<LOG>
 
@@ -840,14 +810,6 @@ of
 
 proto
 
-=item source:
-
-src
-
-=item destination:
-
-dest
-
 =item fragment:
 
 frag
@@ -899,10 +861,6 @@ to, jump
 =item icmptype
 
 icmp-type
-
-=item reverse:
-
-bidirectional, swap
 
 =item tcp-option:
 
