@@ -1108,8 +1108,7 @@ sub enter {
     };
 
     # read keywords 1 by 1 and dump into parser
-    do {
-        my $keyword = getvar();
+    while (defined (my $keyword = getvar())) {
         $verbose && print ".";
 
         # check if the current rule should be negated
@@ -1119,6 +1118,9 @@ sub enter {
             # rule
             $keyword = getvar();
             $verbose && print ".";
+
+            error('unexpected end of file after negation')
+              unless defined $keyword;
 
             error('double negation')
               if $keyword eq '!';
@@ -1509,7 +1511,7 @@ sub enter {
         # supported
         error("Doesn't support negation: $keyword, exiting")
           if $negated;
-    } while ($c <= $#words);
+    }
 };
 
 # end of ferm
