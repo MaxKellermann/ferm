@@ -1,0 +1,11 @@
+set EMPTY ()
+set X 1
+set Y (%EMPTY %X)
+
+chain INPUT {
+    saddr %EMPTY REJECT;
+    saddr %X ACCEPT;
+    saddr %Y DROP;
+    daddr () REJECT;
+    daddr (() %X () (() %Y) 2) DROP;
+}

@@ -1,0 +1,5 @@
+iptables -t filter -A INPUT -s 1 -j ACCEPT
+iptables -t filter -A INPUT -s 1 -j DROP
+iptables -t filter -A INPUT -d 1 -j DROP
+iptables -t filter -A INPUT -d 1 -j DROP
+iptables -t filter -A INPUT -d 2 -j DROP
