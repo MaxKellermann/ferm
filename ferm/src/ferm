@@ -968,6 +968,12 @@ sub tables {
     if ( defined $rule{'nlsize'} ) {
         $rr .= "--nlsize " . $rule{'nlsize'} . " " } ;
 
+    # ipt_addrtype parameters
+    $rr .= "--src-type " . $rule{srctype} . " "
+      if exists $rule{srctype};
+    $rr .= "--dst-type " . $rule{dsttype} . " "
+      if exists $rule{dsttype};
+
     # ipt_ah parameters
     $rr .= "--ahspi $rule{ahspi} "
       if exists $rule{ahspi};
@@ -981,12 +987,6 @@ sub tables {
         $rr .= "--$_ "
           if exists $rule{$_};
     }
-
-    # ipt_addrtype parameters
-    $rr .= "--src-type " . $rule{srctype} . " "
-      if exists $rule{srctype};
-    $rr .= "--dst-type " . $rule{dsttype} . " "
-      if exists $rule{dsttype};
 
     # ipt_conntrack parameters
     foreach (qw(ctstate ctproto ctorigsrc ctorigdst),
