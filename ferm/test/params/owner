@@ -1,3 +1,4 @@
+option automod
 
 chain test_owner {
 	uid-owner root ACCEPT;
