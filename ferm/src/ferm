@@ -1397,9 +1397,6 @@ sub enter {
             /^table$/ && do {
                 $current->{'table'}=getvalues();
                 ; next; };
-            /^reject-?with$/ && do {
-                $current->{'rejectwith'}=getvar();
-                ; next; };
             /^string$/ && do {
                 $current->{'string'}=getvalues();
                 # XXX: what's this?
@@ -1686,6 +1683,14 @@ sub enter {
                  $current->{action} eq 'redirect') and
                 $keyword =~ /^to-?ports$/) {
                 $current->{toports} = getvar();
+                next;
+            }
+
+            # REJECT target switches
+            if (defined $current->{action} and
+                $current->{action} eq 'reject' and
+                $keyword =~ /^reject-?with$/) {
+                $current->{rejectwith} = getvar();
                 next;
             }
 
