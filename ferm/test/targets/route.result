@@ -1,0 +1,4 @@
+iptables -t mangle -A PREROUTING -s 1.2.3.4 -j ROUTE --oif eth1
+iptables -t mangle -A PREROUTING -s 1.2.3.5 -j ROUTE --oif eth2 --iif eth0
+iptables -t mangle -A PREROUTING -s 1.2.3.6 -j ROUTE --oif eth2 --continue
+iptables -t mangle -A PREROUTING -j ACCEPT

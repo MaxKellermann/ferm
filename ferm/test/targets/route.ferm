@@ -1,0 +1,6 @@
+table mangle chain PREROUTING {
+    saddr 1.2.3.4 ROUTE oif eth1;
+    saddr 1.2.3.5 ROUTE iif eth0 oif eth2;
+    saddr 1.2.3.6 ROUTE oif eth2 continue;
+    ACCEPT;
+}
