@@ -2,11 +2,10 @@
 OLD_FERM = /usr/bin/ferm
 NEW_FERM = ../src/ferm
 
-# a list of all ferm scripts which should be tested with iptables,
-# ipchains and ipfwadm
-FERM_SCRIPTS = positive/flush positive/masqto positive/multimod positive/multipolicy positive/negated-varlist positive/policyorder
-FERM_SCRIPTS_ipchains = positive/multivar
-FERM_SCRIPTS_iptables = positive/bug positive/iptables-targets positive/logLOG positive/mod params/owner positive/state positive/SUSE positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
+# a list of all ferm scripts which should be tested with iptables and
+# ipchains
+FERM_SCRIPTS = positive/flush positive/multimod positive/multipolicy positive/negated-varlist positive/policyorder
+FERM_SCRIPTS_iptables = positive/bug positive/iptables-targets positive/masqto positive/mod params/owner positive/state positive/SUSE positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
 FERM_SCRIPTS_iptables += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard misc/*.ferm)
 FERM_SCRIPTS_iptables += $(FERM_SCRIPTS_ipchains)
 
@@ -25,11 +24,11 @@ tmp/$(1)/%.$(2): % $$($(2)_FERM) ./canonical.pl
 	mv $$@.tmp2 $$@
 endef
 
-$(foreach frontend,iptables ipchains ipfwadm,$(foreach version,OLD NEW,$(eval $(call gen_template,$(frontend),$(version)))))
+$(foreach frontend,iptables,$(foreach version,OLD NEW,$(eval $(call gen_template,$(frontend),$(version)))))
 
 %.check: %.OLD %.NEW
 	diff -u $^
 	touch $@
 
 .PHONY : check
-check: $(foreach frontend,iptables ipchains ipfwadm,$(patsubst %,tmp/$(frontend)/%.check,$(FERM_SCRIPTS) $(FERM_SCRIPTS_$(frontend))))
+check: $(foreach frontend,iptables,$(patsubst %,tmp/$(frontend)/%.check,$(FERM_SCRIPTS) $(FERM_SCRIPTS_$(frontend))))
