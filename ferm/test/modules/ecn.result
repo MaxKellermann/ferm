@@ -1,0 +1,5 @@
+iptables -t filter -A INPUT -j ACCEPT --ecn-tcp-cwr
+iptables -t filter -A INPUT -j DROP --ecn-tcp-cwr --ecn-tcp-ece
+iptables -t filter -A INPUT -j ACCEPT --ecn-ip-ect 0
+iptables -t filter -A INPUT -j DROP --ecn-ip-ect 1
+iptables -t filter -A INPUT -j DROP --ecn-ip-ect 3

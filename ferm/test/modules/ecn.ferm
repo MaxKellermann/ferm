@@ -1,0 +1,6 @@
+chain INPUT {
+    ecn-tcp-cwr ACCEPT;
+    ecn-tcp-cwr ecn-tcp-ece DROP;
+    ecn-ip-ect 0 ACCEPT;
+    ecn-ip-ect (1 3) DROP;
+}
