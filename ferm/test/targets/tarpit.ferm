@@ -1,0 +1,3 @@
+chain INPUT {
+    proto tcp dport 4662:4669 TARPIT;
+}

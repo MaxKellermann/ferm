@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -p tcp --dport 4662:4669 -j TARPIT
