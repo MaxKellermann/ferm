@@ -1,0 +1,15 @@
+def $A = foo;
+def $B = $A;
+def $C = '$A';
+def $D = "$A";
+def $E = "pre $D post";
+def $F = "another $C one";
+
+table filter chain INPUT {
+    LOG log-prefix $A;
+    LOG log-prefix $B;
+    LOG log-prefix $C;
+    LOG log-prefix $D;
+    LOG log-prefix $E;
+    LOG log-prefix $F;
+}

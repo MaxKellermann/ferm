@@ -383,8 +383,6 @@ sub tokenize_string {
     my @ret;
 
     foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-\w\/\.:]+)/g) {
-        $word =~ s/^(["'])(.*)\1$/$2/s;
-
         push @ret, $word;
     }
 
@@ -415,6 +413,8 @@ sub read_header {
 
         my @line = tokenize_string($line);
         next unless @line;
+
+        map { s/^(["'])(.*)\1$/$2/s } @line;
 
         # look at the first word, then decide what to do. some special
         # keywords are handled here, everything else gets added to @tokens
@@ -717,6 +717,17 @@ sub variable_value {
     return;
 }
 
+sub string_variable_value {
+    # determine the value of a variable, die if the value is an array
+    my $name = shift;
+    my $value = variable_value($name);
+
+    error("variable '$name' must be a string, is an array")
+      if ref $value;
+
+    return $value;
+}
+
 sub getvalues {
     my ($code, $param) = (shift, shift);
     my %options = @_;
@@ -788,6 +799,14 @@ sub getvalues {
         return @values == 1
           ? $values[0]
             : \@values;
+    } elsif ($token =~ /^\'(.*)\'$/s) {
+        # single quotes: a string
+        return resolve_old_variable_refs($1);
+    } elsif ($token =~ /^\"(.*)\"$/s) {
+        # double quotes: a string with escapes
+        $token = resolve_old_variable_refs($1);
+        $token =~ s,\$(\w+),string_variable_value($1),e;
+        return $token;
     } elsif ($token eq '!') {
         $token = getvalues($code, $param);
 
