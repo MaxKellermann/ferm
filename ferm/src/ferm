@@ -398,6 +398,16 @@ sub prepare_tokens {
 sub open_script {
     my $filename = shift;
 
+    if ($filename =~ m,^[^/], and defined $script and
+        $script->{filename} =~ m,^(.*/),) {
+        # relative filename: it's relative to the parent file
+        $filename = $1 . $filename;
+
+        # remove '.' and '..'
+        $filename =~ s,/\./,/,g;
+        $filename =~ s,/[^/]+/\.\./,/,g;
+    }
+
     for (my $s = $script; defined $s; $s = $s->{parent}) {
         mydie("Circular reference in $script->{filename} line $script->{line}: $filename")
           if $s->{filename} eq $filename;
