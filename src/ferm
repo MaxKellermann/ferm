@@ -805,7 +805,7 @@ sub getvalues {
     } elsif ($token =~ /^\"(.*)\"$/s) {
         # double quotes: a string with escapes
         $token = resolve_old_variable_refs($1);
-        $token =~ s,\$(\w+),string_variable_value($1),e;
+        $token =~ s,\$(\w+),string_variable_value($1),eg;
         return $token;
     } elsif ($token eq '!') {
         $token = getvalues($code, $param);
