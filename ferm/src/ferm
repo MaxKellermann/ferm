@@ -504,7 +504,7 @@ sub collect_filenames {
         # non-absolute file names are relative to the parent script's
         # file name
         $pathname = $parent_dir . $pathname
-          if $pathname =~ m,^\.,;
+          unless $pathname =~ m,^/,;
 
         if ($pathname =~ m,/$,) {
             # include all regular files in a directory
