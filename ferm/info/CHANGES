@@ -5,14 +5,17 @@
 
     Auke Kok <sofar@foo-projects.org>
 
-v1.1+cvs - 9 Nov 2004
+v1.1+cvs - 8 Mar 2005
   - perl strict mode
   - removed support for ipfwadm and ipchains
   - get a list of netfilter table names from /proc/net/ip_tables_names
   - error messages go to STDERR
   - full support for the match extensions: recent, conntrack, addrtype,
-    ah, owner, time
-  - full support for the targets: CONNMARK, NETMAP, ROUTE, SNAT
+    ah, owner, time, dscp, ecn, helper, iprange, iplimit, length,
+    multiport, physdev, realm
+  - full support for the targets: CONNMARK, NETMAP, ROUTE, SNAT, TARPIT
+  - implemented variables and functions with 'def'
+    * variables and functions are local to their containing block
   - stricter syntax checks, e.g.:
     * some built-in targets must be uppercase
     * only one target is allowed
@@ -25,14 +28,25 @@ v1.1+cvs - 9 Nov 2004
   - deprecated syntax:
     * using a policy as default target for a rule
     * target MASQ, use MASQUERADE instead
-    * lower-case built-in chain names
+    * lower-case built-in chain names and targets
     * lists must be specified with parantheses and no commas (old syntax
       is deprecated, but still supported)
+    * variables declared with 'set' and referenced with '%NAME'
+    * many shortcuts like 'mac' and 'tosrc'
+    * shortcuts without the dash like 'tcpflags' ('tcp-flags')
+    * "option iptables"; only iptables is supported
+    * source/destination
+    * option automod
   - fixed the double-module bug
   - show filename and line number in error message
   - implemented the 'include' command
   - more shortcuts for command line options
   - better set-tos parameter parser
+  - reimplemented backticks
+  - reimplemented tokenizer and parser
+  - escape shell parameters
+  - warn about unused custom chains
+  - ignore empty rules
 
 v1.1 - 5 May 2003
   - Removed 'mark' as possible target due to nameclash
