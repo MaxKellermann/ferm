@@ -1,0 +1,4 @@
+table filter chain input mod mac {
+    mac-source 00:00:00:00:00:00 DROP;
+    macsource ! ff:ff:ff:ff:ff:ff ACCEPT;
+}

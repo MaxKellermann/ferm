@@ -1,0 +1,5 @@
+iptables -t filter -A OUTPUT -m owner -j REJECT --reject-with icmp-net-prohibited --uid-owner 500
+iptables -t filter -A OUTPUT -m owner -j ACCEPT --gid-owner 100
+iptables -t filter -A OUTPUT -m owner -j ACCEPT --pid-owner 16000
+iptables -t filter -A OUTPUT -m owner -j DROP --sid-owner 15000
+iptables -t filter -A OUTPUT -m owner -j ACCEPT --cmd-owner perl

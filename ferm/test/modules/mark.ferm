@@ -1,0 +1,4 @@
+table filter chain input mod mark {
+    proto udp MARK set-mark 7;
+    mark 7 DROP;
+}

@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m random -j ACCEPT --average 90

@@ -1,0 +1,5 @@
+table filter chain input mod limit {
+    limit 5/s ACCEPT;
+    limit 2/s limit-burst 7 ACCEPT;
+    DROP;
+}

@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m recent -j DROP --seconds 60 --rcheck
+iptables -t filter -A INPUT -i eth0 -m recent -d 127.0.0.0/8 -j DROP --set

@@ -1,0 +1,7 @@
+table filter chain output mod owner {
+    uid-owner 500 REJECT rejectwith icmp-net-prohibited;
+    gid-owner 100 ACCEPT;
+    pid-owner 16000 ACCEPT;
+    sid-owner 15000 DROP;
+    cmd-owner perl ACCEPT;
+}

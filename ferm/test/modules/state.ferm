@@ -1,0 +1,8 @@
+table filter chain input mod state {
+    state (ESTABLISHED,RELATED) ACCEPT;
+    proto tcp {
+        state NEW dport ssh ACCEPT;
+        REJECT;
+    }
+    DROP;
+}

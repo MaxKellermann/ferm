@@ -1,0 +1,5 @@
+iptables -t filter -A INPUT -m tos -j ACCEPT --tos Minimize-Delay
+iptables -t filter -A INPUT -m tos -j ACCEPT --tos Maximize-Throughput
+iptables -t filter -A INPUT -m tos -j ACCEPT --tos Maximize-Reliability
+iptables -t filter -A INPUT -m tos -j ACCEPT --tos Minimize-Cost
+iptables -t filter -A INPUT -m tos -j ACCEPT --tos Normal-Service

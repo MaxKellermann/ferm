@@ -1,0 +1,4 @@
+table filter chain input mod length {
+    length 0:1024 ACCEPT;
+    length 16384 DROP;
+}

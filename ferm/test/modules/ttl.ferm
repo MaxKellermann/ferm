@@ -1,0 +1,5 @@
+table filter chain input mod ttl {
+    ttl-eq 10 ACCEPT;
+    ttl-gt 15 DROP;
+    ttl-lt 2 REJECT;
+}

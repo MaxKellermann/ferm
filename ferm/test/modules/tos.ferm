@@ -1,0 +1,7 @@
+table filter chain input mod tos {
+    tos Minimize-Delay ACCEPT;
+    tos Maximize-Throughput ACCEPT;
+    tos Maximize-Reliability ACCEPT;
+    tos Minimize-Cost ACCEPT;
+    tos Normal-Service ACCEPT;
+}

@@ -1,5 +1,6 @@
 table filter chain input mod conntrack {
     ctstate INVALID DROP;
+    ctstate (DNAT SNAT) DROP;
     ctproto ftp ACCEPT;
     ctorigsrc 10.0.0.0/8 ACCEPT;
     ctorigdst 127.0.0.01 ACCEPT;
