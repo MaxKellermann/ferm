@@ -51,7 +51,6 @@ my %tables;    # chain box for iptables
     $tables{'mangle_prerouting'} = 0;
     $tables{'mangle_output'} = 0;
                # 0=made;1=policy set;2=flushed;3=all
-my $side='';   # source/destination pointer
 my %option;    # some configuration options
 my %vars;      # holds variable data
 
@@ -1323,14 +1322,16 @@ sub enter {
                 $current->{'dport'}=getvalues();
                 ; next; };
             /^port$/ && do {
-                if ($side eq 'source' ) {
-                    $current->{'sport'}=getvalues() }
-                elsif ($side eq 'destination' ) {
-                    $current->{'dport'}=getvalues() }
-                else {
-                    error("source/destination not declared, exiting");
-                    }
-                ; next; } ;
+                error("source/destination not declared, exiting")
+                  unless exists $current->{side};
+                if ($current->{side} eq 'source' ) {
+                    $current->{sport} = getvalues();
+                } elsif ($current->{side} eq 'destination' ) {
+                    $current->{dport} = getvalues();
+                }
+                next;
+            };
+
             /^icmptype$|^icmp-type$/ && do {
                 $current->{'icmptype'}=getvalues();
                 ; next; } ;
@@ -1341,13 +1342,15 @@ sub enter {
                 $current->{'daddr'}=getvalues();
                 ; next; };
             /^addr$/ && do {
-                if ($side eq 'source' ) {
-                    $current->{'saddr'}=getvalues() }
-                elsif ($side eq 'destination' ) {
-                    $current->{'daddr'}=getvalues() }
-                else {
-                    error("source/destination not declared, exiting") };
-                ; next; } ;
+                error("source/destination not declared, exiting")
+                  unless exists $current->{side};
+                if ($current->{side} eq 'source') {
+                    $current->{'saddr'} = getvalues();
+                } elsif ($current->{side} eq 'destination') {
+                    $current->{'daddr'} = getvalues();
+                }
+                next;
+            };
 
             # extended parameters:
             /^settos$/ && do {
@@ -1421,10 +1424,10 @@ sub enter {
                     $current->{'fragment'}='set';}
                 ; next; } ;
             /^source$|^src$/ && do {
-                $side='source';
+                $current->{side} = 'source';
                 ; next; } ;
             /^destination$|^dest$/&& do {
-                $side='destination';
+                $current->{side} = 'destination';
                 ; next; } ;
             /^to$/ && do {
                 $current->{'to'}=getvar();
