@@ -551,7 +551,7 @@ sub getvalues {
         error('it is not possible to negate a list')
           if ref $token;
         error('double negation is not allowed')
-          if $token =~ /^!/;
+          if $token eq '!';
 
         return '! ' . $token;
     } elsif ($token =~ /^.+,.+$/) {
