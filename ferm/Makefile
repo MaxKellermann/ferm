@@ -32,7 +32,7 @@ pub:	www ftp
 
 manobjects = ferm.txt ferm.html ferm.1
 tarobjects = ferm.tar.gz
-tmpfiles = pod2html-dircache pod2html-itemcache 'pod2htmd.x~~' 'pod2htmsid.x~~'
+tmpfiles = pod2html-dircache pod2html-itemcache 'pod2htmd.x~~' 'pod2htmsid.x~~' 'pod2htmi.x~~'
 
 $(manobjects): $(MANSRC)
 $(tarobjects): $(MANSRC) $(SRC)
@@ -56,6 +56,7 @@ ferm.1:
 ferm.html:
 	@echo "Making HTML manual page..."
 	@pod2html $(MANSRC) --netscape --flush > man/ferm.html
+	@rm -f $(tmpfiles)
 
 ferm.txt:
 	@echo "Making plain text manual page..."
