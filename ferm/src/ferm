@@ -185,7 +185,7 @@ sub printversion {
 
 
 sub mydie {
-    print @_; print "\n";
+    print STDERR @_; print "\n";
     exit 1;
 }
 
@@ -224,11 +224,11 @@ sub error {
     }
     my $start = $#lines - 4;
     if ($start < 0) { $start = 0 } ;
-    print "Error in $script->{filename} line $script->{line}:\n";
+    print STDERR "Error in $script->{filename} line $script->{line}:\n";
     for $l ( $start .. $#lines)
-        { print $lines[$l]; if ($l != $#lines ) {print "\n"} ; };
-    print "<--\n";
-    mydie(shift);
+        { print STDERR $lines[$l]; if ($l != $#lines ) {print "\n"} ; };
+    print STDERR "<--\n";
+    mydie(@_);
 }
 
 sub tokenize_string {
