@@ -108,6 +108,21 @@ use vars qw(%deprecated_keywords);
                          psdhiportsweight => 'psd-hi-ports-weight',
                          MASQ => 'MASQUERADE',
                          masq => 'MASQUERADE',
+                         masquerade => 'MASQUERADE',
+                         accept => 'ACCEPT',
+                         drop => 'DROP',
+                         return => 'RETURN',
+                         queue => 'QUEUE',
+                         nop => 'NOP',
+                         balance => 'BALANCE',
+                         dnat => 'DNAT',
+                         mirror => 'MIRROR',
+                         redirect => 'REDIRECT',
+                         reject => 'REJECT',
+                         snat => 'SNAT',
+                         tcpmss => 'TCPMSS',
+                         ttl => 'TTL',
+                         ulog => 'ULOG',
                        );
 
 # Get command line stuff
@@ -1693,8 +1708,7 @@ sub enter {
             if ($keyword =~ /^(?:ACCEPT|DROP|RETURN|QUEUE|NOP
                                 |BALANCE|DNAT|MASQUERADE|MIRROR|REDIRECT|REJECT
                                 |SNAT|TCPMSS|TTL|ULOG
-                              )$/ix or
-                $keyword =~ /^(?:CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
+                                |CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
                                 |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
                                 |TARPIT
                               )$/x) {
