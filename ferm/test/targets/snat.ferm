@@ -1,3 +1,6 @@
 table nat chain postrouting {
     outerface ppp0 SNAT to-source 172.16.0.1;
+    outerface eth2 SNAT to-source 172.17.0.1-172.17.0.10;
+    outerface eth2 SNAT to-source 172.17.0.1-172.17.0.10:10000-20000;
+    outerface ethe SNAT to-source (172.17.0.1 172.17.0.1:20000-30000);
 }
