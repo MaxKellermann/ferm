@@ -703,6 +703,7 @@ sub is_netfilter_builtin_target {
                          |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
                          |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
                          |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
+                         |TARPIT
                        )/x;
 }
 
