@@ -46,9 +46,9 @@ use vars qw(%option $verbose $debug);
 ## parser variables
 # $script: current script file
 # %vars = ferm variables, name => value
-# %subs = ferm functions, name => \@tokens
+# %functions = ferm functions, name => \@tokens
 # @rules = the rules which are being created
-use vars qw($script %vars @rules);
+use vars qw($script %vars %functions @rules);
 
 ## netfilter variables
 # @ip_tables_names = a list of supported table names (filter, nat, mangle)
@@ -251,7 +251,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[!,=]|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
+    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[!,=&]|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
         # explanation of all sections:
         # \x22[^\x22]+\x22 == "*"
         # \x27[^\x27]+\x27 == '*'
@@ -1313,6 +1313,65 @@ sub enter {
                 $keyword = next_token;
                 error('Missing ";"')
                   unless defined $keyword and $keyword eq ';';
+
+                next;
+            }
+
+            # declare a function
+            if ($keyword eq 'sub') {
+                my $name = getvar;
+                error('function name expected')
+                  unless $name =~ /^\w+$/;
+
+                my $params = getvalues();
+                error('function name must be followed by "()"')
+                  unless ref $params and @$params == 0;
+
+                my @level;
+                my @tokens;
+
+                while (defined ($keyword = next_token)) {
+                    if ($keyword =~ /^[\{\(]$/) {
+                        push @level, $keyword;
+                    } elsif ($keyword =~ /^[\}\)]$/) {
+                        my $expected = $keyword;
+                        $expected =~ tr/\}\)/\{\(/;
+                        my $opener = pop @level;
+                        error("unmatched '$keyword'")
+                          unless defined $opener and $opener eq $expected;
+                    } elsif ($keyword eq ';' and @level == 0) {
+                        last;
+                    }
+
+                    push @tokens, $keyword;
+
+                    last
+                      if $keyword eq '}' and @level == 0;
+                }
+
+                error('unexpected end of file within function declaration')
+                  if @level;
+
+                $functions{$name} = \@tokens;
+
+                next;
+            }
+
+            # sub routine call
+            if ($keyword eq '&') {
+                my $name = getvar;
+                error('function name expected')
+                  unless $name =~ /^\w+$/;
+
+                my $tokens = $functions{$name};
+                error("no such sub: '$name'")
+                  unless defined $tokens;
+
+                my $params = getvalues();
+                error('function name must be followed by "()"')
+                  unless ref $params and @$params == 0;
+
+                unshift @{$script->{tokens}}, @$tokens;
 
                 next;
             }
