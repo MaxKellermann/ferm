@@ -99,11 +99,13 @@ use subs qw(open_script);
     $option{'flushchains'} = (defined $opt_flushchains);
     $option{'createchains'} = (defined $opt_createchains);
     $option{'automod'} = (defined $opt_automod);
-    $option{'ipchains'} = $option{'iptables'} = $option{'ipfwadm'} = 0;
+
     if (defined $opt_use) {
-        $option{$opt_use} = 1;
+        mydie('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter')
+          unless $opt_use =~ /^(?:iptables|ipchains|ipfwadm)$/;
         $option{frontend} = $opt_use;
     }
+
     if (defined $opt_location) {
         $option{'location'} = $opt_location;
         if ( ! -X $option{'location'}) {
@@ -357,10 +359,15 @@ sub prepare_tokens {
                 $value = undef;
             }
 
-            $option{$name} = $value;
-
-            $option{frontend} = $name
-              if $value and $name =~ /^(?:ipfwadm|ipchains|iptables)$/;
+            if ($value and $name =~ /^(?:ipfwadm|ipchains|iptables)$/) {
+                if (exists $option{frontend} and $option{frontend} ne $name) {
+                    print STDERR "Frontend already set, ignoring $script->{filename} line $script->{line}\n";
+                } else {
+                    $option{frontend} = $name
+                }
+            } else {
+                $option{$name} = $value;
+            }
         } elsif ($line[0] eq 'set') {
             # set: set a variable
             shift @line;
@@ -1099,30 +1106,30 @@ sub ip_tables_names {
 
 sub clearall {
     # flush and delete all chains...
-    if ($option{'ipchains'}) {
+    if ($option{frontend} eq 'ipchains') {
         flushall();
-        push @rules, "$option{'location'} \-X\n" }
-    elsif ($option{'iptables'} ) {
+        push @rules, "$option{'location'} \-X\n";
+    } elsif ($option{frontend} eq 'iptables') {
         flushall();
 
         foreach my $table (ip_tables_names) {
             push @rules, "$option{'location'} \-X -t $table\n";
         }
-    } elsif ($option{'ipfwadm'} ) {
+    } elsif ($option{frontend} eq 'ipfwadm') {
         flushall();
         # nothing to do here
-        };
+    }
 }
 
 
 sub flushall {
     # flush all chains...
-    if($option{'ipchains'}) {
+    if ($option{frontend} eq 'ipchains') {
         push @rules, "$option{'location'} \-F\n" ;
         $chains{'input'} |= 2;
         $chains{'forward'} |= 2;
-        $chains{'output'} |= 2; }
-    elsif ($option{'iptables'} ) {
+        $chains{'output'} |= 2;
+    } elsif ($option{frontend} eq 'iptables') {
         foreach my $table (ip_tables_names) {
             push @rules, "$option{'location'} \-F -t $table\n";
         }
@@ -1133,11 +1140,12 @@ sub flushall {
         $tables{'nat_postrouting'} |= 2;
         $tables{'nat_output'} |= 2;
         $tables{'mangle_prerouting'} |= 2;
-        $tables{'mangle_output'} |= 2; }
-    elsif ($option{'ipfwadm'} ) {
+        $tables{'mangle_output'} |= 2;
+    } elsif ($option{frontend} eq 'ipfwadm') {
         push @rules, "$option{'location'} \-I \-f\n";
         push @rules, "$option{'location'} \-F \-f\n";
-        push @rules, "$option{'location'} \-O \-f\n"; };
+        push @rules, "$option{'location'} \-O \-f\n";
+    }
 }
 
 
@@ -1155,11 +1163,13 @@ sub printrule {
     };
 
     # prints all rules in a hash
-    if ( $option{'ipchains'} ) { chains ($rule) ; }
-    elsif ( $option{'iptables'} ) { tables ($rule) ; }
-    elsif ( $option{'ipfwadm'} ) { fwadm ($rule) ; }
-    else {
-        mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter'); } ;
+    if ($option{frontend} eq 'ipchains') {
+        chains ($rule)
+    } elsif ($option{frontend} eq 'iptables') {
+        tables ($rule);
+    } elsif ($option{frontend} eq 'ipfwadm') {
+        fwadm($rule);
+    }
 }
 
 
