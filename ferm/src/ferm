@@ -99,11 +99,8 @@ use subs qw(open_script);
     $option{'createchains'} = (defined $opt_createchains);
     $option{'automod'} = (defined $opt_automod);
 
-    if (defined $opt_use) {
-        mydie('Unknown or no kernel interface specified, try to set "option [iptables|ipchains] or use the --use parameter')
-          unless $opt_use =~ /^(?:iptables|ipchains)$/;
-        $option{frontend} = $opt_use;
-    }
+    print STDERR "Ignoring the obsolete --use/-s option\n"
+      if defined $opt_use;
 
     if (defined $opt_location) {
         $option{'location'} = $opt_location;
@@ -121,15 +118,12 @@ mydie("Specify only one ferm script")
 open_script($ARGV[0]);
 
 # option checks
-mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains] or use the --use parameter')
-  unless defined $option{frontend};
-
 if (defined $option{location}) {
     mydie("Specified location is not executable or does not exist! Exiting")
       unless -X $option{'location'};
 } else {
     # set a default location
-    $option{location} = $option{frontend};
+    $option{location} = 'iptables';
 }
 
 # clearing and flushing needs to be done first:
@@ -358,12 +352,8 @@ sub prepare_tokens {
                 $value = undef;
             }
 
-            if ($value and $name =~ /^(?:ipchains|iptables)$/) {
-                if (exists $option{frontend} and $option{frontend} ne $name) {
-                    print STDERR "Frontend already set, ignoring $script->{filename} line $script->{line}\n";
-                } else {
-                    $option{frontend} = $name
-                }
+            if ($value and $name =~ /^(?:ipchains|iptables|ipfwadm)$/) {
+                print STDERR "The options ipchains, iptables and ipfwadm are obsolete, ignoring them\n";
             } else {
                 $option{$name} = $value;
             }
@@ -533,143 +523,6 @@ sub getvalues {
     }
 }
 
-# here are the three currently known fw-set interfaces to the kernel
-
-sub chains {
-    my $rule = shift;
-    my %rule = %$rule;
-
-    # ipchains
-    my $rr = "";
-
-    # should we set a policy?
-    if ( exists $rule{'policy'} ) {
-        for ( $rule{'chain'} ) {
-            /^input$|^forward$|^output$/ && do {
-                if ( ! ($chains{$rule{'chain'}} & 1) ) {
-                    my $policy = $rule{policy};
-                    $policy = 'DENY'
-                      if $policy eq 'DROP';
-                    push @rules, "$option{'location'} -P $rule{'chain'} $policy\n";
-                    $chains{$rule{'chain'}} |= 1 ; };
-                last; };
-            mydie (" cannot set the policy for non-built in chains, exiting"); }; };
-
-    if ( $option{'createchains'} ) {
-        # check if the chain is already defined
-        if ( ! exists $chains{$rule{'chain'}} ) {
-            push @rules, "$option{'location'} -N $rule{'chain'}\n" ;
-            $chains{$rule{'chain'}} = 0 };
-
-        # check for unknown jump target
-        for ( $rule{'action'} ) {
-            /^accept$|^drop$|^reject$|^return$|^masq$|^redirect$|^nop$|^$/ && last;
-            if ( ! exists ($chains{$_}) ) {
-                push @rules, "$option{'location'} -N $_\n";
-                $chains{$_} = 0 }; }; }
-    else {
-        # tag em so were not flushing it empty...
-        if ( ! exists $chains{$rule{'chain'}} ) {
-            $chains{$rule{'chain'}} = 0 ;
-        };
-        for ( $rule{'action'} ) {
-            /^accept$|^drop$|^reject$|^return$|^masq$|^redirect$|^$/ && last;
-            if ( ! exists ($chains{$_}) ) {
-                $chains{$_} = 0;
-            };
-        };
-    };
-
-    # flush neccesary chains before referencing them
-    if ( $option{'flushchains'} && (! ($option{'flushall'} || $option{'clearall'}) )) {
-        # check if the chain is not already flushed
-        if ( ($chains{$rule{'chain'}} & 2) != 2 ) {
-            push @rules, "$option{'location'} -F $rule{'chain'}\n" ;
-            $chains{$rule{'chain'}} |= 2; };
-        # check for jump target to be flushed
-        for ( $rule{'action'} ) {
-            /^accept$|^drop$|^reject$|^return$|^masq$|^redirect$|^nop$|^$/ && last;
-            if ( ($chains{$rule{'action'}} & 2) != 2 ) {
-                push @rules, "$option{'location'} -F $rule{'action'}\n";
-                $chains{$rule{'action'}} |= 2 ;};
-        };
-    };
-
-    # exit if no action is present - in case of policy only
-    if ( !defined $rule{'action'} ) {
-        push @rules, $rr;
-        return; };
-
-    $rr .= "ipchains -A ";
-    $rr .= $rule{'chain'} . " ";
-    if (defined $rule{'interface'} ) {
-        $rr .= "-i " . $rule{'interface'} . " " ; };
-    if (defined $rule{'proto'} ) {
-        $rr .= "-p " . $rule{'proto'} . " "; };
-
-    # address and port
-    if (defined $rule{'saddr'} ) {
-        $rr .= "-s " . $rule{'saddr'} . " " ;
-        if ( defined $rule{'sport'} ) {
-            $rr .= $rule{'sport'} . " ";} }
-    else {
-        if ( defined $rule{'sport'} ) {
-            $rr .= "--sport " . $rule{'sport'} . " ";} }
-    if (defined $rule{'daddr'} ) {
-        $rr .= "-d " . $rule{'daddr'} . " " ;
-        if ( defined $rule{'dport'} ) {
-            $rr .= $rule{'dport'} . " ";} }
-    else {
-        if ( defined $rule{'dport'} ) {
-            $rr .= "--dport " . $rule{'dport'} . " ";} }
-
-    if (defined $rule{'reverse'} ) {
-        $rr .= "-b " };
-
-    if (defined $rule{'icmptype'} ) {
-        $rr .= "--icmp-type " . $rule{'icmptype'} . " "; } ;
-    if (defined $rule{'syn'} ) {
-        if ( $rule{'syn'} eq 'set' ) {
-            $rr .= '-y '  ; }
-        else {
-            $rr .= '! -y '; } ;
-        } ;
-    if (defined $rule{'settos'} ) {
-        $rr .= "-t e1 ";
-        for ( $rule{'settos'} ) {
-            /mincost|min-cost|2/ && do { $rr .= "02 "};
-            /reliability|reliable|4/ && do { $rr .= "04 "};
-            /max-throughput|maxthroughput|8/ && do { $rr .= "08 "};
-            /lowdelay|interactive|min-delay|10/ && do { $rr .= "10 "};
-            /clear|^0$|^00$|^0x00$/ && do { $rr .= "00 "};
-            }
-        ; } ;
-    if (defined $rule{'setmark'} ) {
-        $rr .= "-m " . $rule{'setmark'} . " "; } ;
-    if (defined $rule{'fragment'} ) {
-        if ( $rule{'fragment'} eq 'set' ) {
-            $rr .= '-f '  ; }
-        else {
-            $rr .= '! -f '; } ;
-        } ;
-    unless ($rule{'action'} eq 'nop') {
-        $rr .= "-j "; } ;
-    for ( $rule{'action'} ) {
-        /^accept$/ && do { $rr .= "ACCEPT " ; last; };
-        /^drop$/ && do { $rr .= "DENY " ; last; };
-        /^reject$/ && do { $rr .= "REJECT " ; last; };
-        /^masq$/ && do { $rr .= "MASQ " ; last; };
-        /^redirect$/ && do { $rr .= "REDIRECT " . $rule{'to'} ; last; };
-        /^return$/ && do { $rr .= "RETURN " ; last; };
-        /^nop$/ && last;
-        $rr .= $rule{'action'} . " "; } ;
-    if (defined $rule{'log'} ) {
-        $rr .= "-l"; } ;
-    $rr .= "\n";
-    push @rules, $rr;
-}
-
-
 sub tables {
     my $rule = shift;
     my %rule = %$rule;
@@ -813,15 +666,12 @@ sub tables {
     unless ($rule{'action'} eq 'nop') {
         $rr .= "-j "; } ;
 
-    if (defined $rule{'log'} ) {
-        push @rules, $rr . "LOG\n"; }
-
     # special options come after "-j TARGET"
 
     for ( $rule{'action'} ) {
         /^masq$/ && do { $rr .= "MASQUERADE " ;  last; };
         /^nop$/ && last;
-        /^(?:accept|balance|dnat|drop|ftos|log|mark|mirror|netlink|queue|redirect|reject|return|snat|tcpmss|tos|ttl|ulog|connmark|netmap)$/ && do {
+        /^(?:accept|balance|dnat|drop|ftos|log|mark|mirror|netlink|queue|redirect|reject|return|snat|tcpmss|tos|ttl|ulog|connmark|netmap|log)$/ && do {
              $rr .= (uc $rule{'action'}) . " " ; last; };
         $rr .= $rule{'action'} . " ";
     };
@@ -1036,39 +886,27 @@ sub ip_tables_names {
 
 sub clearall {
     # flush and delete all chains...
-    if ($option{frontend} eq 'ipchains') {
-        flushall();
-        push @rules, "$option{'location'} \-X\n";
-    } elsif ($option{frontend} eq 'iptables') {
-        flushall();
+    flushall();
 
-        foreach my $table (ip_tables_names) {
-            push @rules, "$option{'location'} \-X -t $table\n";
-        }
+    foreach my $table (ip_tables_names) {
+        push @rules, "$option{'location'} \-X -t $table\n";
     }
 }
 
 
 sub flushall {
     # flush all chains...
-    if ($option{frontend} eq 'ipchains') {
-        push @rules, "$option{'location'} \-F\n" ;
-        $chains{'input'} |= 2;
-        $chains{'forward'} |= 2;
-        $chains{'output'} |= 2;
-    } elsif ($option{frontend} eq 'iptables') {
-        foreach my $table (ip_tables_names) {
-            push @rules, "$option{'location'} \-F -t $table\n";
-        }
-        $tables{'filter_input'} |= 2;
-        $tables{'filter_forward'} |= 2;
-        $tables{'filter_output'} |= 2;
-        $tables{'nat_prerouting'} |= 2;
-        $tables{'nat_postrouting'} |= 2;
-        $tables{'nat_output'} |= 2;
-        $tables{'mangle_prerouting'} |= 2;
-        $tables{'mangle_output'} |= 2;
+    foreach my $table (ip_tables_names) {
+        push @rules, "$option{'location'} \-F -t $table\n";
     }
+    $tables{'filter_input'} |= 2;
+    $tables{'filter_forward'} |= 2;
+    $tables{'filter_output'} |= 2;
+    $tables{'nat_prerouting'} |= 2;
+    $tables{'nat_postrouting'} |= 2;
+    $tables{'nat_output'} |= 2;
+    $tables{'mangle_prerouting'} |= 2;
+    $tables{'mangle_output'} |= 2;
 }
 
 
@@ -1086,11 +924,7 @@ sub printrule {
     };
 
     # prints all rules in a hash
-    if ($option{frontend} eq 'ipchains') {
-        chains ($rule)
-    } elsif ($option{frontend} eq 'iptables') {
-        tables ($rule);
-    }
+    tables($rule);
 }
 
 
@@ -1310,12 +1144,6 @@ sub enter {
                 ; next; };
 
             # miscelleanous switches
-            if ($option{frontend} eq 'ipchains' and
-                $keyword =~ /^reverse$|^bidirectional$|^swap$/) {
-                $current->{'reverse'}='1';
-                next;
-            }
-
             /^syn$/ && do {
                 # match tcp packages with syn-byte set
                 if ($negated) {
@@ -1349,41 +1177,13 @@ sub enter {
             }
 
             # action keywords
-            /^log$/i && do {
-                if ($option{frontend} eq 'iptables'
-                    and (not exists $current->{action} or
-                         $keyword eq 'LOG')) {
-                    # set "log" action
-
-                    # for backwards compatibility with ferm 1.1, an
-                    # existing action is only overwritten if "LOG" is
-                    # written in all uppercase
-                    $current->{action} = lc $keyword;
-                } else {
-                    # turn the logging switch on
-                    $current->{log} = 'set';
-                }
-                next;
-            };
-
             s/^deny$/drop/i;
             s/^proxy$/redirect/i;
             s/^masquerade$/masq/i;
 
             ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
                    netlink|nop|queue|reject|return|tcpmss|ttl|ulog)$/ix or
-              /^(?:TOS|MARK|CONNMARK|NETMAP)$/ ) && do {
-                if (exists $current->{action}) {
-                    if ($current->{action} eq 'log') {
-                        # if the action is already set to "log",
-                        # change that to a "log" flag for backwards
-                        # compatibility
-                        $current->{log} = 'set';
-                    } else {
-                        error("two actions not allowed, exiting");
-                    }
-                }
-
+              /^(?:TOS|MARK|CONNMARK|NETMAP|LOG)$/ ) && do {
                 $current->{'action'} = lc $keyword;
                 next;
             };
@@ -1749,7 +1549,7 @@ B<ferm> I<options> I<inputfiles>
  --automod         Enable automatic module parameters for iptables
  -h, --help        Look at this text
  --use [kernel firewall program]
-                   Either iptables or ipchains
+                   Obsolete option, only iptables is supported
  --location /path/to/iptables
                    Specify the location and name of the kernel program
 
