@@ -813,6 +813,16 @@ sub tables {
     if ( defined $rule{'nlsize'} ) {
         $rr .= "--nlsize " . $rule{'nlsize'} . " " } ;
 
+    # ipt_recent parameters
+    foreach (qw(name seconds hitcount)) {
+        $rr .= "--$_ " . $rule{$_} . " "
+          if exists $rule{$_};
+    }
+    foreach (qw(set rcheck update remove rttl)) {
+        $rr .= "--$_ "
+          if exists $rule{$_};
+    }
+
     $rr .= "\n";
     push @rules, $rr;
 };
@@ -1204,6 +1214,16 @@ sub enter {
             /^nlmark$|^nlsize$/ && do {
                 $fw[$lev]{$keyword}=getvar();
                 ; next; };
+
+            # ipt_recent switches
+            /^(?:name|seconds|hitcount)$/ && do {
+                $fw[$lev]{$keyword}=getvar();
+                next;
+            };
+            /^(?:set|rcheck|update|remove|rttl)$/ && do {
+                $fw[$lev]{$keyword}=1;
+                next;
+            };
 
             # miscelleanous switches
             /^reverse$|^bidirectional$|^swap$/ && do {
