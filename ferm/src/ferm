@@ -33,7 +33,7 @@ $VERSION = '1.1+cvs';
 $DATE = '19 oct 2004';
 
 # global data vars
-my @fw;        # fwset in list of hashes
+my @fw = {};   # fwset in list of hashes
 my @rules;     # will contain all rules
 my %chains;    # chain box for ipchains
     $chains{'input'} = 0;
@@ -1136,6 +1136,9 @@ sub mkrules {
 sub enter {
     my $lev = shift;  # current recursion depth
 
+    push @fw, {};
+    die unless $#fw == $lev;
+
     # enter is the core of the firewall setup, it is a
     # simple parser program that recognizes keywords and
     # retreives parameters to set up the kernel routing
@@ -1515,7 +1518,7 @@ sub enter {
                 mkrules();
 
                 # and clean up variables set in this level
-                undef $fw[$lev];
+                $fw[$lev] = {};
                 ; next ; } ;
 
             # recursing operators
@@ -1524,7 +1527,7 @@ sub enter {
 
                 # after a block, the command is finished, clear this
                 # level
-                undef $fw[$lev];
+                $fw[$lev] = {};
 
                 ; next SWITCH; };
             /\x7d/ && do {
@@ -1550,7 +1553,7 @@ sub enter {
                 }
 
                 # and clean up variables set in this level
-                $#fw = $lev - 1;
+                pop @fw;
                 # and exit
                 if ($debug) {
                     push @rules, "# leaving level $lev\n";
