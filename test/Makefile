@@ -1,15 +1,10 @@
-# path of the old and the new ferm binary
-OLD_FERM = /usr/bin/ferm
-OLD_OPTIONS = --use iptables --lines --noexec
-
-NEW_FERM = ../src/ferm
-NEW_OPTIONS = --test
+TOPDIR = ..
+include $(TOPDIR)/config.mk
 
 # a list of all ferm scripts which should be tested with iptables
 FERM_SCRIPTS = positive/flush positive/multimod positive/policyorder
 FERM_SCRIPTS += positive/bug positive/iptables-targets positive/masqto positive/mod params/owner positive/state positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
 FERM_SCRIPTS += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard protocols/*.ferm) $(wildcard misc/*.ferm)
-FERM_SCRIPTS += $(FERM_SCRIPTS_ipchains)
 
 all:
 
