@@ -47,12 +47,15 @@ while (<>) {
 
         s/-([ALFZNXE])(?: (\w+))?/($command, $chain) = ($1, $2); ''/eg;
 
-        if ($command eq 'F' or $command eq 'N' or $command eq 'X') {
+        if ($command eq 'F' or $command eq 'X') {
             if (defined $chain) {
                 delete $data->{iptables}{$table}{$chain}{rules};
             } else {
                 delete $data->{iptables}{$table};
             }
+            next;
+        } elsif ($command eq 'N') {
+            push @{$data->{iptables}{$table}{$chain}{rules}}, 'NEW';
             next;
         }
 
