@@ -16,11 +16,11 @@ LSMFILE	= build/ferm-${VERSION}.lsm
 
 all:
 	make -C doc $@
-	[ ! -d test ] || make -C test $@
 
 clean:
 	rm -rf build
 	make -C doc $@
+	make -C test $@
 
 check:
 	make -C test $@
