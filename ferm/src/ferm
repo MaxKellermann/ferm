@@ -1041,7 +1041,6 @@ sub printrule {
 sub mkrules {
     # compile the list hashes into rules
     my @fr;
-    my $negated = 0;
     my $cc = -1;
 
     # pack the data in a handy format (list-of-hashes with one kw
@@ -1063,7 +1062,7 @@ sub mkrules {
     };
 
     sub dofr {
-        my ($r_fr, $r_cc, $r_negated) = @_;
+        my ($r_fr, $r_cc) = @_;
 
         $$r_cc++;
         if ($$r_cc >= scalar @$r_fr) {
@@ -1072,14 +1071,13 @@ sub mkrules {
         else {
             # loop over all keys in this level (only 1)
             while (my ($key, $value_string) = each %{$r_fr->[$$r_cc]}) {
+                # preparse value stuff: is unsplit value negated???
+                my $negated = $value_string =~ /^\x21/;
+
                 # recurse for every value
                 foreach my $value ( split ("," , $value_string) ) {
-                    # preparse value stuff: is unsplit value negated???
-                    for ( $value_string ) {
-                        /^\x21/ && do { $$r_negated = 1; } || do { $$r_negated = 0; };
-                    }
                     # if so, make sure the '!' is put before every value in it
-                    if ( $$r_negated ) {
+                    if ( $negated ) {
                         for ($value) {
                             !/^\x21/ && do { $value = "\x21" . $value; }
                         }
@@ -1087,14 +1085,14 @@ sub mkrules {
                     $value =~ s/^!/! /;
                     # set this one and recurse
                     $rule{$key} = $value;
-                    dofr($r_fr, $r_cc, $r_negated);
+                    dofr($r_fr, $r_cc);
                 }
                 delete $rule{$key};
             }
         }
         $$r_cc--;
     }
-    dofr(\@fr, \$cc, \$negated);
+    dofr(\@fr, \$cc);
 }
 
 
