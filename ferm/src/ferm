@@ -321,8 +321,7 @@ sub prepare_tokens {
             # set: set a variable
             shift @line;
             my $name = getvar(\&next_array_token, \@line);
-            my $value = getvalues(\&next_array_token, \@line,
-                                  empty_allowed => 1);
+            my $value = getvalues(\&next_array_token, \@line);
 
             if (@line and $line[0] eq ',') {
                 warning('Arrays without parantheses are deprecated');
@@ -541,7 +540,7 @@ sub getvalues {
         }
 
         error('empty arrays are not allowed')
-          unless @wordlist or $options{empty_allowed};
+          unless @wordlist or not $options{non_empty};
 
         return @wordlist == 1
           ? $wordlist[0]
@@ -1297,9 +1296,14 @@ sub enter {
                     next;
                 }
                 if ($keyword =~ /^(?:tcp-?)flags$/) {
+                    my @mask = to_array getvalues(undef, undef,
+                                                  non_empty => 1);
+                    my @match = to_array getvalues(undef, undef,
+                                                   non_empty => 1);
+
                     $current->{tcpflags} = 1;
-                    $current->{flagsmask} = join(',', to_array getvalues());
-                    $current->{flagsmatch} = join(',', to_array getvalues());
+                    $current->{flagsmask} = join(',', @mask);
+                    $current->{flagsmatch} = join(',', @match);
                     next;
                 }
                 if ($keyword eq 'syn') {
@@ -1352,7 +1356,9 @@ sub enter {
 
             # ipt_conntrack switches
             /^ctstate$/ && do {
-                $current->{$keyword} = join(',', to_array getvalues());
+                my @params = to_array getvalues(undef, undef,
+                                                non_empty => 1);
+                $current->{$keyword} = join(',', @params);
                 $current->{auto_modules}{conntrack} = 1;
                 next;
             };
@@ -1455,13 +1461,17 @@ sub enter {
 
             # ipt_state switches
             /^state$/ && do {
-                $current->{state} = join(',', to_array getvalues());
+                my @params = to_array getvalues(undef, undef,
+                                                non_empty => 1);
+                $current->{state} = join(',', @params);
                 $current->{auto_modules}{state} = 1;
                 ; next; };
 
             # ipt_time switches
             /^days$/ && do {
-                $current->{days} = join(',', to_array getvalues());
+                my @params = to_array getvalues(undef, undef,
+                                                non_empty => 1);
+                $current->{days} = join(',', @params);
                 $current->{auto_modules}{time} = 1;
                 next;
             };
@@ -1554,7 +1564,9 @@ sub enter {
                 # SNAT target switches
                 if ($current->{action} eq 'SNAT' and
                     $keyword =~ /^(?:to-source|tosrc)$/) {
-                    $current->{tosrc} = join(',', to_array getvalues());
+                    my @params = to_array getvalues(undef, undef,
+                                                    non_empty => 1);
+                    $current->{tosrc} = join(',', @params);
                     next;
                 }
 
