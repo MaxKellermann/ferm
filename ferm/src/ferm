@@ -992,7 +992,7 @@ sub tables {
     shell_append(\$rr, '--dscp', $rule{dscp})
       if exists $rule{dscp};
 
-    shell_append(\$rr, '--dscp-class', split(/\0/, $rule{'dscp-class'}))
+    shell_append(\$rr, '--dscp-class', $rule{'dscp-class'})
       if exists $rule{'dscp-class'};
 
     # ipt_ecn parameters
@@ -1871,13 +1871,8 @@ sub enter {
 
             # ipt_dscp switches
             if (exists $modules{dscp}) {
-                if ($keyword eq 'dscp') {
+                if ($keyword eq 'dscp' or $keyword eq 'dscp-class') {
                     $current->{$keyword} = getvalues();
-                    next;
-                }
-
-                if ($keyword eq 'dscp-class') {
-                    $current->{$keyword} = getvar() . "\0" . getvar();
                     next;
                 }
             }
