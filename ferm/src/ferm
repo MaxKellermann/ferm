@@ -3,7 +3,7 @@
 #
 # ferm, a firewall setup program that makes firewall rules easy!
 #
-# Copyright (C) 2001-2003  Auke Kok
+# Copyright (C) 2001-2005 Auke Kok, Max Kellermann
 #
 # Comments, questions, greetings and additions to this program
 # may be sent to <sofar@foo-projects.org>
@@ -35,7 +35,7 @@ use Pod::Usage;
 use vars qw($VERSION $DATE);
 
 $VERSION = '1.1+cvs';
-$DATE = '24 feb 2005';
+$DATE = '27 feb 2005';
 
 ## interface variables
 # %option = command line and other options
@@ -228,7 +228,8 @@ exit 0;
 
 sub printversion {
     print "ferm $VERSION, $DATE\n";
-    print "Copyright (C) 2001-2003 - Auke Kok, released under the GPLv2\n";
+    print "Copyright (C) 2001-2005 Auke Kok, Max Kellermann\n";
+    print "This program is free software released under GPLv2.\n";
     print "See the included COPYING file for license details.\n";
 }
 

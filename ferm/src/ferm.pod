@@ -5,7 +5,7 @@
 #
 # ferm, a firewall setup program that makes firewall rules easy!
 #
-# Copyright (C) 2001-2003  Auke Kok
+# Copyright (C) 2001-2005  Auke Kok, Max Kellermann
 #
 # Comments, questions, greetings and additions to this program
 # may be sent to <sofar@foo-projects.org>
@@ -1171,7 +1171,8 @@ more of them to occur.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2001-2003, Auke Kok <sofar@foo-projects.org>
+Copyright (C) 2001-2005 Auke Kok <sofar@foo-projects.org>, Max
+Kellermann <max@foo-projects.org>
 
 =head1 LICENSE
 
@@ -1184,7 +1185,8 @@ FOR A PARTICULAR PURPOSE.
 
 =head1 AUTHOR
 
-Auke Kok (sofar@foo-projects.org)
+Auke Kok <sofar@foo-projects.org>, Max Kellermann
+<max@foo-projects.org>
 
 =cut
 
