@@ -982,6 +982,22 @@ sub fwadm {
     push @rules, $rr . "\n";
 }
 
+sub ip_tables_names {
+    my @tables;
+
+    local *TABLES;
+    open TABLES, '</proc/net/ip_tables_names'
+      or return qw(filter nat mangle);
+
+    while (<TABLES>) {
+        push @tables, $1
+          if /(\w+)/;
+    }
+
+    close TABLES;
+
+    return @tables;
+}
 
 sub clearall {
     # flush and delete all chains...
@@ -990,10 +1006,11 @@ sub clearall {
         push @rules, "$option{'location'} \-X\n" }
     elsif ($option{'iptables'} ) {
         flushall();
-        push @rules, "$option{'location'} \-X -t filter\n";
-        push @rules, "$option{'location'} \-X -t nat\n";
-        push @rules, "$option{'location'} \-X -t mangle\n"; }
-    elsif ($option{'ipfwadm'} ) {
+
+        foreach my $table (ip_tables_names) {
+            push @rules, "$option{'location'} \-X -t $table\n";
+        }
+    } elsif ($option{'ipfwadm'} ) {
         flushall();
         # nothing to do here
         };
@@ -1008,9 +1025,9 @@ sub flushall {
         $chains{'forward'} |= 2;
         $chains{'output'} |= 2; }
     elsif ($option{'iptables'} ) {
-        push @rules, "$option{'location'} \-F -t filter\n" ;
-        push @rules, "$option{'location'} \-F -t nat\n" ;
-        push @rules, "$option{'location'} \-F -t mangle\n" ;
+        foreach my $table (ip_tables_names) {
+            push @rules, "$option{'location'} \-F -t $table\n";
+        }
         $tables{'filter_input'} |= 2;
         $tables{'filter_forward'} |= 2;
         $tables{'filter_output'} |= 2;
