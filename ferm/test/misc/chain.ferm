@@ -1,0 +1,17 @@
+option clearall
+option createchains
+
+table filter {
+    chain FOO {
+        ACCEPT;
+    }
+    chain INPUT {
+        # jump to previously declared chain
+        proto tcp goto FOO;
+        # jump to chain which is not yet declared
+        proto udp goto BAR;
+    }
+    chain BAR {
+        DROP;
+    }
+}
