@@ -12,17 +12,17 @@ clean:
 	rm -rf tmp
 
 tmp/%.OLD: PATCHFILE = $(shell test -f "patch/$(<).iptables" && echo "patch/$(<).iptables" )
-tmp/%.OLD: % $(OLD_FERM) ./canonical.pl
+tmp/%.OLD: % $(OLD_FERM) canonical.pl
 	mkdir -p $(dir $@)
-	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
+	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else perl $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
 	if test -n "$(PATCHFILE)"; then patch -i$(PATCHFILE) $@.tmp1; fi
-	./canonical.pl <$@.tmp1 >$@.tmp2
+	perl canonical.pl <$@.tmp1 >$@.tmp2
 	mv $@.tmp2 $@
 
 tmp/%.NEW: % $(NEW_FERM) ./canonical.pl
 	mkdir -p $(dir $@)
-	$(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
-	./canonical.pl <$@.tmp1 >$@.tmp2
+	perl $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
+	perl canonical.pl <$@.tmp1 >$@.tmp2
 	mv $@.tmp2 $@
 
 %.check: %.OLD %.NEW
