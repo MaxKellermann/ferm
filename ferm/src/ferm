@@ -1450,6 +1450,7 @@ sub enter {
                         $current->{'policy'}= lc $current->{'policy'} ; next ; } ;
                     /^DROP$|^drop$|^DENY$|^deny$/ && do {
                         $current->{'policy'}='drop'; next ; } ;
+                    error('invalid policy target, exiting');
                 } ; next; };
 
             # action keywords
