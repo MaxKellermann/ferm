@@ -505,24 +505,33 @@ sub resolve_variable_refs {
 }
 
 sub getvalues {
+    my ($code, $param) = (shift, shift);
+    my %options = @_;
+
     # returns the next parameter, which may either be a scalar or an
     # array
-    my $token = require_next_token(@_);
+    my $token = require_next_token($code, $param);
 
     if ($token eq '(') {
         # read a list until ")"
         my @wordlist;
 
         for (;;) {
-            $token = getvalues(@_);
+            $token = getvalues($code, $param,
+                               comma_allowed => 1);
 
             unless (ref $token) {
                 last if $token eq ')';
 
+                if ($token eq ',') {
+                    warning('Comma within lists is deprecated, please use only a space');
+                    next;
+                }
+
                 error('items cannot be negated in a list')
                   if $token =~ /^!/;
 
-                $token .= getvar(@_)
+                $token .= getvar($code, $param)
                   if $token eq '!';
 
                 push @wordlist, $token;
@@ -540,7 +549,7 @@ sub getvalues {
           ? $wordlist[0]
             : \@wordlist;
     } elsif ($token eq '!') {
-        $token = getvalues(@_);
+        $token = getvalues($code, $param);
 
         error('it is not possible to negate a list')
           if ref $token;
@@ -558,6 +567,9 @@ sub getvalues {
 
         return \@array;
     } elsif ($token eq ',') {
+        return $token
+          if $options{comma_allowed};
+
         error('comma is not allowed here');
     } else {
         return resolve_variable_refs($token);
