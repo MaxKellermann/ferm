@@ -42,6 +42,15 @@ tar:	man $(tarobjects)
 
 clean:
 	@rm -f man/ferm.* $(tmpfiles) $(tarobjects)
+	$(MAKE) -C test $@
+
+#
+# test suite
+#
+
+.PHONY: check
+check:
+	$(MAKE) -C test $@
 
 #
 # compiling targets
