@@ -12,10 +12,10 @@ SHELL		= /bin/bash
 SRC		= src/ferm
 MANSRC		= src/ferm.pod
 
-VERSION         = `${SRC} --version | awk '{print $$2}' | head -1 | tr -d ','`
+VERSION := $(shell ${SRC} --version | awk '{print $$2}' | head -1 | tr -d ',')
 
 TARDIR		= ferm-${VERSION}
-TARFILE		= ferm-${VERSION}.tar.gz
+TARFILE		= ferm-${VERSION}.tar
 LSMFILE		= lsm/ferm-${VERSION}.lsm
 
 SIZE            = `du -h -D ferm.tar.gz | awk '{print $$1}'`
@@ -24,24 +24,21 @@ DATE            = `date '+%Y-%m-%d'`
 WEBDIR		= /home/web/users/koka/ferm
 FTPDIR		= /home/tecguest/ises/koka/anonftp
 
-all:	man tar
+all: man
 
 pub:	www ftp
 
 .phony:
 
-manobjects = ferm.txt ferm.html ferm.1
-tarobjects = ferm.tar.gz
+manobjects = ferm.txt ferm.html man/ferm.1
 tmpfiles = pod2html-dircache pod2html-itemcache 'pod2htmd.x~~' 'pod2htmsid.x~~' 'pod2htmi.x~~'
 
 $(manobjects): $(MANSRC)
-$(tarobjects): $(MANSRC) $(SRC)
 
 man:	$(manobjects)
-tar:	man $(tarobjects)
 
 clean:
-	@rm -f man/ferm.* $(tmpfiles) $(tarobjects)
+	@rm -f man/ferm.* $(tmpfiles) *.tar.gz
 	$(MAKE) -C test $@
 
 #
@@ -71,7 +68,7 @@ ferm.txt:
 	@echo "Making plain text manual page..."
 	@pod2text $(MANSRC) > man/ferm.txt
 
-ferm.tar.gz:
+$(TARFILE).gz: all
 	@rm -rf $(TARDIR)
 	@mkdir $(TARDIR)
 	@mkdir $(TARDIR)/examples
@@ -83,10 +80,12 @@ ferm.tar.gz:
 	@cp info/AUTHORS info/CHANGES info/COPYING info/README info/TODO $(TARDIR)
 	@cp examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(TARDIR)/examples
 	@echo "Making tar file..."
-	@tar cf $(TARDIR).tar $(TARDIR)
-	@gzip -f $(TARDIR).tar
+	@tar cf $(TARFILE) $(TARDIR)
+	@gzip -f $(TARFILE)
 	@rm -rf $(TARDIR)
 	@echo "Done."
+
+dist: ferm-$(VERSION).tar.gz
 
 #
 # misc targets
