@@ -1180,6 +1180,49 @@ sub enter {
         # the core: parse all data
         SWITCH: for ($keyword)
         {
+            # effectuation operator
+            if ($keyword eq ';') {
+                # check for action (required)
+                error("no action or policy defined, exiting")
+                  unless defined find_option(\@fw, 'action')
+                    or defined find_option(\@fw, 'policy');
+                # check for chain (required)
+                error("no chain defined, exiting")
+                  unless defined find_option(\@fw, 'chain');
+
+                mkrules(\@fw);
+
+                # and clean up variables set in this level
+                %$current = ();
+
+                next;
+            }
+
+            # recursing operators
+            if ($keyword eq '{') {
+                enter($lev + 1, @fw);
+
+                # after a block, the command is finished, clear this
+                # level
+                %$current = ();
+
+                next;
+            }
+
+            if ($keyword eq '}') {
+                # consistency check: check if they havn't forgotten
+                # the ';' before the last statement
+                error("Missing semicolon before closing section, exiting")
+                  if keys %$current;
+
+                # and exit
+                if ($debug) {
+                    push @rules, "# leaving level $lev\n";
+                };
+
+                return;
+            }
+
             # where to put the rule?
             if ($keyword eq 'table') {
                 error('Table is already specified')
@@ -1646,49 +1689,6 @@ sub enter {
                     next;
                 }
             }
-
-            # effectuation operator
-            /(\x3b)/ && do {
-                # check for action (required)
-                error("no action or policy defined, exiting")
-                  unless grep {
-                      exists $_->{action} or exists $_->{policy}
-                  } @fw;
-                # check for chain (required)
-                error("no chain defined, exiting")
-                  unless grep {
-                      exists $_->{chain}
-                  } @fw;
-
-                mkrules(\@fw);
-
-                # and clean up variables set in this level
-                %$current = ();
-
-                ; next ; } ;
-
-            # recursing operators
-            /\x7b/ && do {
-                enter($lev + 1, @fw);
-
-                # after a block, the command is finished, clear this
-                # level
-                %$current = ();
-
-                ; next SWITCH; };
-            /\x7d/ && do {
-                # consistency check: check if they hanven't
-                # forgotten the ';' before the last statement
-                error("Missing semicolon before closing section, exiting")
-                  if keys %$current;
-
-                # and exit
-                if ($debug) {
-                    push @rules, "# leaving level $lev\n";
-                };
-
-                return;
-            };
 
             # default
             error("Unrecognized keyword: $keyword, exiting");
