@@ -51,6 +51,8 @@ my %option;    # some configuration options
 my %vars;      # holds variable data
 
 use vars qw($script);
+use vars qw(%chains);
+
 use vars qw($verbose $debug);
 
 use subs qw(open_script);
@@ -650,17 +652,16 @@ sub tables {
             $rule{'chain'} = uc $rule{'chain'} ; } };
 
     # should we set a policy?
-    if ( exists $rule{'policy'} ) {
-        for ( $rule{'chain'} ) {
-            /^INPUT$|^FORWARD$|^OUTPUT$|^PREROUTING$|^POSTROUTING$/ && do {
-                if ( ! ($tables{$rule{'table'} . '_' . lc $rule{'chain'}} & 1) ) {
-                    my $policy = $rule{policy};
-                    $policy = 'DROP'
-                      if $policy eq 'REJECT';
-                    push @rules, $rrr . "-P $rule{'chain'} $policy\n";
-                    $tables{$rule{'table'}.'_'.(lc $rule{'chain'})} |= 1 ; };
-                last; };
-            mydie (" cannot set the policy for non-built in chains, exiting"); }; };
+    if (exists $rule{policy} and
+        not exists $chains{$rule{table}}{$rule{chain}}{policy}) {
+        mydie('cannot set the policy for non-built in chains, exiting')
+          unless grep { $_ eq $rule{chain} }
+            qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
+
+        push @rules, $rrr . "-P $rule{chain} $rule{policy}\n";
+
+        $chains{$rule{table}}{$rule{chain}}{policy} = undef;
+    }
 
     if ( $option{'createchains'} ) {
         # check if the chain is already defined
@@ -1641,18 +1642,6 @@ sub enter {
                       exists $_->{chain}
                   } @fw;
 
-                # clear any policy-related stuff in this level
-                if (grep { exists $_->{policy} } @fw) {
-                    $tables{'filter_input'} &= 2;
-                    $tables{'filter_forward'} &= 2;
-                    $tables{'filter_output'} &= 2;
-                    $tables{'nat_prerouting'} &= 2;
-                    $tables{'nat_postrouting'} &= 2;
-                    $tables{'nat_output'} &= 2;
-                    $tables{'mangle_prerouting'} &= 2;
-                    $tables{'mangle_output'} &= 2;
-                }
-
                 mkrules(\@fw);
 
                 # and clean up variables set in this level
@@ -1674,18 +1663,6 @@ sub enter {
                 # forgotten the ';' before the last statement
                 error("Missing semicolon before closing section, exiting")
                   if keys %$current;
-
-                # clear any policy-related stuff in this level
-                if (grep { exists $_->{policy} } @fw) {
-                    $tables{'filter_input'} &= 2;
-                    $tables{'filter_forward'} &= 2;
-                    $tables{'filter_output'} &= 2;
-                    $tables{'nat_prerouting'} &= 2;
-                    $tables{'nat_postrouting'} &= 2;
-                    $tables{'nat_output'} &= 2;
-                    $tables{'mangle_prerouting'} &= 2;
-                    $tables{'mangle_output'} &= 2;
-                }
 
                 # and exit
                 if ($debug) {
