@@ -26,8 +26,8 @@
 #
 
 
-$VERSION = '1.1';
-$DATE = '26 januari 2003';
+$VERSION = '1.1rc1';
+$DATE = '5 may 2003';
 
 # global data vars
 my @fw;        # fwset in list of hashes
@@ -67,8 +67,8 @@ GetOptions(
 if (defined $opt_help) {
     printversion();
     # a brief handout to the user
-    print "Usage:\n";
-    print "ferm \[options\] \<files\>\n";
+    print "\nUsage:\n";
+    print "ferm \[options\] \<files\>\n\n";
     print "options are:\n";
     print "        \-\-noexec          Do not execute the rules, just simulate\n";
     print "        \-\-lines           Show all rules that were created\n";
@@ -207,6 +207,8 @@ exit 0;
 
 sub printversion {
     print "ferm $VERSION, $DATE\n";
+    print "Copyright (C) 2001-2003 - Auke Kok, released under the GPLv2\n";
+    print "See the included COPYING file for license details.\n";    
 }
 
 
@@ -512,7 +514,7 @@ sub tables {
 
         # check for unknown jump target
         for ( $rule{'action'} ) {
-            /^accept$|^drop$|^reject$|^log$|^return$|^masq$|^redirect$|^queue$|^dnat$|^snat$|^tos$|^mark$|^mirror$|^nop$|^ulog$|^$/ && last;
+	    /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
             if ( ! exists ($tables{$rule{'table'}.'_'.(lc $_)}) ) {
                 push @rules, $rrr . "-N $_\n";
                 $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
@@ -521,7 +523,7 @@ sub tables {
         if ( ! exists $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} ) {
             $tables{$rule{'table'} . '_' . lc $rule{'chain'}} = 0 };
         for ( $rule{'action'} ) {
-            /^accept$|^drop$|^reject$|^return$|^masq$|^redirect$|^dnat$|^snat$|^queue$|^tos$|^mark$|^mirror$|^nop$|^$/ && last;
+	    /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
             if ( ! exists ($tables{$rule{'table'} . '_' . lc $_}) ) {
                 $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
 
@@ -533,7 +535,7 @@ sub tables {
             $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2; };
         # check for unknown jump target
         for ( $rule{'action'} ) {
-            /^accept$|^drop$|^reject$|^return$|^masq$|^redirect$|^queue$|^mirror$|^nop$|^ulog$/ && last;
+	    /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
             if (($tables{$rule{'table'} . '_' . (lc $rule{'chain'})}&  2) != 2 ) {
                 push @rules, $rrr . "-F $rule{'chain'}\n";
                 $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2;
@@ -696,19 +698,13 @@ sub tables {
 	    $rr .= "-m state "; };
         $rr .= "--state " . join(',',split(/:/,$rule{'state'})) . " "; } ;
 
-    if ((defined $rule{'ttlset'} || defined $rule{'ttldec'}
-		|| defined $rule{'ttlinc'} )
+    if ((defined $rule{'ttleq'} || defined $rule{'ttllt'}
+		|| defined $rule{'ttlgt'} )
             && ($option{'automod'})) {
         $rr .= "-m ttl "; } ;
     if (defined $rule{'ttl'} ) {
         $rr .= "--ttl " . $rule{'ttl'} . " "; } ;
-    if (defined $rule{'ttlset'} ) {
-        $rr .= "--ttl-set " . $rule{'ttl-set'} . " "; } ;
-    if (defined $rule{'ttlinc'} ) {
-        $rr .= "--ttl-inc " . $rule{'ttl-inc'} . " "; } ;
-    if (defined $rule{'ttldec'} ) {
-        $rr .= "--ttl-dec " . $rule{'ttl-dec'} . " "; } ;
-    if (defined $rule{'ttleq'} ) {
+   if (defined $rule{'ttleq'} ) {
         $rr .= "--ttl-eq " . $rule{'ttleq'} . " "; } ;
     if (defined $rule{'ttllt'} ) {
         $rr .= "--ttl-lt " . $rule{'ttllt'} . " "; } ;
@@ -743,7 +739,7 @@ sub tables {
     for ( $rule{'action'} ) {
         /^masq$/ && do { $rr .= "MASQUERADE " ;  last; };
         /^nop$/ && last;
-        /^accept$|^drop$|^reject$|^tos$|^queue$|^log$|^mark$|^mirror$|^ttl$|^ftos$|^redirect$|^return$|^[d|s]nat$|^ulog$/ && do {
+	/^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^mirror$|^netlink$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && do { 
 	     $rr .= (uc $rule{'action'}) . " " ; last; };
         $rr .= $rule{'action'};
     };
@@ -758,6 +754,13 @@ sub tables {
     if (defined $rule{'todest'}) {
 	$rr .= "--to-destination " . $rule{'todest'} . " "; };
 
+    if (defined $rule{'ttlset'} ) {
+        $rr .= "--ttl-set " . $rule{'ttlset'} . " "; } ;
+    if (defined $rule{'ttlinc'} ) {
+        $rr .= "--ttl-inc " . $rule{'ttlinc'} . " "; } ;
+    if (defined $rule{'ttldec'} ) {
+        $rr .= "--ttl-dec " . $rule{'ttldec'} . " "; } ;
+ 
     
     if (defined $rule{'settos'} ) {
         $rr .= "--set-tos ";
@@ -796,7 +799,19 @@ sub tables {
         $rr .= "--ulog-qthreshold " . $rule{'ulog-qthreshold'} . " " } ;
 
     if (defined $rule{'rejectwith'} ) {
-        $rr .= "--reject-with " . $rule{'rejectwith'} . " "; } ;
+        $rr .= "--reject-with " . $rule{'rejectwith'} . " " } ;
+
+    if ( defined $rule{'clamp-mss-to-pmtu'} ) {
+        $rr .= "--clamp-mss-to-pmtu "; } ;
+    if ( defined $rule{'set-mss'} ) {
+        $rr .= "--set-mss " . $rule{'set-mss'} . " " } ;
+
+    if ( defined $rule{'nldrop'} ) {
+        $rr .= "--nldrop "; } ;
+    if ( defined $rule{'nlmark'} ) {
+        $rr .= "--nlmark " . $rule{'nlmark'} . " " } ;
+    if ( defined $rule{'nlsize'} ) {
+        $rr .= "--nlsize " . $rule{'nlsize'} . " " } ;
 
     $rr .= "\n";
     push @rules, $rr;
@@ -1241,6 +1256,12 @@ sub enter {
 	    /^ulog-qthreshold$/ && do {
 	        $fw[$lev]{'ulog-qthreshold'}=getvar();
 		; next; };
+	    /^clamp-mss-to-pmtu$/ && do {
+	        $fw[$lev]{'clamp-mss-to-pmtu'}='set';
+		; next; };
+	    /^set-mss$/ && do {
+	        $fw[$lev]{'set-mss'}=getvar();
+		; next; };
 
             # jump action
             /^goto$|^jump$/ && do {
@@ -1258,7 +1279,7 @@ sub enter {
 		} ; next; };
 
             # action keywords
-	    /^ACCEPT$|^accept$|^REJECT$|^reject$|^LOG$|^RETURN$|^return$|^TOS$|^tos$|^QUEUE$|^queue$|^MARK$|^MIRROR$|^mirror$|^NOP$|^nop$|^TTL$|^FTOS$|^BALANCE$|^NETLINK$|^ulog$|^ULOG$/ && do {
+	    /^ACCEPT$|^accept$|^BALANCE$|^balance$|^FTOS$|^ftos$|^LOG$|^MARK$|^MIRROR$|^mirror$|^NETLINK$|^netlink$|^NOP$|^nop$|^QUEUE$|^queue$|^REJECT$|^reject$|^RETURN$|^return$|^TCPMSS$|^tcpmss$|^TOS$|^TTL$|^ttl$|^ULOG$|^ulog$/ && do {
 		$fw[$lev]{'action'}= lc $keyword ; next ; };
 	    /^MASQ$|^masq$/ && do {
                 $fw[$lev]{'action'}='masq';
