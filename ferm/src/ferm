@@ -93,7 +93,7 @@ use subs qw(open_script);
     if (defined $opt_location) {
         $option{'location'} = $opt_location;
         if ( ! -X $option{'location'}) {
-            mydie("Specified location is not executable or does not exist! Exiting");
+            mydie("Specified location is not executable or does not exist");
         }
     }
 }
@@ -107,7 +107,7 @@ open_script($ARGV[0]);
 
 # option checks
 if (defined $option{location}) {
-    mydie("Specified location is not executable or does not exist! Exiting")
+    mydie("Specified location is not executable or does not exist")
       unless -X $option{'location'};
 } else {
     # set a default location
@@ -1196,7 +1196,7 @@ sub enter {
             if ($keyword eq '}') {
                 # consistency check: check if they havn't forgotten
                 # the ';' before the last statement
-                error("Missing semicolon before closing section, exiting")
+                error("Missing semicolon before closing section")
                   if keys %$current;
 
                 # and exit
@@ -1253,7 +1253,7 @@ sub enter {
                 my $chains = find_option(\@fw, 'chain');
 
                 my $policy = uc getvar();
-                error('invalid policy target, exiting')
+                error('invalid policy target')
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
                 foreach my $table (to_array $tables) {
@@ -1291,7 +1291,7 @@ sub enter {
             }
 
             if ($keyword =~ /^(?:port|addr)$/) {
-                error("source/destination not declared, exiting")
+                error("source/destination not declared")
                   unless exists $current->{side};
                 if ($current->{side} eq 'source') {
                     $keyword = 's' . $keyword;
@@ -1709,12 +1709,12 @@ sub enter {
             }
 
             # default
-            error("Unrecognized keyword: $keyword, exiting");
+            error("Unrecognized keyword: $keyword");
         }
 
         # if the rule didn't reset the negated flag, it's not
         # supported
-        error("Doesn't support negation: $keyword, exiting")
+        error("Doesn't support negation: $keyword")
           if $negated;
     }
 };
