@@ -53,7 +53,7 @@ use subs qw(open_script);
 {
     my ($opt_noexec, $opt_lines, $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
-        $opt_version, $opt_use);
+        $opt_version, $opt_use, $opt_test);
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
                             'no_auto_abbrev');
@@ -71,6 +71,7 @@ use subs qw(open_script);
                automod => \$opt_automod,
                'version|V' => \$opt_version,
                'use=s' => \$opt_use,
+               test => \$opt_test;
               );
 
     pod2usage(-exitstatus => 0)
@@ -88,6 +89,12 @@ use subs qw(open_script);
     $option{'flushchains'} = (defined $opt_flushchains);
     $option{'createchains'} = (defined $opt_createchains);
     $option{'automod'} = (defined $opt_automod);
+    $option{test} = (defined $opt_test);
+
+    if ($option{test}) {
+        $option{noexec} = 1;
+        $option{lines} = 1;
+    }
 
     print STDERR "Ignoring the obsolete --use/-s option\n"
       if defined $opt_use;
@@ -962,7 +969,7 @@ sub tables {
 sub ip_tables_names {
     # return all possible tables in emulation mode
     return qw(filter nat mangle)
-      if $option{noexec};
+      if $option{test};
 
     my @tables;
 
@@ -1737,6 +1744,8 @@ B<ferm> I<options> I<inputfiles>
 
  -n, --noexec      Do not execute the rules, just simulate
  -l, --lines       Show all rules that were created
+ --test            Test mode; ignore host specific configuration.
+                   This implies --noexec and --lines.
  -v, --verbose     Show some more information
  -d, --debug       Show debug information
  -V, --version     Show current version number
