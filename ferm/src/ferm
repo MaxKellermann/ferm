@@ -60,8 +60,38 @@ use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 ## constants
 use vars qw(%deprecated_keywords);
+# keywords from ferm 1.1 which are deprecated, and the new one; these
+# are automatically replaced, and a warning is printed
 %deprecated_keywords = ( macsource => 'mac-source',
+                         mac => 'mac-source',
                          settos => 'set-tos',
+                         ttlset => 'ttl-set',
+                         ttldec => 'ttl-dec',
+                         ttlinc => 'ttl-inc',
+                         pkttype => 'pkt-type',
+                         uid => 'uid-owner',
+                         uidowner => 'uid-owner',
+                         gid => 'gid-owner',
+                         gidowner => 'gid-owner',
+                         pid => 'pid-owner',
+                         pidowner => 'pid-owner',
+                         sid => 'sid-owner',
+                         sidowner => 'sid-owner',
+                         ttleq => 'ttl-eq',
+                         ttllt => 'ttl-lt',
+                         ttlgt => 'ttl-gt',
+                         loglev => 'log-level',
+                         logprefix => 'log-prefix',
+                         logseq => 'log-tcp-sequence',
+                         logtcpopt => 'log-tcp-options',
+                         logipopt => 'log-ip-options',
+                         setmark => 'set-mark',
+                         toports => 'to-ports',
+                         rejectwith => 'reject-with',
+                         tosrc => 'to-source',
+                         todest => 'to-destination',
+                         burst => 'limit-burst',
+                         limitburst => 'limit-burst',
                        );
 
 # Get command line stuff
@@ -923,12 +953,10 @@ sub tables {
     }
 
     # target TTL
-    shell_append(\$rr, '--ttl-set', $rule{ttlset})
-      if defined $rule{ttlset};
-    shell_append(\$rr, '--ttl-inc', $rule{ttlinc})
-      if defined $rule{ttlinc};
-    shell_append(\$rr, '--ttl-dec', $rule{ttldec})
-      if defined $rule{ttldec};
+    foreach (qw(set inc dec)) {
+        shell_append(\$rr, "--ttl-$_", $rule{"ttl-$_"})
+          if defined $rule{"ttl-$_"};
+    }
 
     # target ULOG
     foreach (qw(nlgroup prefix cprange qthreshold)) {
@@ -969,8 +997,8 @@ sub tables {
     # ipt_limit parameters
     shell_append(\$rr, '--limit', $rule{limit})
       if exists $rule{limit};
-    shell_append(\$rr, '--limit-burst', $rule{limitburst})
-      if exists $rule{limitburst};
+    shell_append(\$rr, '--limit-burst', $rule{'limit-burst'})
+      if exists $rule{'limit-burst'};
 
     # ipt_mac parameters
     shell_append(\$rr, '--mac-source', $rule{'mac-source'})
@@ -988,13 +1016,13 @@ sub tables {
 
     # ipt_owner parameters
     foreach (qw(uid gid pid sid cmd)) {
-        shell_append(\$rr, "--${_}-owner", $rule{${_} . 'owner'})
-          if exists $rule{${_} . 'owner'};
+        shell_append(\$rr, "--${_}-owner", $rule{${_} . '-owner'})
+          if exists $rule{${_} . '-owner'};
     }
 
     # ipt_pkttype switches
-    shell_append(\$rr, '--pkt-type', $rule{pkttype})
-      if exists $rule{pkttype};
+    shell_append(\$rr, '--pkt-type', $rule{'pkt-type'})
+      if exists $rule{'pkt-type'};
 
     # ipt_psd switches
     shell_append(\$rr, '--psd-weight-threshold', $rule{psdweightthreshold})
@@ -1047,11 +1075,8 @@ sub tables {
 
     # ipt_ttl parameters
     foreach (qw(ttl-eq ttl-lt ttl-gt)) {
-        my $key = $_;
-        $key =~ s/-//;
-
-        shell_append(\$rr, "--$_", $rule{$key})
-          if exists $rule{$key};
+        shell_append(\$rr, "--$_", $rule{$_})
+          if exists $rule{$_};
     }
 
     # ROUTE parameters
@@ -1719,10 +1744,11 @@ sub enter {
                 $current->{'limit'}=getvar();
                 $current->{auto_modules}{limit} = 1;
                 ; next; };
-            /^burst$|^limit-?burst$/ && do {
-                $current->{'limitburst'}=getvar();
+            if ($keyword eq 'limit-burst') {
+                $current->{$keyword} = getvar();
                 $current->{auto_modules}{limit} = 1;
-                ; next; };
+                next;
+            }
 
             # ipt_mac switches
             if (/^mac$|^mac-source$/) {
@@ -1744,19 +1770,18 @@ sub enter {
                 ; next; };
 
             # ipt_owner switches
-            /^(uid|gid|pid|sid|cmd)(?:-?owner)?$/ && do {
-                $current->{$1 . 'owner'} = getvalues();
+            if (/^(?:uid|gid|pid|sid|cmd)-owner$/) {
+                $current->{$keyword} = getvalues();
                 $current->{auto_modules}{owner} = 1;
                 next;
-            };
+            }
 
             # ipt_pkttype switches
-            /^pkt-?type$/ && do {
-                s/-//;
+            if ($keyword eq 'pkt-type') {
                 $current->{$_} = getvalues();
                 $current->{auto_modules}{pkttype} = 1;
                 next;
-            };
+            }
 
             # ipt_psd switches
             /^(?:psd-?weight-?threshold|psd-?delay-?threshold|
@@ -1814,12 +1839,11 @@ sub enter {
                 ; next; };
 
             # ipt_ttl switches
-            /^ttl-?(?:eq|lt|gt)$/ && do {
-                s/-//;
+            if (/^ttl-(?:eq|lt|gt)$/) {
                 $current->{$_} = getvar();
                 $current->{auto_modules}{ttl} = 1;
                 next;
-            };
+            }
 
             ###
             # target specific options
@@ -1839,47 +1863,34 @@ sub enter {
 
                 # DNAT target switches
                 if ($action eq 'DNAT' and
-                    $keyword =~ /^(?:to-destination|todest|to)$/) {
+                    $keyword =~ /^(?:to-destination|to)$/) {
                     $current->{'to-destination'} = getvar();
                     next;
                 }
 
                 # LOG target switches
                 if ($action eq 'LOG') {
-                    if ($keyword =~ /^(?:log-level|loglev)$/) {
-                        $current->{'log-level'} = getvar();
+                    if ($keyword =~ /^log-(?:level|prefix)$/) {
+                        $current->{$keyword} = getvar();
                         next;
                     }
-                    if ($keyword =~ /^log-?prefix$/) {
-                        $current->{'log-prefix'} = getvar();
-                        next;
-                    }
-                    if ($keyword =~ /^(?:log-tcp-sequence|logseq)$/) {
-                        $current->{'log-tcp-sequence'} = 1;
-                        next;
-                    }
-                    if ($keyword =~ /^(?:log-tcp-options|logtcpopt)$/) {
-                        $current->{'log-tcp-options'} = 1;
-                        next;
-                    }
-                    if ($keyword =~ /^(?:log-ip-options|logipopt)$/) {
-                        $current->{'log-ip-options'} = 1;
+                    if ($keyword =~ /^log-(?:tcp-sequence|tcp-options|ip-options)$/) {
+                        $current->{$keyword} = 1;
                         next;
                     }
                 }
 
                 # MARK/CONNMARK target switches
-                if ($action eq 'MARK' and
-                    $keyword =~ /^set-?mark$/) {
-                    $current->{'set-mark'} = getvar();
+                if ($action eq 'MARK' and $keyword eq 'set-mark') {
+                    $current->{$keyword} = getvar();
                     next;
                 }
 
                 # MASQUERADE/REDIRECT target switches
                 if (($action eq 'MASQUERADE' or
                      $action eq 'REDIRECT') and
-                    $keyword =~ /^to-?ports$/) {
-                    $current->{'to-ports'} = getvar();
+                    $keyword eq 'to-ports') {
+                    $current->{$keyword} = getvar();
                     next;
                 }
 
@@ -1891,9 +1902,8 @@ sub enter {
                 }
 
                 # REJECT target switches
-                if ($action eq 'REJECT' and
-                    $keyword =~ /^reject-?with$/) {
-                    $current->{'reject-with'} = getvar();
+                if ($action eq 'REJECT' and $keyword eq 'reject-with') {
+                    $current->{$keyword} = getvar();
                     next;
                 }
 
@@ -1911,7 +1921,7 @@ sub enter {
 
                 # SNAT target switches
                 if ($action eq 'SNAT' and
-                    $keyword =~ /^(?:to-source|tosrc|to)$/) {
+                    $keyword =~ /^(?:to-source|to)$/) {
                     my @params = to_array getvalues(undef, undef,
                                                     non_empty => 1);
                     $current->{'to-source'} = join(',', @params);
@@ -1940,8 +1950,7 @@ sub enter {
 
                 # TTL target switches
                 if ($action eq 'TTL' and
-                    $keyword =~ /^ttl-?(?:set|dec|inc)$/) {
-                    $keyword =~ s/-//;
+                    $keyword =~ /^ttl-(?:set|dec|inc)$/) {
                     $current->{$keyword} = getvar();
                     next;
                 }
