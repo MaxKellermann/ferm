@@ -984,9 +984,15 @@ sub tables {
     shell_append(\$rr, '--dst-type', $rule{'dst-type'})
       if exists $rule{'dst-type'};
 
-    # ipt_ah parameters
-    shell_append(\$rr, '--ahspi', $rule{ahspi})
-      if exists $rule{ahspi};
+    # ipt_ah/ipt_esp parameters
+    foreach (qw(ahspi espspi)) {
+        if (exists $rule{$_}) {
+            shell_append(\$rr, "--$_");
+            shell_append(\$rr, '!')
+              if $rule{$_} =~ s/^!\s*//;
+            shell_append(\$rr, $rule{$_});
+        }
+    }
 
     # ipt_conntrack parameters
     shell_append(\$rr, '--ctstate', $rule{ctstate})
@@ -1001,7 +1007,7 @@ sub tables {
     # ipt_iplimit parameters
     if (exists $rule{'iplimit-above'}) {
         shell_append(\$rr, '!')
-          if $rule{'iplimit-above'} =~ s/^!//;
+          if $rule{'iplimit-above'} =~ s/^!\s*//;
         shell_append(\$rr, '--iplimit-above', $rule{'iplimit-above'})
     }
     shell_append(\$rr, '--iplimit-mask', $rule{'iplimit-mask'})
@@ -1712,10 +1718,10 @@ sub enter {
                 next;
             };
 
-            # ipt_ah switches
-            if ($keyword eq 'ahspi') {
+            # ipt_ah/ipt_esp switches
+            if ($keyword =~ /^(ah|esp)spi$/) {
                 $current->{$keyword} = getvalues();
-                $current->{auto_modules}{ah} = 1;
+                $current->{auto_modules}{ah} = $1;
                 next;
             }
 
