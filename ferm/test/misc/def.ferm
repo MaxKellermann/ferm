@@ -19,4 +19,5 @@ chain OUTPUT {
 chain FORWARD &proto_port(tcp, http) ACCEPT;
 chain FORWARD {
     &proto_port(udp, domain) ACCEPT;
+    &proto_port(tcp, (8080 3128)) REJECT;
 }
