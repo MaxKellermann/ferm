@@ -74,6 +74,7 @@ while (<>) {
              psd-(?:weight-threshold|delay-threshold|lo-ports-weight|hi-ports-weight)|
              source|destination|log-prefix|to|to-destination|dport|sport|
              log-level|set-mss
+             |(src|dst)-type
             )\s+(".*?"|(?:!\s*)?\S+)/$item->{$1} = $2; ''/egx;
         s/--(tcp-flags)\s+(\S+)\s+(\S+)/$item->{$1} = [ $2, $3 ]; ''/eg;
 
