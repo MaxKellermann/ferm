@@ -49,7 +49,7 @@ use vars qw(%option $verbose $debug);
 # %vars = ferm variables, name => value
 # %functions = ferm functions and variables
 # @rules = the rules which are being created
-use vars qw($script %oldvars %vars %functions @rules);
+use vars qw($script %oldvars %functions @rules @stack);
 
 ## netfilter variables
 # @ip_tables_names = a list of supported table names (filter, nat, mangle)
@@ -654,6 +654,17 @@ sub resolve_old_variable_refs {
     }
 }
 
+sub variable_value {
+    my $name = shift;
+
+    foreach (@stack) {
+        return $_->{vars}{$name}
+          if exists $_->{vars}{$name};
+    }
+
+    return;
+}
+
 sub getvalues {
     my ($code, $param) = (shift, shift);
     my %options = @_;
@@ -755,10 +766,12 @@ sub getvalues {
         error('variable name expected')
           unless $name =~ /^\w+$/;
 
-        error("no such variable: \$$name")
-          unless exists $vars{$name};
+        my $value = variable_value($name);
 
-        return $vars{$name};
+        error("no such variable: \$$name")
+          unless defined $value;
+
+        return $value;
     } elsif ($token eq '%') {
         my $name = require_next_token($code, $param);
         error('variable name expected')
@@ -1459,7 +1472,17 @@ sub enter {
 
             # recursing operators
             if ($keyword eq '{') {
+                # push stack
+                my $old_stack_depth = @stack;
+
+                unshift @stack, {};
+
+                # recurse
                 enter($lev + 1, @fw);
+
+                # pop stack
+                shift @stack;
+                die unless @stack == $old_stack_depth;
 
                 # after a block, the command is finished, clear this
                 # level
@@ -1495,8 +1518,20 @@ sub enter {
                     open_script($filename);
                     $script->{base_level} = $lev + 1;
 
+                    # push stack
+                    my $old_stack_depth = @stack;
+
+                    unshift @stack, {};
+
+                    # include files may set variables for their parent
+                    $stack[0]{vars} = $stack[1]{vars};
+
                     # parse the script
                     enter($lev + 1, @fw);
+
+                    # pop stack
+                    shift @stack;
+                    die unless @stack == $old_stack_depth;
 
                     # restore old script
                     $script = $old_script;
@@ -1530,7 +1565,7 @@ sub enter {
                     error('";" expected after variable declaration')
                       unless defined $keyword and $keyword eq ';';
 
-                    $vars{$name} = $value;
+                    $stack[0]{vars}{$name} = $value;
                 } elsif ($type eq '&') {
                     my $name = require_next_token();
                     error('invalid function name')
