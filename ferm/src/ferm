@@ -1146,6 +1146,9 @@ sub enter {
         push @rules, "# entered level $lev\n";
     };
 
+    my $base_level = $script->{base_level} || 0;
+    die if $base_level > $lev;
+
     my $current = {};
     push @fw, $current;
 
@@ -1211,6 +1214,9 @@ sub enter {
             }
 
             if ($keyword eq '}') {
+                error('Unmatched "}"')
+                  if $lev <= $base_level;
+
                 # consistency check: check if they havn't forgotten
                 # the ';' before the last statement
                 error("Missing semicolon before closing section")
@@ -1222,6 +1228,30 @@ sub enter {
                 };
 
                 return;
+            }
+
+            # include another file
+            if ($keyword eq 'include') {
+                my $files = getvalues;
+
+                foreach my $filename (to_array $files) {
+                    # save old script, open new script
+                    my $old_script = $script;
+                    open_script($filename);
+                    $script->{base_level} = $lev + 1;
+
+                    # parse the script
+                    enter($lev + 1, @fw);
+
+                    # restore old script
+                    $script = $old_script;
+                }
+
+                $keyword = next_token;
+                error('Missing ";"')
+                  unless defined $keyword and $keyword eq ';';
+
+                last;
             }
 
             # where to put the rule?
@@ -1732,7 +1762,15 @@ sub enter {
         error("Doesn't support negation: $keyword")
           if $negated;
     }
-};
+
+    error('Missing "}" at EOF')
+      if $lev > $base_level;
+
+    # consistency check: check if they havn't forgotten
+    # the ';' before the last statement
+    error("Missing semicolon before closing section")
+      if keys %$current;
+}
 
 # end of ferm
 
