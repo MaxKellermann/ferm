@@ -37,10 +37,6 @@ $DATE = '19 oct 2004';
 
 # global data vars
 my @rules;     # will contain all rules
-my %chains;    # chain box for ipchains
-    $chains{'input'} = 0;
-    $chains{'forward'} = 0;
-    $chains{'output'} = 0;
 my %tables;    # chain box for iptables
     $tables{'filter_input'} = 0;
     $tables{'filter_forward'} = 0;
@@ -1454,9 +1450,6 @@ sub enter {
 
                 # clear any policy-related stuff in this level
                 if (grep { exists $_->{policy} } @fw) {
-                    $chains{'input'} &= 2;
-                    $chains{'forward'} &= 2;
-                    $chains{'output'} &= 2;
                     $tables{'filter_input'} &= 2;
                     $tables{'filter_forward'} &= 2;
                     $tables{'filter_output'} &= 2;
@@ -1491,9 +1484,6 @@ sub enter {
 
                 # clear any policy-related stuff in this level
                 if (grep { exists $_->{policy} } @fw) {
-                    $chains{'input'} &= 2;
-                    $chains{'forward'} &= 2;
-                    $chains{'output'} &= 2;
                     $tables{'filter_input'} &= 2;
                     $tables{'filter_forward'} &= 2;
                     $tables{'filter_output'} &= 2;
