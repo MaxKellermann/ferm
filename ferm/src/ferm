@@ -1436,30 +1436,6 @@ sub enter {
             /^to$/ && do {
                 $current->{'to'}=getvar();
                 ; next; };
-            /^tosrc$|^to-source$/ && do {
-                $current->{'tosrc'}=getvar();
-                ; next; };
-            /^todest$|^to-destination$/ && do {
-                $current->{'todest'}=getvar();
-                ; next; };
-            /^ulog-nlgroup$/ && do {
-                $current->{'ulog-nlgroup'}=getvar();
-                ; next; };
-            /^ulog-prefix$/ && do {
-                $current->{'ulog-prefix'}=getvar();
-                ; next; };
-            /^ulog-cprange$/ && do {
-                $current->{'ulog-cprange'}=getvar();
-                ; next; };
-            /^ulog-qthreshold$/ && do {
-                $current->{'ulog-qthreshold'}=getvar();
-                ; next; };
-            /^clamp-mss-to-pmtu$/ && do {
-                $current->{'clamp-mss-to-pmtu'}='set';
-                ; next; };
-            /^set-mss$/ && do {
-                $current->{'set-mss'}=getvar();
-                ; next; };
 
             # jump action
             /^goto$|^jump$/ && do {
@@ -1661,7 +1637,7 @@ sub enter {
                 ; next; };
 
             # ipt_ttl switches
-            /^ttl(?:-?(?:set|inc|dec|eq|lt|gt))$/ && do {
+            /^ttl-?(?:eq|lt|gt)$/ && do {
                 s/-//;
                 $current->{$_} = getvar();
                 $current->{auto_modules}{ttl} = 1;
@@ -1670,6 +1646,13 @@ sub enter {
 
             # target switches
             if (defined $current->{action}) {
+                # DNAT target switches
+                if ($current->{action} eq 'dnat' and
+                    $keyword =~ /^(?:to-destination|todest)$/) {
+                    $current->{todest} = getvar();
+                    next;
+                }
+
                 # MARK/CONNMARK target switches
                 if (($current->{action} eq 'mark' or
                      $current->{action} eq 'connmark') and
@@ -1690,6 +1673,41 @@ sub enter {
                 if ($current->{action} eq 'reject' and
                     $keyword =~ /^reject-?with$/) {
                     $current->{rejectwith} = getvar();
+                    next;
+                }
+
+                # SNAT target switches
+                if ($current->{action} eq 'snat' and
+                    $keyword =~ /^(?:to-source|tosrc)$/) {
+                    $current->{tosrc} = getvar();
+                    next;
+                }
+
+                # TCPMSS target switches
+                if ($current->{action} eq 'tcpmss') {
+                    if ($keyword eq 'set-mss') {
+                        $current->{$keyword} = getvar();
+                        next;
+                    }
+
+                    if ($keyword eq 'clamp-mss-to-pmtu') {
+                        $current->{$keyword} = 'set';
+                        next;
+                    }
+                }
+
+                # TTL target switches
+                if ($current->{action} eq 'ttl' and
+                    $keyword =~ /^ttl-?(?:set|dec|inc)$/) {
+                    $keyword =~ s/-//;
+                    $current->{$keyword} = getvar();
+                    next;
+                }
+
+                # ULOG target switches
+                if ($current->{action} eq 'ulog' and
+                    $keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
+                    $current->{$keyword} = getvar();
                     next;
                 }
             }
