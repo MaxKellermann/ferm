@@ -47,9 +47,8 @@ use vars qw(%option $verbose $debug);
 # $script: current script file
 # %oldvars = ferm 1.1 compatibility variables, name => value
 # %vars = ferm variables, name => value
-# %functions = ferm functions and variables
 # @rules = the rules which are being created
-use vars qw($script %oldvars %functions @rules @stack);
+use vars qw($script %oldvars @rules @stack);
 
 ## netfilter variables
 # @ip_tables_names = a list of supported table names (filter, nat, mangle)
@@ -1524,7 +1523,8 @@ sub enter {
                     unshift @stack, {};
 
                     # include files may set variables for their parent
-                    $stack[0]{vars} = $stack[1]{vars};
+                    $stack[0]{vars} = ($stack[1]{vars} ||= {});
+                    $stack[0]{functions} = ($stack[1]{functions} ||= {});
 
                     # parse the script
                     enter($lev + 1, @fw);
@@ -1634,7 +1634,7 @@ sub enter {
 
                     $function{tokens} = \@tokens;
 
-                    $functions{$name} = \%function;
+                    $stack[0]{functions}{$name} = \%function;
                 } else {
                     error('"$" (variable) or "&" (function) expected');
                 }
@@ -1652,7 +1652,11 @@ sub enter {
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
-                my $function = $functions{$name};
+                my $function;
+                foreach (@stack) {
+                    $function = $_->{functions}{$name};
+                    last if defined $function;
+                }
                 error("no such function: \&$name")
                   unless defined $function;
 
