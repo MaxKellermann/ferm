@@ -216,19 +216,7 @@ check();
 
 # and execute all generated rules
 $verbose && print "\nExecuting rules\n";
-foreach my $rr (@rules) {
-    $rr =~ s/ $//g;
-    if ($option{'lines'} || $debug ) {
-        print $rr; };
-    if (!$option{'noexec'} ) {
-        for ($rr) {
-            !/^#/ && do {
-                if ((!$option{'lines'}) && $verbose) {print "."};
-                system ($rr);
-            };
-        };
-    };
-}
+execute();
 
 $verbose && print "Done, exiting\n";
 exit 0;
@@ -2172,6 +2160,22 @@ sub check {
             warning("chain $chain_name (table $table_name) was created, but not used")
               if $chain->{was_created} and not $chain->{non_empty};
         }
+    }
+}
+
+sub execute {
+    foreach (@rules) {
+        s/^\s+//s;
+        s/\s+$//s;
+        print
+          if $option{lines} || $debug;
+        next if $option{noexec};
+        next if /^#/;
+
+        system($_);
+
+        print "."
+          if $verbose and not $option{lines};
     }
 }
 
