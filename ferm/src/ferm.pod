@@ -89,8 +89,11 @@ Or, translated to B<ferm>:
 
     protocol tcp ACCEPT;
 
-Noticed the B<;> character? We're getting to that now, because there
-are some special characters in B<ferm> that make life easy.
+The B<;> character is at the end of every ferm rule. Ferm ignores line
+breaks, meaning the above example is identical to the following:
+
+    protocol tcp
+      ACCEPT;
 
 Here's a list of the special characters:
 
@@ -98,68 +101,65 @@ Here's a list of the special characters:
 
 =item B<;>
 
-The effectuation character. This character defines the end of
-a rule. Anything defined before this character will be put
-into one or more rules.
+This character finalizes a rule.
 
-This character *makes* the rule. It gathers all the information, all
-parameters and targets, special things or whatever, that currently
-is 'valid', and tries to make a decent rule out of it. B<ferm> will
-do nothing without this character!
+Separated by semicolons, you may write multiple rules in one line,
+although this decreases readability:
 
-Example:
-
-    proto tcp ACCEPT;
-
-THis example shows a single rule, defined by two keys and one
-value.
+    protocol tcp ACCEPT; protocol udp DROP;
 
 =item B<{}>
 
 The nesting symbol defines a 'block' of rules.
 
-Anything defined before this block will
-still be available within all rules inside this block. You can
-nest blocks in blocks as far as you like. For every rule
-defined in this block the values defined before this block
-will apply. Usually you would define an often used parameter
-as the protocol in front of this block, and anything special
-inside it.
+The curly brackets contain any number of nested rules. All matches
+before the block are carried forward to these.
 
-You can put as many rules (using the <;> character) as you 
-like insode this block. but there should always be one or
-more, although you will get away with none. Not very
-usefull except for when you frequently edit you config
-file, and might want to leave a chain empty.
-
-Since the nesting block is left associative, it cannot be bound
-to keys defined after the block.
+The closing curly bracket finalizes the rule set. You should not write
+a ';' after that, because that would be an empty rule.
 
 Example:
 
-    chain INPUT proto tcp {
-        syn DENY;
-        ACCEPT;
+    chain INPUT proto icmp {
+        icmp-type echo-request ACCEPT;
+        DROP;
     }
 
 This block shows two rules inside a block, which will both be merged
 with anything in front of it, so you will get two rules:
 
-    iptables -A INPUT -p tcp -y -j DENY
-    iptables -A INPUT -p tcp -j ACCEPT
+    iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+    iptables -A INPUT -p icmp -j DROP
 
+There can be multiple nesting levels:
+
+    chain INPUT {
+        proto icmp {
+            icmp-type echo-request ACCEPT;
+            DROP;
+        }
+        daddr 172.16.0.0/12 REJECT;
+    }
+
+Note that the 'REJECT' rule is not affected by 'proto icmp', although
+there is no ';' after the closing curly brace. Translated to iptables:
+
+    iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
+    iptables -A INPUT -p icmp -j DROP
+    iptables -A INPUT -d 172.16.0.0/12 -j REJECT
 
 =item B<%>
 
-Further more, ferm now supports variables, so you can define your
-favorite targets, interfaces etc. before you use them. It works
-like this:
+Variable expansion. Replaces '%FOO' by the value of the variable
+'FOO'.
+
+To set variables, write:
 
     set IF eth0
     set %IF ACCEPT
     set TARGET %IF
 
-will result in this:
+resulting in:
 
     %IF = eth0
     %eth0 = ACCEPT
@@ -170,8 +170,7 @@ it like this:
 
     set %IFS = (eth0 eth1 ppp0)
 
-This way, ferm will recognize it being a list of values (an "array"),
-and split it whenever needed.
+This way, ferm will recognize it being a list of values (an "array").
 
 =item B<()>
 
