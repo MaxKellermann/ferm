@@ -1810,12 +1810,7 @@ sub enter {
 
             # ipt_iplimit switches
             if ($keyword eq 'iplimit-above') {
-                if ($negated) {
-                    $current->{$keyword} = '!' . getvar();
-                    undef $negated;
-                } else {
-                    $current->{$keyword} = getvar();
-                }
+                $current->{$keyword} = getvar();
                 $current->{auto_modules}{iplimit} = 1;
                 next;
             };
