@@ -8,7 +8,7 @@
 # Copyright (C) 2001-2005  Auke Kok, Max Kellermann
 #
 # Comments, questions, greetings and additions to this program
-# may be sent to <sofar@foo-projects.org>
+# may be sent to <ferm@foo-projects.org>
 #
 
 #
@@ -31,7 +31,7 @@
 
 B<ferm> - a firewall rule parser for linux
 
-=head1 SYNOPSYS
+=head1 SYNOPSIS
 
 B<ferm> I<options> I<inputfiles>
 
