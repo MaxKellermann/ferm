@@ -363,12 +363,24 @@ sub setvar {
     $vars{$vname} = $vval;
 }
 
+sub next_token {
+    $words[$c++];
+}
 
 sub getvar {
     # see if $words[$c++] is contains variables, and try to substitute
     # them with their values
 
-    my $w = $words[$c++];
+    my $w = next_token();
+
+    # a parameter is expected, EOF is fatal
+    error('unexpected end of file')
+      unless defined $w;
+
+    # a parameter cannot be one of the "special" tokens
+    error("unexpected '$w'")
+      if $w =~ /^[;{}]/;
+
     # Substitute all variables in this strings if present
     while ( $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/ ) {
         if ($debug) {
@@ -388,9 +400,6 @@ sub getvalues {
     my @wordlist;
     my $firstword = getvar();
 
-    return
-      unless defined $firstword;
-
     return $firstword
       if $firstword =~ /^[\x22\x27\x60]/;
 
@@ -399,9 +408,6 @@ sub getvalues {
         my $nextword;
         do {
             $nextword = getvar();
-
-            error('unexpected end of file in list')
-              unless defined $nextword;
 
             if ( $nextword ne ')' ) {
                 if ( $nextword eq '!' ) {
@@ -1116,7 +1122,7 @@ sub enter {
     };
 
     # read keywords 1 by 1 and dump into parser
-    while (defined (my $keyword = getvar())) {
+    while (defined (my $keyword = next_token())) {
         $verbose && print ".";
 
         # check if the current rule should be negated
