@@ -1308,11 +1308,11 @@ sub enter {
                 ; next; };
 
             # ipt_recent switches
-            defined $current_chain && /^(?:name|seconds|hitcount)$/ && do {
+            /^(?:name|seconds|hitcount)$/ && do {
                 $fw[$lev]{$keyword}=getvar();
                 next;
             };
-            defined $current_chain && /^(?:set|rcheck|update|remove|rttl)$/ && do {
+            /^(?:set|rcheck|update|remove|rttl)$/ && do {
                 $fw[$lev]{$keyword}=1;
                 next;
             };
