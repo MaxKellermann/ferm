@@ -4,7 +4,8 @@ NEW_FERM = ../src/ferm
 
 # a list of all ferm scripts which should be tested with iptables,
 # ipchains and ipfwadm
-FERM_SCRIPTS = params/owner positive/bug positive/flush positive/iptables-targets positive/kwbug positive/logLOG positive/masqto positive/mod positive/multimod positive/multipolicy positive/multivar positive/negated-varlist positive/plbug positive/policyorder positive/state positive/SUSE positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
+FERM_SCRIPTS = params/owner positive/bug positive/flush positive/iptables-targets positive/kwbug positive/masqto positive/mod positive/multimod positive/multipolicy positive/multivar positive/negated-varlist positive/plbug positive/policyorder positive/state positive/SUSE positive/tables2 positive/TCPMSS positive/ttlset positive/ulog
+FERM_SCRIPTS_iptables = positive/logLOG positive/varlists
 
 all:
 
@@ -25,4 +26,4 @@ $(foreach frontend,iptables ipchains ipfwadm,$(foreach version,OLD NEW,$(eval $(
 	touch $@
 
 .PHONY : check
-check: $(foreach frontend,iptables ipchains ipfwadm,$(patsubst %,tmp/$(frontend)/%.check,$(FERM_SCRIPTS)))
+check: $(foreach frontend,iptables ipchains ipfwadm,$(patsubst %,tmp/$(frontend)/%.check,$(FERM_SCRIPTS) $(FERM_SCRIPTS_$(frontend))))
