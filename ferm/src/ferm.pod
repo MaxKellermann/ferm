@@ -1176,7 +1176,7 @@ Kellermann <max@foo-projects.org>
 
 =head1 LICENSE
 
-B<ferm> is released under the Gnu Public License, see the
+B<ferm> is released under the GNU General Public License, see the
 COPYING file that came with the package or visit www.gnu.org.
 
 This is free software; see the source for copying conditions.
