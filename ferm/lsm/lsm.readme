@@ -1,0 +1,210 @@
+=============================================================================
+Linux Software Map Entry Template                        Release: 1999-12-22
+=============================================================================
+
+The LSM is a directory of information about each of the software
+packages available via FTP for the Linux operating system.  It is meant
+to be a public information resource.  All entries have been entered by
+volunteers all over the world via email using the template below.  New
+versions will appear first on sunsite.unc.edu and will be announced in
+the newsgroup comp.os.linux.announce .  Discussions pertaining to the
+LSM will be held in the newsgroup comp.os.linux.misc .  Any questions or
+comments can be sent to lsm-help@execpc.com.
+
+As of the end of October, 1996, the LSM is being maintained by Aaron
+Scrab.  The Linux Software Map was originally conceived and maintained
+by Jeff Kopmanis.  From the end of July, 1994, to September, 1996, it
+was maintained by Lars Wirzenius.  We owe Jeff and Lars a lot for
+making LSM the asset it is.
+
+
+=============================================================================
+Instructions
+=============================================================================
+
+Any new packages or updates to old entries should be entered in the
+template below and sent to lsm@execpc.com with the subject 'add'.
+Each release of the LSM will have the current template as part of the
+package.  Any changes to the template will be made and released at
+sunsite.unc.edu.
+
+*PLEASE* use the entry template at the end when submitting information.
+It has been designed so that all you have to do is fill in the blanks
+and send it in as is.  Your entry will be read into the database
+directly from your email response with little if any hand manipulation.
+
+DO NOT RENAME FIELDS.  DO NOT REMOVE THE BEGIN OR END MARKERS.  There
+are no longer any limits on the fields lengths, but please try to be
+short.
+
+Complete as many fields as possible.  I strongly encourage developers to
+complete all the fields, as its more descriptive.  You must fill in at
+least the Title, Version, Entered-date, Description, and Primary-site fields.
+
+Make any corrections to an existing entry that are necessary.  The
+initial data came from a variety of sources, and is not at all assumed
+to be correct.  Remember to update the Entered-date field if you update
+an existing entry.
+
+Thank you VERY much for your time and enthusiasm.  Your contribution
+will help to ensure that the Linux Software Map will continue to be a
+trusted Linux resource.
+
+
+=============================================================================
+Lsmtool
+=============================================================================
+
+Lars Wirzenius wrote a small (and still fragile) tool to make it
+easier to browse and update the LSM.  It will only work on a new style
+database (09AUG94).  Find it as
+ftp://sunsite.unc.edu/pub/Linux/search/lsmtool-0.6.tar.gz. Source only.
+
+
+=============================================================================
+As of the 1999-12-22 version...
+=============================================================================
+
+The 1999-12-22 version (version 4) is only a minor change from version 3.
+  - First, version 4 entries begin with a line containing "Begin4" rather
+    than "Begin3".
+  - The other difference is that dates are now in the format specified in
+    ISO 8601 <http://www.cl.cam.ac.uk/~mgk25/iso-time.html>.
+
+
+=============================================================================
+The LSM Entry Form
+=============================================================================
+
+The general syntax is now similar to that of netnews headers, i.e., a
+keyword (at the beginning of a line), a colon (with no spaces separating
+it from the keyword), and text that may be continued to the next line by
+starting each continuing line with whitespace (space, tab).  Empty lines
+are also allowed (unlike netnews).  Since fields may be several lines
+long, there is no longer a separate keyword for each line (we now have
+one "Description" keyword, where the older versions had "Desc1",
+"Desc2", and so on).
+
+There are no limits on the line lenght or the number of lines for one
+keyword, but please try to be short, especially in the description.
+Don't put the whole README into the description, usually half a dozen
+of lines is more than enough.  Please keep each line (including keyword)
+below 80 characters for maximal viewing comfort.  Use a tab width of 8
+spaces, or don't use tabs at all.
+
+Mandatory fields: Title, Version, Entered-date, Description, Primary-site.
+
+Descriptions of the fields (an empty form is included at the end; use that
+to fill in).
+
+PLEASE NOTE THAT THE "Begin4" AND "End" LINES ARE ESSENTIAL.  IF YOU
+REMOVE THEM, THE ENTRY WILL BE REJECTED.
+
+Note that case is significant.
+
+Begin4
+Title:		The name of the package.  Please use the same title for
+		the LSM entry of each version, so as to make it easier
+		to find entries for new versions of packages that already
+		have one in the data base.
+Version:	Version number or other designation.  Use a date if
+		nothing else is appropriate.
+Entered-date:   Date in format YYYY-MM-DD of when the LSM entry was last
+                modified, where YYYY is last two digits of the year in the
+                Gregorian calendar, MM is the 2-digit month, and DD is
+                2-digit day of month.  (Example: 2000-01-31)
+
+                Note that you should fill in both Version and Entered-date.
+Description:	Short description of the package.
+Keywords:	A short list of carefully selected keywords that describe
+		the package.
+Author: 	Original author(s) of package.  In RFC822 format (i.e.,
+		something that will fit into a From: or To: header of a
+		normal Internet mail message).  Preferred format:
+
+			mailname@site.domain.top (Full name)
+
+		Other formats will be converted to this format, if time
+		and energy of LSM maintainer will allow it.
+		
+		Multiple persons may be given, one per line.
+Maintained-by:	Maintainer(s) of Linux port.  Same format as Author.
+Primary-site:	A specification of on which site, in which directory,
+		and which files are part of the package.  First line
+		gives site and base directory, the rest give the sizes
+		and names of all files.  Names are either relative to
+		the base directory, or full pathnames.  If the ftp
+		site does not use Unix style pathname syntax, then
+		the full pathname must be given every time.  The pathname
+		must not contain spaces.  Example:
+
+			Primary-site: sunsite.unc.edu /pub/Linux/docs
+				      10kB lsm-1994.01.01.tar.gz
+				      997  lsm-template
+				      22 M /pub/Linux/util/lsm-util.tar.gz
+
+		The file size may be given in bytes (no suffix), kilobytes
+		(k, kb), or megabytes (M, MB).  The suffix may be separated
+		with spaces, and may be in upper case or lower case.  The
+		size can be left off.
+
+		For very large packages that are contained within
+		one directory (say, a distribution), only the directory
+		need be listed.  Adding a trailing slash makes it clear
+		that it is a directory.
+
+		The filename should be the final location, not an
+		"incoming" directory.  If you don't know the final
+		location, at least make a good guess (since files _will_
+		be moved from incoming, it is not a good guess).
+Alternate-site: One alternate site may be given.  It should not be a
+		site that mirrors the primary site (these are best
+		found from a list of mirror sites), but should be one
+		that maintained separately.  More sites carrying the
+		package can be found using Archie.  The syntax is
+		the same as for Primary-site, but if there is only one
+		line (i.e., no files are specified), they are assumed
+		to be the same as for Primary-site.
+
+			Alternate-site: ftp.funet.fi /pub/OS/Linux/doc/lsm
+			Alternate-site: foo.bar /pub/lsm
+					11 kB lsm-1994-01-01.cpio.Z
+					0.1 kB lsm-template.Z
+					22 MB lsm-util.tar.gz
+
+Original-site:	The original package, if this is a port to Linux.  Syntax
+		is as in Primary-site, with the same handling of missing
+		filenames as in Alternate-site.
+Platforms:	Software or hardware that is required, if unusual.  A
+		C compiler or floppy disk would not be unusual, but a
+		Python interpreter or tape drive probably would be.  If
+		the requirements are evident from the description, it
+		need not be repeated here.
+Copying-policy:	Copying policy.  Use "GPL" for GNU Public License,
+		"BSD" for the Berkeley style of copyright, "Shareware"
+		for shareware, and some other description for other
+		styles of copyrights.  If the use or copying requires
+		payment, it must be indicated.
+End
+
+
+=============================================================================
+Empty Template
+=============================================================================
+
+Cut this out, fill it in, send it to 'lsm@execpc.com' with the subject 'add'.
+
+Begin4
+Title:          
+Version:        
+Entered-date:   
+Description:    
+Keywords:       
+Author:         
+Maintained-by:  
+Primary-site:   
+Alternate-site: 
+Original-site:  
+Platforms:      
+Copying-policy: 
+End
