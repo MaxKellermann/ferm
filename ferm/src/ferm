@@ -46,9 +46,9 @@ use vars qw(%option $verbose $debug);
 ## parser variables
 # $script: current script file
 # %vars = ferm variables, name => value
-# %functions = ferm functions, name => \@tokens
+# %defs = ferm functions and variables
 # @rules = the rules which are being created
-use vars qw($script %vars %functions @rules);
+use vars qw($script %vars %defs @rules);
 
 ## netfilter variables
 # @ip_tables_names = a list of supported table names (filter, nat, mangle)
@@ -251,7 +251,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[!,=&]|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
+    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[!,=&\$]|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
         # explanation of all sections:
         # \x22[^\x22]+\x22 == "*"
         # \x27[^\x27]+\x27 == '*'
@@ -1317,15 +1317,41 @@ sub enter {
                 next;
             }
 
-            # declare a function
-            if ($keyword eq 'sub') {
+            # definition of a variable or function
+            if ($keyword eq 'def') {
+                my %def;
+
+                my $type = require_next_token;
+                error('"$" (variable) or "&" (function) expected')
+                  unless $type eq '&' or $type eq '$';
+
                 my $name = getvar;
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
-                my $params = getvalues();
-                error('function name must be followed by "()"')
-                  unless ref $params and @$params == 0;
+                if ($type eq '&') {
+                    my @params;
+                    my $token = require_next_token;
+                    error('parameter list expected')
+                      unless $token eq '(';
+                    while (($token = require_next_token) ne ')') {
+                        if (@params) {
+                            error('comma expected')
+                              unless $token eq ',';
+                            $token = require_next_token;
+                        }
+
+                        error('parameter name expected')
+                          unless $token =~ /^\w+$/;
+                        push @params, $token;
+                    }
+
+                    $def{params} = \@params;
+                }
+
+                $keyword = require_next_token;
+                error('"=" expected')
+                  unless $keyword eq '=';
 
                 my @level;
                 my @tokens;
@@ -1349,29 +1375,52 @@ sub enter {
                       if $keyword eq '}' and @level == 0;
                 }
 
-                error('unexpected end of file within function declaration')
+                error('unexpected end of file within definition')
                   if @level;
 
-                $functions{$name} = \@tokens;
+                $def{tokens} = \@tokens;
+
+                $defs{$name} = \%def;
+
+                %$current = ();
+                next;
+            }
+
+            # def references
+            if ($keyword eq '$') {
+                my $name = require_next_token;
+                error('variable name expected')
+                  unless $name =~ /^\w+$/;
+
+                my $def = $defs{$name};
+                error("no such variable: $name")
+                  unless defined $def;
+
+                error("not a variable: $name")
+                  if exists $def->{params};
+
+                unshift @{$script->{tokens}}, @{$def->{tokens}};
 
                 next;
             }
 
-            # sub routine call
             if ($keyword eq '&') {
-                my $name = getvar;
+                my $name = require_next_token;
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
-                my $tokens = $functions{$name};
-                error("no such sub: '$name'")
-                  unless defined $tokens;
+                my $def = $defs{$name};
+                error("no such function: $name")
+                  unless defined $def;
+
+                error("not a function: $name")
+                  unless exists $def->{params};
 
                 my $params = getvalues();
                 error('function name must be followed by "()"')
                   unless ref $params and @$params == 0;
 
-                unshift @{$script->{tokens}}, @$tokens;
+                unshift @{$script->{tokens}}, @{$def->{tokens}};
 
                 next;
             }
