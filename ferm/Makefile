@@ -12,7 +12,7 @@ SHELL		= /bin/bash
 SRC		= src/ferm
 MANSRC		= src/ferm.pod
 
-VERSION         = `${SRC} --version | awk '{print $$2}' | tr -d ','`
+VERSION         = `${SRC} --version | awk '{print $$2}' | head -1 | tr -d ','`
 
 TARDIR		= ferm-${VERSION}
 TARFILE		= ferm-${VERSION}.tar.gz
