@@ -76,6 +76,7 @@ while (<>) {
         # evaluate options with zero, one, two parameters
         s/(!\s*)?--(syn|clamp-mss-to-pmtu|set|rcheck|log-tcp-sequence|log-tcp-options|log-ip-options|continue|save-mark|restore-mark|fragment)(\s|$)/$item->{$2} = $1; ''/eg;
         s/--(tcp-flags)\s+(\S+)\s+(\S+)/$item->{$1} = [ $2, $3 ]; ''/eg;
+        s/(!\s*)?--(iplimit-above)\s+(\S+)/$item->{$2} = [ $1, $2 ]; ''/eg;
         s/--(\w[-\w]*)\s+(".*?"|'.*?'|(?:!\s*)?\S+)/$item->{$1} = shell_unescape($2); ''/eg;
 
         # after we parsed everything we know, nothing must be left
