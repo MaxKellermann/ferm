@@ -652,15 +652,17 @@ sub tables {
             $rule{'chain'} = uc $rule{'chain'} ; } };
 
     # should we set a policy?
-    if (exists $rule{policy} and
-        not exists $chains{$rule{table}}{$rule{chain}}{policy}) {
+    if (exists $chains{$rule{table}}{$rule{chain}}{policy} and
+        not exists $chains{$rule{table}}{$rule{chain}}{policy_set}) {
         mydie('cannot set the policy for non-built in chains, exiting')
           unless grep { $_ eq $rule{chain} }
             qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
 
-        push @rules, $rrr . "-P $rule{chain} $rule{policy}\n";
+        my $policy = $chains{$rule{table}}{$rule{chain}}{policy};
 
-        $chains{$rule{table}}{$rule{chain}}{policy} = undef;
+        push @rules, $rrr . "-P $rule{chain} $policy\n";
+
+        $chains{$rule{table}}{$rule{chain}}{policy_set} = 1;
     }
 
     if ( $option{'createchains'} ) {
@@ -1261,9 +1263,25 @@ sub enter {
 
             # policy keywords
             if ($keyword eq 'policy') {
+                my $tables = find_option(\@fw, 'table') || 'filter';
+                my $chains = find_option(\@fw, 'chain');
+                error('No chain specified yet')
+                  unless defined $chains;
+
                 my $policy = uc getvar();
                 error('invalid policy target, exiting')
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
+
+                foreach my $table (to_array $tables) {
+                    foreach my $chain (to_array $chains) {
+                        if (exists $chains{$table}{uc $chain}{policy}) {
+                            warning('policy for this chain is specified for the second time');
+                        } else {
+                            $chains{$table}{uc $chain}{policy} = $policy;
+                        }
+                    }
+                }
+
                 $current->{policy} = $policy;
                 next;
             }
