@@ -320,7 +320,7 @@ sub prepare_tokens {
         } elsif ($line[0] eq 'set') {
             # set: set a variable
             shift @line;
-            my $name = shift @line;
+            my $name = getvar(\&next_array_token, \@line);
             my $value = getvalues(\&next_array_token, \@line);
 
             if (@line and $line[0] eq ',') {
