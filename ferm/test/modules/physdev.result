@@ -1,0 +1,6 @@
+iptables -t filter -A INPUT -m physdev -j DROP --physdev-in eth0
+iptables -t filter -A INPUT -m physdev -j DROP --physdev-in ppp0
+iptables -t filter -A INPUT -m physdev -j ACCEPT --physdev-out ppp1
+iptables -t filter -A INPUT -m physdev -j DROP --physdev-is-in
+iptables -t filter -A INPUT -m physdev -j ACCEPT --physdev-is-out
+iptables -t filter -A INPUT -m physdev -j REJECT --physdev-is-bridged
