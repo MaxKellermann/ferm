@@ -799,6 +799,13 @@ sub shell_append {
     }
 }
 
+sub extract_negation {
+    local $_ = shift;
+    s/^!\s*//
+      ? ( '!', $_ )
+        : $_;
+}
+
 sub tables {
     my $rule = shift;
     my %rule = %$rule;
@@ -877,17 +884,17 @@ sub tables {
       foreach (keys %modules);
 
     # general iptables options
-    shell_append(\$rr, '-i', $rule{interface})
+    shell_append(\$rr, '-i', extract_negation $rule{interface})
       if defined $rule{'interface'};
-    shell_append(\$rr, '-o', $rule{outerface})
+    shell_append(\$rr, '-o', extract_negation $rule{outerface})
       if defined $rule{'outerface'};
 
-    shell_append(\$rr, '-p', $rule{proto})
+    shell_append(\$rr, '-p', extract_negation $rule{proto})
       if defined $rule{proto};
 
-    shell_append(\$rr, '-s', $rule{saddr})
+    shell_append(\$rr, '-s', extract_negation $rule{saddr})
       if defined $rule{saddr};
-    shell_append(\$rr, '-d', $rule{daddr})
+    shell_append(\$rr, '-d', extract_negation $rule{daddr})
       if defined $rule{daddr};
 
     if (defined $rule{'fragment'}) {
@@ -902,9 +909,9 @@ sub tables {
     #
 
     # proto tcp [udp]
-    shell_append(\$rr, '--sport', $rule{sport})
+    shell_append(\$rr, '--sport', extract_negation $rule{sport})
       if defined $rule{sport};
-    shell_append(\$rr, '--dport', $rule{dport})
+    shell_append(\$rr, '--dport', extract_negation $rule{dport})
       if defined $rule{dport};
 
     if (defined $rule{'syn'}) {
@@ -921,11 +928,11 @@ sub tables {
                  $rule{'tcp-flags.mask'}, $rule{'tcp-flags.match'})
       if exists $rule{'tcp-flags'};
 
-    shell_append(\$rr, '--tcp-option', $rule{'tcp-option'})
+    shell_append(\$rr, '--tcp-option', extract_negation $rule{'tcp-option'})
       if exists $rule{'tcp-option'};
 
     # proto icmp
-    shell_append(\$rr, '--icmp-type', $rule{'icmp-type'})
+    shell_append(\$rr, '--icmp-type', extract_negation $rule{'icmp-type'})
       if defined $rule{'icmp-type'};
 
     #
@@ -954,7 +961,7 @@ sub tables {
 
     foreach (qw(ctproto ctorigsrc ctorigdst),
              qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
-        shell_append(\$rr, "--$_", $rule{$_})
+        shell_append(\$rr, "--$_", extract_negation $rule{$_})
           if exists $rule{$_};
     }
 
@@ -1007,7 +1014,7 @@ sub tables {
       if exists $rule{'limit-burst'};
 
     # ipt_mac parameters
-    shell_append(\$rr, '--mac-source', $rule{'mac-source'})
+    shell_append(\$rr, '--mac-source', extract_negation $rule{'mac-source'})
       if exists $rule{'mac-source'};
 
     # ipt_mark, ipt_connmark
