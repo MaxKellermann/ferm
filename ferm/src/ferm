@@ -2169,7 +2169,6 @@ sub execute {
 
     foreach (@rules) {
         s/^\s+//s;
-        s/\s+$//s;
         print
           if $option{lines} || $debug;
         next if $option{noexec};
