@@ -14,7 +14,7 @@ v1.1+cvs - 9 Nov 2004
     is deprecated, but still supported)
   - full support for the match extensions: recent, conntrack, addrtype,
     ah, owner, time
-  - full support for the targets: CONNMARK, NETMAP, SNAT
+  - full support for the targets: CONNMARK, NETMAP, ROUTE, SNAT
   - stricter syntax checks, e.g.:
     * some built-in targets must be uppercase
     * only one target is allowed
