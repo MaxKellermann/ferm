@@ -519,6 +519,19 @@ sub getvalues {
     }
 }
 
+sub is_netfilter_builtin_target {
+    my $target = shift;
+
+    die unless defined $target and length $target;
+
+    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE
+                         |BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
+                         |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
+                         |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
+                         |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
+                       )/x;
+}
+
 sub tables {
     my $rule = shift;
     my %rule = %$rule;
@@ -558,7 +571,8 @@ sub tables {
 
         # check for unknown jump target
         for ( $rule{'action'} ) {
-            /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
+            last unless $rule{action} and
+              not is_netfilter_builtin_target($rule{action});
             if ( ! exists ($tables{$rule{'table'}.'_'.(lc $_)}) ) {
                 push @rules, $rrr . "-N $_\n";
                 $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
@@ -567,7 +581,8 @@ sub tables {
         if ( ! exists $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} ) {
             $tables{$rule{'table'} . '_' . lc $rule{'chain'}} = 0 };
         for ( $rule{'action'} ) {
-            /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
+            last unless $rule{action} and
+              not is_netfilter_builtin_target($rule{action});
             if ( ! exists ($tables{$rule{'table'} . '_' . lc $_}) ) {
                 $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
 
@@ -579,7 +594,8 @@ sub tables {
             $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2; };
         # check for unknown jump target
         for ( $rule{'action'} ) {
-            /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
+            last unless $rule{action} and
+              not is_netfilter_builtin_target($rule{action});
             if (($tables{$rule{'table'} . '_' . (lc $rule{'chain'})}&  2) != 2 ) {
                 push @rules, $rrr . "-F $rule{'chain'}\n";
                 $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2;
@@ -661,18 +677,9 @@ sub tables {
     if (defined $rule{'string'} ) {
         $rr .= "--string " . $rule{'string'} . " "; } ;
 
-    unless ($rule{'action'} eq 'nop') {
-        $rr .= "-j "; } ;
-
-    # special options come after "-j TARGET"
-
-    for ( $rule{'action'} ) {
-        /^masq$/ && do { $rr .= "MASQUERADE " ;  last; };
-        /^nop$/ && last;
-        /^(?:accept|balance|dnat|drop|ftos|log|mark|mirror|netlink|queue|redirect|reject|return|snat|tcpmss|tos|ttl|ulog|connmark|netmap|log)$/ && do {
-             $rr .= (uc $rule{'action'}) . " " ; last; };
-        $rr .= $rule{'action'} . " ";
-    };
+    # target
+    $rr .= "-j $rule{action} "
+      unless $rule{'action'} eq 'NOP';
 
     # check for '--to' and '--to-[ports|source|destination]'
     if (defined $rule{'to'}) {
@@ -1160,14 +1167,18 @@ sub enter {
             }
 
             # action keywords
-            s/^masquerade$/masq/i;
+            s/^MASQ$/MASQUERADE/i;
 
-            ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
-                   netlink|nop|queue|reject|return|tcpmss|ttl|ulog)$/ix or
-              /^(?:TOS|MARK|CONNMARK|NETMAP|LOG)$/ ) && do {
-                $current->{'action'} = lc $keyword;
+            if ($keyword =~ /^(?:ACCEPT|DROP|RETURN|QUEUE|NOP
+                                |BALANCE|DNAT|MASQUERADE|MIRROR|REDIRECT|REJECT
+                                |SNAT|TCPMSS|TTL|ULOG
+                              )$/ix or
+                $keyword =~ /^(?:CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
+                                |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
+                              )$/) {
+                $current->{'action'} = uc $keyword;
                 next;
-            };
+            }
 
             ###
             # protocol specific options
@@ -1386,14 +1397,14 @@ sub enter {
 
             if (defined $current->{action}) {
                 # DNAT target switches
-                if ($current->{action} eq 'dnat' and
+                if ($current->{action} eq 'DNAT' and
                     $keyword =~ /^(?:to-destination|todest)$/) {
                     $current->{todest} = getvar();
                     next;
                 }
 
                 # LOG target switches
-                if ($current->{action} eq 'log') {
+                if ($current->{action} eq 'LOG') {
                     if ($keyword =~ /^(?:log-level|loglev)$/) {
                         $current->{loglevel} = getvar();
                         next;
@@ -1417,44 +1428,44 @@ sub enter {
                 }
 
                 # MARK/CONNMARK target switches
-                if (($current->{action} eq 'mark' or
-                     $current->{action} eq 'connmark') and
+                if (($current->{action} eq 'MARK' or
+                     $current->{action} eq 'CONNMARK') and
                     $keyword =~ /^set-?mark$/) {
                     $current->{setmark} = getvar();
                     next;
                 }
 
                 # MASQUERADE/REDIRECT target switches
-                if (($current->{action} eq 'masq' or
-                     $current->{action} eq 'redirect') and
+                if (($current->{action} eq 'MASQUERADE' or
+                     $current->{action} eq 'REDIRECT') and
                     $keyword =~ /^to-?ports$/) {
                     $current->{toports} = getvar();
                     next;
                 }
 
                 # NETMAP target switches
-                if ($current->{action} eq 'netmap' and
+                if ($current->{action} eq 'NETMAP' and
                     $keyword eq 'to') {
                     $current->{to} = getvar();
                     next;
                 }
 
                 # REJECT target switches
-                if ($current->{action} eq 'reject' and
+                if ($current->{action} eq 'REJECT' and
                     $keyword =~ /^reject-?with$/) {
                     $current->{rejectwith} = getvar();
                     next;
                 }
 
                 # SNAT target switches
-                if ($current->{action} eq 'snat' and
+                if ($current->{action} eq 'SNAT' and
                     $keyword =~ /^(?:to-source|tosrc)$/) {
                     $current->{tosrc} = getvar();
                     next;
                 }
 
                 # TCPMSS target switches
-                if ($current->{action} eq 'tcpmss') {
+                if ($current->{action} eq 'TCPMSS') {
                     if ($keyword eq 'set-mss') {
                         $current->{$keyword} = getvar();
                         next;
@@ -1467,7 +1478,7 @@ sub enter {
                 }
 
                 # TTL target switches
-                if ($current->{action} eq 'ttl' and
+                if ($current->{action} eq 'TTL' and
                     $keyword =~ /^ttl-?(?:set|dec|inc)$/) {
                     $keyword =~ s/-//;
                     $current->{$keyword} = getvar();
@@ -1475,7 +1486,7 @@ sub enter {
                 }
 
                 # ULOG target switches
-                if ($current->{action} eq 'ulog' and
+                if ($current->{action} eq 'ULOG' and
                     $keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
                     $current->{$keyword} = getvar();
                     next;
