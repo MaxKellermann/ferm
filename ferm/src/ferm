@@ -360,27 +360,6 @@ sub read_header {
               if @line;
 
             setvar($name, $value);
-        } elsif ($line[0] eq 'include') {
-            # XXX: fix this, this does not belong into the header
-            # include: include another file
-            shift @line;
-
-            my $filename = shift @line;
-
-            # check if the file exists
-            mydie("No such file in $script->{filename} line $script->{line}: $filename")
-              unless -f $filename;
-
-            # prevent opening the same file twice at a time
-            for (my $s = $script; defined $s; $s = $s->{parent}) {
-                mydie("Circular reference in $script->{filename} line $script->{line}: $filename")
-                  if $s->{filename} eq $filename;
-            }
-
-            # open it, put it on stack
-            open_script($filename);
-            prepare_tokens;
-            last;
         } else {
             # the next parser stage eats this
             push @$tokens, @line;
@@ -418,6 +397,11 @@ sub prepare_tokens {
 
 sub open_script {
     my $filename = shift;
+
+    for (my $s = $script; defined $s; $s = $s->{parent}) {
+        mydie("Circular reference in $script->{filename} line $script->{line}: $filename")
+          if $s->{filename} eq $filename;
+    }
 
     my $handle = new IO::File("<$filename");
     mydie("Failed to open $filename: $!")
