@@ -1592,7 +1592,7 @@ sub enter {
                 ; next; };
 
             # ipt_owner switches
-            /^(uid|gid|pid|sid)(?:-?owner)?$/ && do {
+            /^(uid|gid|pid|sid|cmd)(?:-?owner)?$/ && do {
                 $current->{$1 . 'owner'} = getvalues();
                 $current->{auto_modules}{owner} = 1;
                 next;
