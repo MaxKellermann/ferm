@@ -7,5 +7,5 @@ chain input mod state {
 	proto tcp {
 		mod state ACCEPT;
 	}
-	mod state:limit ACCEPT;
+	mod (state limit) ACCEPT;
 }
