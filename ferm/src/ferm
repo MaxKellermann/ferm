@@ -1107,12 +1107,23 @@ sub enter {
         push @rules, "# entered level $lev\n";
     };
 
-
     # read keywords 1 by 1 and dump into parser
     do
     { LOOP: {
         my $keyword = getvar();
         $verbose && print ".";
+
+        # check if the current rule should be negated
+        my $negated = $keyword eq '!';
+        if ($negated) {
+            # negation. get the next word which contains the 'real'
+            # rule
+            $keyword = getvar();
+            $verbose && print ".";
+
+            error('double negation')
+              if $keyword eq '!';
+        }
 
         my $current_chain;
         foreach my $item (@fw) {
@@ -1331,15 +1342,17 @@ sub enter {
                 ; next; } ;
             /^syn$/ && do {
                 # match tcp packages with syn-byte set
-                if ($words[$c-2] eq "\x21" ) {
-                    $fw[$lev]{'syn'}='unset'}
-                else {
+                if ($negated) {
+                    $fw[$lev]{'syn'}='unset';
+                    undef $negated;
+                } else {
                     $fw[$lev]{'syn'}='set';}
                 ; next; } ;
             /^fragment$|^frag$/ && do {
-                if ($words[$c-2] eq "\x21" ) {
-                    $fw[$lev]{'fragment'}='unset'}
-                else {
+                if ($negated) {
+                    $fw[$lev]{'fragment'}='unset';
+                    undef $negated;
+                } else {
                     $fw[$lev]{'fragment'}='set';}
                 ; next; } ;
             /^source$|^src$/ && do {
@@ -1487,13 +1500,14 @@ sub enter {
 
                 last LOOP; };
 
-            /\x21/ && do {
-                # don't check anything for now...
-                ; next ; } ;
-
             # default
             error("Unrecognized keyword: $keyword, exiting");
         }
+
+        # if the rule didn't reset the negated flag, it's not
+        # supported
+        error("Doesn't support negation: $keyword, exiting")
+          if $negated;
     }} while ($c <= $#words);
 };
 
