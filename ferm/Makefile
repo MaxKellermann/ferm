@@ -18,7 +18,7 @@ TARDIR		= ferm-${VERSION}
 TARFILE		= ferm-${VERSION}.tar
 LSMFILE		= lsm/ferm-${VERSION}.lsm
 
-SIZE            = `du -h -D ferm.tar.gz | awk '{print $$1}'`
+SIZE = $(shell du -h -D $(TARFILE).gz | awk '{print $$1}')
 DATE            = `date '+%Y-%m-%d'`
 
 WEBDIR		= /home/web/users/koka/ferm
@@ -120,7 +120,8 @@ ftp:	tar
 		$(FTPDIR)/CHANGES $(FTPDIR)/VERSION
 	@echo "Done."
 
-lsm: .phony
+.phony: lsm
+lsm: $(TARFILE).gz
 	@echo "Making lsm entry file..."
 	@echo "Begin4" > ${LSMFILE}
 	@echo "Title:          ferm" >> ${LSMFILE}
@@ -131,7 +132,7 @@ lsm: .phony
 	@echo "Author:         sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
 	@echo "Maintained-by:  sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
 	@echo "Primary-site:   ferm.foo-projects.org /" >> ${LSMFILE}
-	@echo "                $(SIZE) ferm.tar.gz" >> ${LSMFILE}
+	@echo "                $(SIZE) $(TARFILE).gz" >> ${LSMFILE}
 	@echo "Alternate-site:" >> ${LSMFILE}
 	@echo "Original-site:" >> ${LSMFILE}
 	@echo "Platforms:      perl linux>=2.0" >> ${LSMFILE}
