@@ -46,7 +46,7 @@ my %tables;    # chain box for iptables
     $tables{'nat_output'} = 0;
     $tables{'mangle_prerouting'} = 0;
     $tables{'mangle_output'} = 0;
-	       # 0=made;1=policy set;2=flushed;3=all
+               # 0=made;1=policy set;2=flushed;3=all
 my $lev=0;     # current recursion depth
 my @words;     # contains all keywords to describe firewall
 my $c=0;       # the current word counter
@@ -59,8 +59,8 @@ my %vars;      # holds variable data
 use Getopt::Long;
 
 GetOptions(
-	'noexec', 'lines', 'verbose', 'debug', 'location=s',
-        'clearall', 'flushall', 'createchains', 
+        'noexec', 'lines', 'verbose', 'debug', 'location=s',
+        'clearall', 'flushall', 'createchains',
         'flushchains', 'help', 'automod', 'version', 'use=s'
           );
 
@@ -109,9 +109,9 @@ $option{'ipchains'} = $option{'iptables'} = $option{'ipfwadm'} = 0;
 if (defined $opt_use) {
     $option{$opt_use} = 1; }
 if (defined $opt_location) {
-    $option{'location'} = $opt_location; 
+    $option{'location'} = $opt_location;
     if ( ! -X $option{'location'}) {
-	mydie("Specified location is not executable or does not exist! Exiting");
+        mydie("Specified location is not executable or does not exist! Exiting");
     }
 }
 
@@ -123,43 +123,43 @@ while (<>) {
     s/#.*$//g;
     # split the whole input into words:
     foreach $word (m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
-	# explanation of all sections:
-	# \x22[^\x22]+\x22 == "*"
-	# \x27[^\x27]+\x27 == '*'
-	# \x60[^\x60]+\x60 == `*`
-	# [0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+
-	#	== anything which is not one of these:
-	# \x28 == (
-	# \x29 == )
-	# \x7b == }
-	# \x7d == {
-	# \x3b == ;
+        # explanation of all sections:
+        # \x22[^\x22]+\x22 == "*"
+        # \x27[^\x27]+\x27 == '*'
+        # \x60[^\x60]+\x60 == `*`
+        # [0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+
+        #        == anything which is not one of these:
+        # \x28 == (
+        # \x29 == )
+        # \x7b == }
+        # \x7d == {
+        # \x3b == ;
         push @words, $word;
 
-	# sneak preview: scan for the 'option' word and see what kernel program
-	# we will be using and which path/name we should use for it
-	if ($words[$#words-1] eq 'option') {
-	    for ($word) {
-		/^ipfwadm$|^ipchains$|^iptables$/ && do {
-		    # found match: set kernel interface program
-		    $option{$word} = 1;
-		    $#words -= 2;
-		}
-	    }
-	}
-	if ($words[$#words-2] eq 'option') {
-	    for ($words[$#words-1]) {
-		/^location$/ && do {
-		    # found match: set the /path/to/name
-		    $option{'location'} = $word;
-		    $#words -= 3;
-		    # check if it is executable anyway:
-		    if ( ! -X $option{'location'}) {
-			mydie("Specified location is not executable or does not exist! Exiting");
-		    }
-		}
-	    }
-	}
+        # sneak preview: scan for the 'option' word and see what kernel program
+        # we will be using and which path/name we should use for it
+        if ($words[$#words-1] eq 'option') {
+            for ($word) {
+                /^ipfwadm$|^ipchains$|^iptables$/ && do {
+                    # found match: set kernel interface program
+                    $option{$word} = 1;
+                    $#words -= 2;
+                }
+            }
+        }
+        if ($words[$#words-2] eq 'option') {
+            for ($words[$#words-1]) {
+                /^location$/ && do {
+                    # found match: set the /path/to/name
+                    $option{'location'} = $word;
+                    $#words -= 3;
+                    # check if it is executable anyway:
+                    if ( ! -X $option{'location'}) {
+                        mydie("Specified location is not executable or does not exist! Exiting");
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -189,11 +189,11 @@ foreach $rr (@rules) {
         print $rr; };
     if (!$option{'noexec'} ) {
         for ($rr) {
-	    !/^#/ && do {
-		if ((!$option{'lines'}) && $verbose) {print "."};
-		system ($rr);
-	    };
-	};
+            !/^#/ && do {
+                if ((!$option{'lines'}) && $verbose) {print "."};
+                system ($rr);
+            };
+        };
     };
 }
 
@@ -208,7 +208,7 @@ exit 0;
 sub printversion {
     print "ferm $VERSION, $DATE\n";
     print "Copyright (C) 2001-2003 - Auke Kok, released under the GPLv2\n";
-    print "See the included COPYING file for license details.\n";    
+    print "See the included COPYING file for license details.\n";
 }
 
 
@@ -226,28 +226,28 @@ sub error {
     my $l = 0;
 
     for $w ( 0 .. ($c - 1) ) {
-	if ($words[$w] eq "\x29")
-	    { $l++ ; $lines[$l] = "    " x ($tabs-- -1) ;};
-	if ($words[$w] eq "\x28")
-	    { $l++ ; $lines[$l] = "    " x $tabs++ ;};
+        if ($words[$w] eq "\x29")
+            { $l++ ; $lines[$l] = "    " x ($tabs-- -1) ;};
+        if ($words[$w] eq "\x28")
+            { $l++ ; $lines[$l] = "    " x $tabs++ ;};
         if ($words[$w] eq "\x7d")
-	    { $l++ ; $lines[$l] = "    " x ($tabs-- -1) ;};
-	if ($words[$w] eq "\x7b")
-	    { $l++ ; $lines[$l] = "    " x $tabs++ ;};
-	if ( $l > $#lines ) { $lines[$l] = "" };
+            { $l++ ; $lines[$l] = "    " x ($tabs-- -1) ;};
+        if ($words[$w] eq "\x7b")
+            { $l++ ; $lines[$l] = "    " x $tabs++ ;};
+        if ( $l > $#lines ) { $lines[$l] = "" };
         $lines[$l] .= $words[$w] . " ";
         if ($words[$w] eq "\x28")
-	    { $l++ ; $lines[$l] = "    " x $tabs ;};
-	if (($words[$w] eq "\x29") && ($words[$w+1] ne "\x7b"))
+            { $l++ ; $lines[$l] = "    " x $tabs ;};
+        if (($words[$w] eq "\x29") && ($words[$w+1] ne "\x7b"))
             { $l++ ; $lines[$l] = "    " x $tabs ;};
         if ($words[$w] eq "\x7b")
-	    { $l++ ; $lines[$l] = "    " x $tabs ;};
-        if (($words[$w] eq "\x7d") && ($words[$w+1] ne "\x7d")) 
             { $l++ ; $lines[$l] = "    " x $tabs ;};
-	if (($words[$w] eq "\x3b") && ($words[$w+1] ne "\x7d"))
+        if (($words[$w] eq "\x7d") && ($words[$w+1] ne "\x7d"))
+            { $l++ ; $lines[$l] = "    " x $tabs ;};
+        if (($words[$w] eq "\x3b") && ($words[$w+1] ne "\x7d"))
             { $l++ ; $lines[$l] = "    " x $tabs ;}
         if ($words[$w-1] eq "option")
-	    { $l++ ; $lines[$l] = "    " x $tabs ;}
+            { $l++ ; $lines[$l] = "    " x $tabs ;}
     }
     $start = $#lines - 4;
     if ($start < 0) { $start = 0 } ;
@@ -264,10 +264,10 @@ sub setvar {
 
     for ($vval) {
         /^\x60/ && do {
-	    if ($debug) {
-		$db = "# Executing backticks: $vval "; };
+            if ($debug) {
+                $db = "# Executing backticks: $vval "; };
             # change all ' to \'
-	    $vval =~ s/'/\\'/g;
+            $vval =~ s/'/\\'/g;
             # change `.....` to qx'.....' to prevent perl interpretation
             $vval =~ s/^\x60(.*)\x60$/qx'$1'/;
             $vval = eval($vval);
@@ -292,14 +292,14 @@ sub getvar {
 
     my $w = $words[$c++];
     for ($w) {
-	# Substitute all variables in this strings if present
-	while ( /\x25[0-9a-zA-Z\x2d\x5f]+/ ) {
-	    if ($debug) {
-		$db = "# substituting variables: $w "; };
-	    $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/g;
-	    if ($debug) {
+        # Substitute all variables in this strings if present
+        while ( /\x25[0-9a-zA-Z\x2d\x5f]+/ ) {
+            if ($debug) {
+                $db = "# substituting variables: $w "; };
+            $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/g;
+            if ($debug) {
                 push @rules, "$db -\> $w\n"; };
-	};
+        };
     };
     return $w;
 }
@@ -315,23 +315,23 @@ sub getvalues {
 
     for ($firstword) {
         /^\x22/ || /^\x27/ || /^\x60/ && do {
-	    return $firstword;
-	}
+            return $firstword;
+        }
     }
     if ($firstword eq '(') {
-	# read a list until ")"
-	do {
-	    $nextword = getvar();
-	    if ( $nextword ne ')' ) {
-		if ( $nextword eq '!' ) {
-		    $nextword .= getvar();
-		};
-	        push @wordlist, $nextword;
-	    };
-	} until ( $nextword eq ')' );
-	return (join(',', @wordlist));
+        # read a list until ")"
+        do {
+            $nextword = getvar();
+            if ( $nextword ne ')' ) {
+                if ( $nextword eq '!' ) {
+                    $nextword .= getvar();
+                };
+                push @wordlist, $nextword;
+            };
+        } until ( $nextword eq ')' );
+        return (join(',', @wordlist));
     } elsif ( $firstword eq '!' ) {
-	return $firstword . getvar();
+        return $firstword . getvar();
     } else {
         return $firstword;
     };
@@ -345,17 +345,17 @@ sub chains {
 
     # should we set a policy?
     if ( exists $rule{'policy'} ) {
-	for ( $rule{'chain'} ) {
-	    /^input$|^forward$|^output$/ && do {
-		if ( ! ($chains{$rule{'chain'}} & 1) ) {
-		    for ( $rule{'policy'} ) {
-			s/^drop$/DENY/g ; s/^accept$/ACCEPT/g ;
-			s/^reject$/REJECT/g ; s/^masq$/MASQ/g ;
-			s/^redirect$/REDIRECT/g ; };
-		    push @rules, "$option{'location'} -P $rule{'chain'} $rule{'policy'}\n";
-		    $chains{$rule{'chain'}} |= 1 ; };
-		last; };
-	    mydie (" cannot set the policy for non-built in chains, exiting"); }; };
+        for ( $rule{'chain'} ) {
+            /^input$|^forward$|^output$/ && do {
+                if ( ! ($chains{$rule{'chain'}} & 1) ) {
+                    for ( $rule{'policy'} ) {
+                        s/^drop$/DENY/g ; s/^accept$/ACCEPT/g ;
+                        s/^reject$/REJECT/g ; s/^masq$/MASQ/g ;
+                        s/^redirect$/REDIRECT/g ; };
+                    push @rules, "$option{'location'} -P $rule{'chain'} $rule{'policy'}\n";
+                    $chains{$rule{'chain'}} |= 1 ; };
+                last; };
+            mydie (" cannot set the policy for non-built in chains, exiting"); }; };
 
     if ( $option{'createchains'} ) {
         # check if the chain is already defined
@@ -380,21 +380,21 @@ sub chains {
                 $chains{$_} = 0;
             };
         };
-    }; 
+    };
 
     # flush neccesary chains before referencing them
     if ( $option{'flushchains'} && (! ($option{'flushall'} || $option{'clearall'}) )) {
-	# check if the chain is not already flushed
+        # check if the chain is not already flushed
         if ( ($chains{$rule{'chain'}} & 2) != 2 ) {
             push @rules, "$option{'location'} -F $rule{'chain'}\n" ;
-	    $chains{$rule{'chain'}} |= 2; };
-	# check for jump target to be flushed
-	for ( $rule{'action'} ) {
+            $chains{$rule{'chain'}} |= 2; };
+        # check for jump target to be flushed
+        for ( $rule{'action'} ) {
             /^accept$|^drop$|^reject$|^return$|^masq$|^redirect$|^nop$|^$/ && last;
             if ( ($chains{$rule{'action'}} & 2) != 2 ) {
                 push @rules, "$option{'location'} -F $rule{'action'}\n";
-		$chains{$rule{'action'}} |= 2 ;};
-	};
+                $chains{$rule{'action'}} |= 2 ;};
+        };
     };
 
     # exit if no action is present - in case of policy only
@@ -405,17 +405,17 @@ sub chains {
     $rr .= "ipchains -A ";
     $rr .= $rule{'chain'} . " ";
     if (defined $rule{'interface'} ) {
-	$rr .= "-i " . $rule{'interface'} . " " ; };
+        $rr .= "-i " . $rule{'interface'} . " " ; };
     if (defined $rule{'proto'} ) {
         $rr .= "-p " . $rule{'proto'} . " "; };
 
     # address and port
     if (defined $rule{'saddr'} ) {
-	$rr .= "-s " . $rule{'saddr'} . " " ; 
+        $rr .= "-s " . $rule{'saddr'} . " " ;
         if ( defined $rule{'sport'} ) {
-	    $rr .= $rule{'sport'} . " ";} }
+            $rr .= $rule{'sport'} . " ";} }
     else {
-	if ( defined $rule{'sport'} ) {
+        if ( defined $rule{'sport'} ) {
             $rr .= "--sport " . $rule{'sport'} . " ";} }
     if (defined $rule{'daddr'} ) {
         $rr .= "-d " . $rule{'daddr'} . " " ;
@@ -423,13 +423,13 @@ sub chains {
             $rr .= $rule{'dport'} . " ";} }
     else {
         if ( defined $rule{'dport'} ) {
-            $rr .= "--dport " . $rule{'dport'} . " ";} } 
+            $rr .= "--dport " . $rule{'dport'} . " ";} }
 
     if (defined $rule{'reverse'} ) {
-	$rr .= "-b " };
+        $rr .= "-b " };
 
     if (defined $rule{'icmptype'} ) {
-	$rr .= "--icmp-type " . $rule{'icmptype'} . " "; } ;
+        $rr .= "--icmp-type " . $rule{'icmptype'} . " "; } ;
     if (defined $rule{'syn'} ) {
         if ( $rule{'syn'} eq 'set' ) {
             $rr .= '-y '  ; }
@@ -437,34 +437,34 @@ sub chains {
             $rr .= '! -y '; } ;
         } ;
     if (defined $rule{'settos'} ) {
-	$rr .= "-t e1 ";
-	for ( $rule{'settos'} ) {
+        $rr .= "-t e1 ";
+        for ( $rule{'settos'} ) {
             /mincost|min-cost|2/ && do { $rr .= "02 "};
             /reliability|reliable|4/ && do { $rr .= "04 "};
             /max-throughput|maxthroughput|8/ && do { $rr .= "08 "};
             /lowdelay|interactive|min-delay|10/ && do { $rr .= "10 "};
             /clear|^0$|^00$|^0x00$/ && do { $rr .= "00 "};
             }
-	; } ;
+        ; } ;
     if (defined $rule{'setmark'} ) {
-	$rr .= "-m " . $rule{'setmark'} . " "; } ;
+        $rr .= "-m " . $rule{'setmark'} . " "; } ;
     if (defined $rule{'fragment'} ) {
-        if ( $rule{'fragment'} eq 'set' ) {    
+        if ( $rule{'fragment'} eq 'set' ) {
             $rr .= '-f '  ; }
-        else {    
+        else {
             $rr .= '! -f '; } ;
-        } ; 
-    unless ($rule{'action'} eq 'nop') {   
+        } ;
+    unless ($rule{'action'} eq 'nop') {
         $rr .= "-j "; } ;
     for ( $rule{'action'} ) {
-	/^accept$/ && do { $rr .= "ACCEPT " ; last; };
-	/^drop$/ && do { $rr .= "DENY " ; last; };
-	/^reject$/ && do { $rr .= "REJECT " ; last; };
-	/^masq$/ && do { $rr .= "MASQ " ; last; };
-	/^redirect$/ && do { $rr .= "REDIRECT " . $rule{'to'} ; last; };
-	/^return$/ && do { $rr .= "RETURN " ; last; };
-	/^nop$/ && last;
-	$rr .= $rule{'action'} . " "; } ;
+        /^accept$/ && do { $rr .= "ACCEPT " ; last; };
+        /^drop$/ && do { $rr .= "DENY " ; last; };
+        /^reject$/ && do { $rr .= "REJECT " ; last; };
+        /^masq$/ && do { $rr .= "MASQ " ; last; };
+        /^redirect$/ && do { $rr .= "REDIRECT " . $rule{'to'} ; last; };
+        /^return$/ && do { $rr .= "RETURN " ; last; };
+        /^nop$/ && last;
+        $rr .= $rule{'action'} . " "; } ;
     if (defined $rule{'log'} ) {
         $rr .= "-l"; } ;
     $rr .= "\n";
@@ -484,8 +484,8 @@ sub tables {
 
     # in iptables, built-in chains are UPPERCASE
     for( $rule{'chain'} ) {
-	/^input$|^forward$|^output$|^prerouting$|^postrouting$/ && do {
-	    $rule{'chain'} = uc $rule{'chain'} ; } };
+        /^input$|^forward$|^output$|^prerouting$|^postrouting$/ && do {
+            $rule{'chain'} = uc $rule{'chain'} ; } };
 
     # should we set a policy?
     if ( exists $rule{'policy'} ) {
@@ -498,9 +498,9 @@ sub tables {
                         s/^reject$/REJECT/g ;
                         s/^masq$/MASQUERADE/g ;
                         s/^redirect$/REDIRECT/g ;
-			s/^queue$/QUEUE/g ;
-			s/^mirror$/MIRROR/g ;
-			s/^return$/RETURN/g ; };
+                        s/^queue$/QUEUE/g ;
+                        s/^mirror$/MIRROR/g ;
+                        s/^return$/RETURN/g ; };
                     push @rules, $rrr . "-P $rule{'chain'} $rule{'policy'}\n";
                     $tables{$rule{'table'}.'_'.(lc $rule{'chain'})} |= 1 ; };
                 last; };
@@ -514,7 +514,7 @@ sub tables {
 
         # check for unknown jump target
         for ( $rule{'action'} ) {
-	    /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
+            /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
             if ( ! exists ($tables{$rule{'table'}.'_'.(lc $_)}) ) {
                 push @rules, $rrr . "-N $_\n";
                 $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
@@ -523,7 +523,7 @@ sub tables {
         if ( ! exists $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} ) {
             $tables{$rule{'table'} . '_' . lc $rule{'chain'}} = 0 };
         for ( $rule{'action'} ) {
-	    /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
+            /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
             if ( ! exists ($tables{$rule{'table'} . '_' . lc $_}) ) {
                 $tables{$rule{'table'} . '_' . lc $_} = 0 }; }; }
 
@@ -535,7 +535,7 @@ sub tables {
             $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2; };
         # check for unknown jump target
         for ( $rule{'action'} ) {
-	    /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
+            /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^masq$|^mirror$|^netlink$|^nop$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && last;
             if (($tables{$rule{'table'} . '_' . (lc $rule{'chain'})}&  2) != 2 ) {
                 push @rules, $rrr . "-F $rule{'chain'}\n";
                 $tables{$rule{'table'} . '_' . (lc $rule{'chain'})} |= 2;
@@ -565,9 +565,9 @@ sub tables {
         $rr .= "-p " . $rule{'proto'} . " "; };
 
     if (defined $rule{'module'} ) {
-	my @modules = split(/:/, $rule{'module'});
-	foreach ( @modules ) {
-	    $rr .= "-m " . $_ . " "; };};
+        my @modules = split(/:/, $rule{'module'});
+        foreach ( @modules ) {
+            $rr .= "-m " . $_ . " "; };};
 
     # address and port
     if (defined $rule{'saddr'} ) {
@@ -582,14 +582,14 @@ sub tables {
     if (defined $rule{'icmptype'} ) {
         $rr .= "--icmp-type " . $rule{'icmptype'} . " "; } ;
     if (defined $rule{'syn'} ) {
-	if ( $rule{'syn'} eq 'set' ) {
-	    $rr .= '--syn '  ; }
-	else {
-	    $rr .= '! --syn '; } ;
-	} ;
+        if ( $rule{'syn'} eq 'set' ) {
+            $rr .= '--syn '  ; }
+        else {
+            $rr .= '! --syn '; } ;
+        } ;
 
     if (defined $rule{'tos'} ) {
-	if ($option{'automod'} ) {
+        if ($option{'automod'} ) {
             $rr .= "-m tos "; };
         $rr .= "--tos ";
         for ( $rule{'tos'} ) {
@@ -602,47 +602,47 @@ sub tables {
         ; } ;
 
     if (defined $rule{'mark'} ) {
-	if ($option{'automod'} ) {
-	    $rr .= "-m mark "; };
+        if ($option{'automod'} ) {
+            $rr .= "-m mark "; };
         $rr .= "--mark " . $rule{'mark'} . " "; } ;
     if (defined $rule{'fragment'} ) {
         if ( $rule{'fragment'} eq 'set' ) {
             $rr .= '-f '  ; }
-        else {        
+        else {
             $rr .= '! -f '; } ;
-        } ;        
+        } ;
 
     # iptables extensions:
     if (defined $rule{'tcpflags'} ) {
-	$rr .= "--tcp-flags " . join(',',split(/:/,$rule{'flagsmask'})) . " "
-				. join(',',split(/:/,$rule{'flagsmatch'})) . " ";};
+        $rr .= "--tcp-flags " . join(',',split(/:/,$rule{'flagsmask'})) . " "
+                                . join(',',split(/:/,$rule{'flagsmatch'})) . " ";};
     if (defined $rule{'tcpoption'} ) {
         $rr .= "--tcp-option " . $rule{'tcpoption'} . " "; } ;
     if (defined $rule{'macsource'} ) {
-	if ( $option{'automod'} ) {
-	     $rr .= "-m mac "; } ;
+        if ( $option{'automod'} ) {
+             $rr .= "-m mac "; } ;
         $rr .= "--mac-source " . $rule{'macsource'} . " "; } ;
 
     if (( defined $rule{'limit'} || defined $rule{'limitburst'} )
-	    && ($option{'automod'})) {
-	$rr .= "-m limit "; } ;
+            && ($option{'automod'})) {
+        $rr .= "-m limit "; } ;
     if (defined $rule{'limit'} ) {
         $rr .= "--limit " . $rule{'limit'} . " "; } ;
     if (defined $rule{'limitburst'} ) {
         $rr .= "--limit-burst " . $rule{'limitburst'} . " "; } ;
 
     if (( defined $rule{'iplimitabove'} || defined $rule{'iplimitmask'} )
-	    && ($option{'automod'})) {
-	$rr .= "-m iplimit "; } ;
+            && ($option{'automod'})) {
+        $rr .= "-m iplimit "; } ;
     if (defined $rule{'iplimitabove'} ) {
         $rr .= "--iplimit-above " . $rule{'iplimitabove'} . " "; } ;
     if (defined $rule{'iplimitmask'} ) {
         $rr .= "--iplimit-mask " . $rule{'iplimitmask'} . " "; } ;
 
     if ((defined $rule{'uidowner'} || defined $rule{'gidowner'} ||
-	    defined $rule{'pidowner'} || defined $rule{'sidowner'} )
-	    && ($option{'automod'})) {
-	$rr .= "-m owner "; } ;
+            defined $rule{'pidowner'} || defined $rule{'sidowner'} )
+            && ($option{'automod'})) {
+        $rr .= "-m owner "; } ;
     if (defined $rule{'uidowner'} ) {
         $rr .= "--uid-owner " . $rule{'uidowner'} . " "; } ;
     if (defined $rule{'gidowner'} ) {
@@ -653,9 +653,9 @@ sub tables {
         $rr .= "--sid-owner " . $rule{'sidowner'} . " "; } ;
 
     if ((defined $rule{'psdweightthreshold'} || defined $rule{'psdhiportsweight'} ||
-	    defined $rule{'psdloportsweight'} || defined $rule{'psddelaythreshold'} )
-	    && ($option{'automod'})) {
-	$rr .= "-m psd "; } ; 
+            defined $rule{'psdloportsweight'} || defined $rule{'psddelaythreshold'} )
+            && ($option{'automod'})) {
+        $rr .= "-m psd "; } ;
     if (defined $rule{'psdweightthreshold'} ) {
         $rr .= "--psd-weight-threshold " . $rule{'psdweightthreshold'} . " "; } ;
     if (defined $rule{'psddelaythreshold'} ) {
@@ -666,19 +666,19 @@ sub tables {
         $rr .= "psd-hi-ports-weight " . $rule{'psdhiportsweight'} . " "; } ;
 
     if ((defined $rule{'length'}) && ($option{'automod'})) {
-	$rr .= "-m length "; } ;
+        $rr .= "-m length "; } ;
     if (defined $rule{'length'} ) {
         $rr .= "--length " . $rule{'length'} . " "; } ;
 
     if ((defined $rule{'average'}) && ($option{'automod'})) {
-	$rr .= "-m random "; } ;
+        $rr .= "-m random "; } ;
     if (defined $rule{'random'} ) {
         $rr .= "--average " . $rule{'average'} . " "; } ;
 
     if ((defined $rule{'every'} || defined $rule{'counter'} ||
-	    defined $rule{'start'} || defined $rule{'packet'} )
-	    && ($option{'automod'})) {
-	$rr .= "-m nth "; } ;    
+            defined $rule{'start'} || defined $rule{'packet'} )
+            && ($option{'automod'})) {
+        $rr .= "-m nth "; } ;
     if (defined $rule{'every'} ) {
         $rr .= "--every " . $rule{'every'} . " "; } ;
     if (defined $rule{'counter'} ) {
@@ -689,17 +689,17 @@ sub tables {
         $rr .= "--packet " . $rule{'packet'} . " "; } ;
 
     if ((defined $rule{'pkttype'}) && ($option{'automod'})) {
-	$rr .= "-m pkttype "; } ;
+        $rr .= "-m pkttype "; } ;
     if (defined $rule{'pkttype'} ) {
         $rr .= "--pkt-type " . $rule{'pkttype'} . " "; } ;
 
     if (defined $rule{'state'} ) {
-	if ($option{'automod'}) {
-	    $rr .= "-m state "; };
+        if ($option{'automod'}) {
+            $rr .= "-m state "; };
         $rr .= "--state " . join(',',split(/:/,$rule{'state'})) . " "; } ;
 
     if ((defined $rule{'ttleq'} || defined $rule{'ttllt'}
-		|| defined $rule{'ttlgt'} )
+                || defined $rule{'ttlgt'} )
             && ($option{'automod'})) {
         $rr .= "-m ttl "; } ;
     if (defined $rule{'ttl'} ) {
@@ -718,41 +718,41 @@ sub tables {
         $rr .= "--string " . $rule{'string'} . " "; } ;
 
     if ((defined $rule{'timestart'} || defined $rule{'timestop'}
-		|| defined $rule{'days'} )
+                || defined $rule{'days'} )
             && ($option{'automod'})) {
         $rr .= "-m time "; } ;
     if (defined $rule{'timestart'} ) {
-        $rr .= "--timestart " . $rule{'timestart'} . " "; } ;   
+        $rr .= "--timestart " . $rule{'timestart'} . " "; } ;
     if (defined $rule{'timestop'} ) {
-        $rr .= "--timestop " . $rule{'timestop'} . " "; } ;   
+        $rr .= "--timestop " . $rule{'timestop'} . " "; } ;
     if (defined $rule{'days'} ) {
-        $rr .= "--days " . $rule{'days'} . " "; } ;   
+        $rr .= "--days " . $rule{'days'} . " "; } ;
 
     unless ($rule{'action'} eq 'nop') {
         $rr .= "-j "; } ;
 
     if (defined $rule{'log'} ) {
-	push @rules, $rr . "LOG\n"; }
+        push @rules, $rr . "LOG\n"; }
 
     # special options come after "-j TARGET"
 
     for ( $rule{'action'} ) {
         /^masq$/ && do { $rr .= "MASQUERADE " ;  last; };
         /^nop$/ && last;
-	/^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^mirror$|^netlink$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && do { 
-	     $rr .= (uc $rule{'action'}) . " " ; last; };
+        /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^mirror$|^netlink$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && do {
+             $rr .= (uc $rule{'action'}) . " " ; last; };
         $rr .= $rule{'action'};
     };
 
     # check for '--to' and '--to-[ports|source|destination]'
     if (defined $rule{'to'}) {
-	$rr .= "--to " . $rule{'to'} . " "; };
+        $rr .= "--to " . $rule{'to'} . " "; };
     if (defined $rule{'toports'}) {
-	$rr .= "--to-ports " . $rule{'toports'} . " "; };
+        $rr .= "--to-ports " . $rule{'toports'} . " "; };
     if (defined $rule{'tosrc'}) {
-	$rr .= "--to-source " . $rule{'tosrc'} . " "; };
+        $rr .= "--to-source " . $rule{'tosrc'} . " "; };
     if (defined $rule{'todest'}) {
-	$rr .= "--to-destination " . $rule{'todest'} . " "; };
+        $rr .= "--to-destination " . $rule{'todest'} . " "; };
 
     if (defined $rule{'ttlset'} ) {
         $rr .= "--ttl-set " . $rule{'ttlset'} . " "; } ;
@@ -760,8 +760,8 @@ sub tables {
         $rr .= "--ttl-inc " . $rule{'ttlinc'} . " "; } ;
     if (defined $rule{'ttldec'} ) {
         $rr .= "--ttl-dec " . $rule{'ttldec'} . " "; } ;
- 
-    
+
+
     if (defined $rule{'settos'} ) {
         $rr .= "--set-tos ";
         for ( $rule{'settos'} ) {
@@ -773,7 +773,7 @@ sub tables {
             }
         ; } ;
     if (defined $rule{'setftos'} ) {
-	$rr .= "--set-ftos " . $rule{'setftos'} . " "; };
+        $rr .= "--set-ftos " . $rule{'setftos'} . " "; };
 
     if (defined $rule{'setmark'} ) {
         $rr .= "--set-mark " . $rule{'setmark'} . " "; };
@@ -844,19 +844,19 @@ sub fwadm {
     else { mydie("Ipfwadm allows only accept, masq, deny and reject targets!");};
 
     if ((defined $rule{'interface'}) && ($rule{'chain'} eq 'output')) {
-	$rr .= "\-W " . $rule{'interface'} . " " }
+        $rr .= "\-W " . $rule{'interface'} . " " }
     elsif (defined $rule{'interface'}) {
         $rr .= "\-V " . $rule{'interface'} . " " };
 
     if (defined $rule{'proto'} ) {
-	$rr .= "\-P " . $rule{'proto'} . " " };
+        $rr .= "\-P " . $rule{'proto'} . " " };
 
     if (defined $rule{'saddr'} || exists $rule{'sport'} ) {
         $rr .= "\-S ";
         if (defined $rule{'saddr'}) {
-	    $rr .= $rule{'saddr'} . " "; };
+            $rr .= $rule{'saddr'} . " "; };
         if (defined $rule{'sport'}) {
-	    $rr .= $rule{'sport'} . " "; }; };
+            $rr .= $rule{'sport'} . " "; }; };
 
     if (defined $rule{'daddr'} || defined $rule{'dport'} ) {
         $rr .= "\-D ";
@@ -866,13 +866,13 @@ sub fwadm {
             $rr .= $rule{'dport'} . " "; }; };
 
     if (defined $rule{'settos'} ) {
-	$rr .= "\-t e1 ";
+        $rr .= "\-t e1 ";
         for ( $rule{'settos'} ) {
             /mincost|min-cost|2/ && do { $rr .= "02 "};
             /reliability|reliable|4/ && do { $rr .= "04 "};
             /max-throughput|maxthroughput|8/ && do { $rr .= "08 "};
             /lowdelay|interactive|min-delay|10/ && do { $rr .= "10 "};
-	    /clear|^0$|^00$|^0x00$/ && do { $rr .= "00 "};
+            /clear|^0$|^00$|^0x00$/ && do { $rr .= "00 "};
             }
         ; } ;
 
@@ -886,31 +886,31 @@ sub fwadm {
 sub clearall {
     # flush and delete all chains...
     if ($option{'ipchains'}) {
-	flushall();
+        flushall();
         push @rules, "$option{'location'} \-X\n" }
     elsif ($option{'iptables'} ) {
-	flushall();
+        flushall();
         push @rules, "$option{'location'} \-X -t filter\n";
         push @rules, "$option{'location'} \-X -t nat\n";
         push @rules, "$option{'location'} \-X -t mangle\n"; }
     elsif ($option{'ipfwadm'} ) {
-	flushall();
-	# nothing to do here
-	};
+        flushall();
+        # nothing to do here
+        };
 }
 
 
 sub flushall {
     # flush all chains...
     if($option{'ipchains'}) {
-	push @rules, "$option{'location'} \-F\n" ;
-	$chains{'input'} |= 2;
-	$chains{'forward'} |= 2;
-	$chains{'output'} |= 2; }
+        push @rules, "$option{'location'} \-F\n" ;
+        $chains{'input'} |= 2;
+        $chains{'forward'} |= 2;
+        $chains{'output'} |= 2; }
     elsif ($option{'iptables'} ) {
-        push @rules, "$option{'location'} \-F -t filter\n" ; 
-	push @rules, "$option{'location'} \-F -t nat\n" ;
-	push @rules, "$option{'location'} \-F -t mangle\n" ;
+        push @rules, "$option{'location'} \-F -t filter\n" ;
+        push @rules, "$option{'location'} \-F -t nat\n" ;
+        push @rules, "$option{'location'} \-F -t mangle\n" ;
         $tables{'filter_input'} |= 2;
         $tables{'filter_forward'} |= 2;
         $tables{'filter_output'} |= 2;
@@ -920,8 +920,8 @@ sub flushall {
         $tables{'mangle_prerouting'} |= 2;
         $tables{'mangle_output'} |= 2; }
     elsif ($option{'ipfwadm'} ) {
-	push @rules, "$option{'location'} \-I \-f\n";
-	push @rules, "$option{'location'} \-F \-f\n";
+        push @rules, "$option{'location'} \-I \-f\n";
+        push @rules, "$option{'location'} \-F \-f\n";
         push @rules, "$option{'location'} \-O \-f\n"; };
 }
 
@@ -929,19 +929,19 @@ sub flushall {
 sub printrule {
     # debug: print whatever is in memory
     if ($debug) {
-	$db = "# Rule parsed   : ";
-	foreach $key ( keys %rule) {
-	    $db .= $key . "=" . $rule{$key} . " ";
-	};
-	push @rules, $db . "\n";
+        $db = "# Rule parsed   : ";
+        foreach $key ( keys %rule) {
+            $db .= $key . "=" . $rule{$key} . " ";
+        };
+        push @rules, $db . "\n";
     };
 
     # prints all rules in a hash
     if ( $option{'ipchains'} ) { chains () ; }
     elsif ( $option{'iptables'} ) { tables () ; }
     elsif ( $option{'ipfwadm'} ) { fwadm () ; }
-    else { 
-	mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter'); } ;
+    else {
+        mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter'); } ;
 }
 
 
@@ -949,19 +949,19 @@ sub mkrules {
     # compile the list hashes into rules
     local @fr;
     local $negated = 0;
-    
-    # pack the data in a handy format (list-of-hashes with one kw 
+
+    # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
     if ($debug) {
-	$db = "# Rule unparsed :  ";
+        $db = "# Rule unparsed :  ";
     };
 
     for ($i = 0; $i <= $#fw; $i++) {
-    	foreach ( keys %{$fw[$i]} ) {
-	    if ($debug) {
-		$db .= "$_" . "[$i]=" . $fw[$i]{$_} . " ";
-	    };
-	    push @fr, { $_ => $fw[$i]{$_} }; } }
+            foreach ( keys %{$fw[$i]} ) {
+            if ($debug) {
+                $db .= "$_" . "[$i]=" . $fw[$i]{$_} . " ";
+            };
+            push @fr, { $_ => $fw[$i]{$_} }; } }
 
     if ($debug) {
         push @rules, "$db\n ";
@@ -969,34 +969,34 @@ sub mkrules {
 
     $cc = -1;
     sub dofr {
-	$cc++;
-	if ($cc > $#fr) {
-	    # we are done: put it on output and exit
-	    printrule(); } 
-	else {
-	    # loop over all keys in this level (only 1)
-	    foreach $key ( keys %{$fr[$cc]} ) {
-		# recurse for every value
-		foreach $value ( split ("," , $fr[$cc]{$key})) {
-		    # preparse value stuff: is unsplit value negated???
-		    for ( $fr[$cc]{$key} ) {
-			/^\x21/ && do { $negated = 1; } || do { $negated = 0; };
-		    }
-		    # if so, make sure the '!' is put before every value in it
-		    if ( $negated ) {
-			for ($value) {
-			    !/^\x21/ && do { $value = "\x21" . $value; }
-			}
-		    }
-		    $value =~ s/^!/! /;
-		    # set this one and recurse
-		    $rule{$key} = $value;
-		    dofr();
-		}
-		delete $rule{$key};
-	    }
-	}
-	$cc--;
+        $cc++;
+        if ($cc > $#fr) {
+            # we are done: put it on output and exit
+            printrule(); }
+        else {
+            # loop over all keys in this level (only 1)
+            foreach $key ( keys %{$fr[$cc]} ) {
+                # recurse for every value
+                foreach $value ( split ("," , $fr[$cc]{$key})) {
+                    # preparse value stuff: is unsplit value negated???
+                    for ( $fr[$cc]{$key} ) {
+                        /^\x21/ && do { $negated = 1; } || do { $negated = 0; };
+                    }
+                    # if so, make sure the '!' is put before every value in it
+                    if ( $negated ) {
+                        for ($value) {
+                            !/^\x21/ && do { $value = "\x21" . $value; }
+                        }
+                    }
+                    $value =~ s/^!/! /;
+                    # set this one and recurse
+                    $rule{$key} = $value;
+                    dofr();
+                }
+                delete $rule{$key};
+            }
+        }
+        $cc--;
     }
     dofr();
     undef @fr;
@@ -1011,30 +1011,30 @@ sub enter {
     $lev++;
 
     if ($debug) {
-	push @rules, "# entered level $lev\n";
+        push @rules, "# entered level $lev\n";
     };
-    
+
 
     # read keywords 1 by 1 and dump into parser
-    do 
+    do
     { LOOP: {
-	$keyword = getvar();
+        $keyword = getvar();
         $verbose && print ".";
         # the core: parse all data
         SWITCH: for ($keyword)
         {
             # routing base parameters
             /^chain$/ && do {
-		$fw[$lev]{'chain'}=getvalues(); 
+                $fw[$lev]{'chain'}=getvalues();
                 ; next; } ;
-	    /^interface$|if$/ && do {
+            /^interface$|if$/ && do {
                 $fw[$lev]{'interface'}=getvalues();
-		; next; } ;
-	    /^outerface$|^out-interface$|^of$/ && do {
+                ; next; } ;
+            /^outerface$|^out-interface$|^of$/ && do {
                 $fw[$lev]{'outerface'}=getvalues();
                 ; next; } ;
             /^protocol$|^proto$/ && do {
-		$fw[$lev]{'proto'}=getvalues();
+                $fw[$lev]{'proto'}=getvalues();
                 ; next; } ;
             /^sport$/ && do {
                 $fw[$lev]{'sport'}=getvalues();
@@ -1042,127 +1042,127 @@ sub enter {
             /^dport$/ && do {
                 $fw[$lev]{'dport'}=getvalues();
                 ; next; };
-	    /^port$/ && do {
-		if ($side eq 'source' ) {
-		    $fw[$lev]{'sport'}=getvalues() }
-	        elsif ($side eq 'destination' ) {
-		    $fw[$lev]{'dport'}=getvalues() }
-		else {
-		    error("source/destination not declared, exiting");
-		    }
-		; next; } ;
+            /^port$/ && do {
+                if ($side eq 'source' ) {
+                    $fw[$lev]{'sport'}=getvalues() }
+                elsif ($side eq 'destination' ) {
+                    $fw[$lev]{'dport'}=getvalues() }
+                else {
+                    error("source/destination not declared, exiting");
+                    }
+                ; next; } ;
             /^icmptype$|^icmp-type$/ && do {
                 $fw[$lev]{'icmptype'}=getvalues();
                 ; next; } ;
-	    /^saddr$/ && do {
+            /^saddr$/ && do {
                 $fw[$lev]{'saddr'}=getvalues();
                 ; next; };
-	    /^daddr$/ && do {
+            /^daddr$/ && do {
                 $fw[$lev]{'daddr'}=getvalues();
                 ; next; };
-	    /^addr$/ && do {
+            /^addr$/ && do {
                 if ($side eq 'source' ) {
                     $fw[$lev]{'saddr'}=getvalues() }
                 elsif ($side eq 'destination' ) {
                     $fw[$lev]{'daddr'}=getvalues() }
                 else {
-		    error("source/destination not declared, exiting") };
+                    error("source/destination not declared, exiting") };
                 ; next; } ;
 
-	    # extended parameters:
-	    /^settos$/ && do {
+            # extended parameters:
+            /^settos$/ && do {
                 $fw[$lev]{'settos'}=getvar();
                 ; next; };
-	    /^tos$/ && do {
+            /^tos$/ && do {
                 $fw[$lev]{'tos'}=getvar();
                 ; next; };
-	    /^setftos$|^set-ftos$/ && do {
-		$fw[$lev]{'setftos'}=getvar();
+            /^setftos$|^set-ftos$/ && do {
+                $fw[$lev]{'setftos'}=getvar();
                 ; next; };
             /^mark$/ && do {
                 $fw[$lev]{'mark'}=getvar();
                 ; next; };
-	    /^set-mark$|^setmark$/ && do {
+            /^set-mark$|^setmark$/ && do {
                 $fw[$lev]{'setmark'}=getvar();
                 ; next; };
-	    /^tcp-flags$|^tcpflags$|^flags$/ && do {
-		$fw[$lev]{'tcpflags'}='1';
-		$fw[$lev]{'flagsmask'}=join(':',split(/\x2c/,getvalues()));
-		$fw[$lev]{'flagsmatch'}=join(':',split(/\x2c/,getvalues()));
-		; next; };
-	    /^tcp-option$|^tcpoption$/ && do {
+            /^tcp-flags$|^tcpflags$|^flags$/ && do {
+                $fw[$lev]{'tcpflags'}='1';
+                $fw[$lev]{'flagsmask'}=join(':',split(/\x2c/,getvalues()));
+                $fw[$lev]{'flagsmatch'}=join(':',split(/\x2c/,getvalues()));
+                ; next; };
+            /^tcp-option$|^tcpoption$/ && do {
                 $fw[$lev]{'tcpoption'}=getvalues();
                 ; next; };
-	    /^mac$|^mac-source$|^macsource$/ && do {
+            /^mac$|^mac-source$|^macsource$/ && do {
                 $fw[$lev]{'macsource'}=getvalues();
                 ; next; };
-	    /^limit$/ && do {
+            /^limit$/ && do {
                 $fw[$lev]{'limit'}=getvar();
                 ; next; };
-	    /^iplimitabove$|^ip-limit-above$/ && do {
+            /^iplimitabove$|^ip-limit-above$/ && do {
                 $fw[$lev]{'iplimitabove'}=getvar();
-		; next; };
-	    /^iplimitmask$|^ip-limit-mask$/ && do {
+                ; next; };
+            /^iplimitmask$|^ip-limit-mask$/ && do {
                 $fw[$lev]{'iplimitmask'}=getvar();
                 ; next; };
-	    /^burst$|^limit-burst$|^limitburst$/ && do {
+            /^burst$|^limit-burst$|^limitburst$/ && do {
                 $fw[$lev]{'limitburst'}=getvar();
                 ; next; };
-	    /^uid-owner$|^uidowner$|^uid$/ && do {
+            /^uid-owner$|^uidowner$|^uid$/ && do {
                 $fw[$lev]{'uidowner'}=getvalues();
                 ; next; };
-	    /^gid-owner$|^gidowner$|^gid$/ && do {
+            /^gid-owner$|^gidowner$|^gid$/ && do {
                 $fw[$lev]{'gidowner'}=getvalues();
                 ; next; };
-	    /^pid-owner$|^pidowner$|^pid$/ && do {
+            /^pid-owner$|^pidowner$|^pid$/ && do {
                 $fw[$lev]{'pidowner'}=getvalues();
                 ; next; };
-	    /^sid-owner$|^sidowner$|^sid$/ && do {
+            /^sid-owner$|^sidowner$|^sid$/ && do {
                 $fw[$lev]{'sidowner'}=getvalues();
                 ; next; };
-	    /^psdweightthreshold$|^psd-weight-threshold$/ && do {
+            /^psdweightthreshold$|^psd-weight-threshold$/ && do {
                 $fw[$lev]{'psdweightthreshold'}=getvar();
                 ; next; };
-	    /^psddelaythreshold$|^psd-delay-threshold$/ && do {
+            /^psddelaythreshold$|^psd-delay-threshold$/ && do {
                 $fw[$lev]{'psddelaythreshold'}=getvar();
                 ; next; };
-	    /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
+            /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
                 $fw[$lev]{'psdloportsweight'}=getvar();
                 ; next; };
-	    /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
+            /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
                 $fw[$lev]{'psdhiportsweight'}=getvar();
                 ; next; };
-	    /^length$/ && do {
-		$fw[$lev]{'length'}=getvar();
-		; next; };
-	    /^state$/ && do {
+            /^length$/ && do {
+                $fw[$lev]{'length'}=getvar();
+                ; next; };
+            /^state$/ && do {
                 $fw[$lev]{'state'}=join(':',split(/\x2c/,getvalues()));
                 ; next; };
-	    /^log-level$|^loglev$/ && do {
+            /^log-level$|^loglev$/ && do {
                 $fw[$lev]{'loglevel'}=getvar();
                 ; next; };
-	    /^log-prefix$|^logprefix$/ && do {
+            /^log-prefix$|^logprefix$/ && do {
                 $fw[$lev]{'logprefix'}=getvar();
                 ; next; };
-	    /^log-tcp-sequence$|^logseq$/ && do {
+            /^log-tcp-sequence$|^logseq$/ && do {
                 $fw[$lev]{'logsequence'}='1';
                 ; next; };
-	    /^log-tcp-options$|^logtcpopt$/ && do {
+            /^log-tcp-options$|^logtcpopt$/ && do {
                 $fw[$lev]{'logtcpoptions'}='1';
                 ; next; };
-	    /^log-ip-options$|^logipopt$/ && do {
+            /^log-ip-options$|^logipopt$/ && do {
                 $fw[$lev]{'logipoptions'}='1';
                 ; next; };
-	    /^module$|^mod$|^match$/ && do {
+            /^module$|^mod$|^match$/ && do {
                 $fw[$lev]{'module'}=join(':',split(/\x2c/,getvalues()));
                 ; next; };
-	    /^table$/ && do {
+            /^table$/ && do {
                 $fw[$lev]{'table'}=getvalues();
                 ; next; };
-	    /^reject-with$|^rejectwith$/ && do {
+            /^reject-with$|^rejectwith$/ && do {
                 $fw[$lev]{'rejectwith'}=getvar();
                 ; next; };
-	    /^ttl$/ && do {
+            /^ttl$/ && do {
                 $fw[$lev]{'ttl'}=getvar();
                 ; next; };
             /^ttl-set$|^ttlset$/ && do {
@@ -1174,38 +1174,38 @@ sub enter {
             /^ttl-dec$|^ttldec$/ && do {
                 $fw[$lev]{'ttldec'}=getvar();
                 ; next; };
-	    /^ttl-eq$|^ttleq$/ && do {
+            /^ttl-eq$|^ttleq$/ && do {
                 $fw[$lev]{'ttleq'}=getvar();
                 ; next; };
-	    /^ttl-lt$|^ttllt$/ && do {
+            /^ttl-lt$|^ttllt$/ && do {
                 $fw[$lev]{'ttllt'}=getvar();
                 ; next; };
-	    /^ttl-gt$|^ttlgt$/ && do {
+            /^ttl-gt$|^ttlgt$/ && do {
                 $fw[$lev]{'ttlgt'}=getvar();
                 ; next; };
-	    /^every$|^counter$|^start$|^packet$/ && do {
+            /^every$|^counter$|^start$|^packet$/ && do {
                 $fw[$lev]{$keyword}=getvar();
                 ; next; };
-	    /^average$/ && do {
+            /^average$/ && do {
                 $fw[$lev]{'average'}=getvar();
                 ; next; };
-	    /^pkttype$|^pkt-type$/ && do {
+            /^pkttype$|^pkt-type$/ && do {
                 $fw[$lev]{'pkttype'}=getvalues();
                 ; next; };
-	    /^string$/ && do {
+            /^string$/ && do {
                 $fw[$lev]{'string'}=getvalues();
                 ; next; };
-	    /^timestart$|^timestop$|^days$/ && do {
+            /^timestart$|^timestop$|^days$/ && do {
                 $fw[$lev]{$keyword}=getvar();
                 ; next; };
-	    /^nldrop$/ && do {
-		$fw[$lev]{'nldrop'}=1;
-		; next; };
-	    /^nlmark$|^nlsize$/ && do {
-		$fw[$lev]{$keyword}=getvar();
-		; next; };
+            /^nldrop$/ && do {
+                $fw[$lev]{'nldrop'}=1;
+                ; next; };
+            /^nlmark$|^nlsize$/ && do {
+                $fw[$lev]{$keyword}=getvar();
+                ; next; };
 
-	    # miscelleanous switches
+            # miscelleanous switches
             /^reverse$|^bidirectional$|^swap$/ && do {
                 $fw[$lev]{'reverse'}='1';
                 ; next; };
@@ -1213,120 +1213,120 @@ sub enter {
                 # turn the logging switch on
                 $fw[$lev]{'log'}='set';
                 ; next; } ;
-	    /^syn$/ && do {
+            /^syn$/ && do {
                 # match tcp packages with syn-byte set
-		if ($words[$c-2] eq "\x21" ) {
-		    $fw[$lev]{'syn'}='unset'}
-		else {
-		    $fw[$lev]{'syn'}='set';}
-		; next; } ;
-	    /^fragment$|^frag$/ && do {
+                if ($words[$c-2] eq "\x21" ) {
+                    $fw[$lev]{'syn'}='unset'}
+                else {
+                    $fw[$lev]{'syn'}='set';}
+                ; next; } ;
+            /^fragment$|^frag$/ && do {
                 if ($words[$c-2] eq "\x21" ) {
                     $fw[$lev]{'fragment'}='unset'}
                 else {
                     $fw[$lev]{'fragment'}='set';}
                 ; next; } ;
-	    /^source$|^src$/ && do {
-		$side='source';
-		; next; } ;
-	    /^destination$|^dest$/&& do {
+            /^source$|^src$/ && do {
+                $side='source';
+                ; next; } ;
+            /^destination$|^dest$/&& do {
                 $side='destination';
                 ; next; } ;
-	    /^to$/ && do {
-		$fw[$lev]{'to'}=getvar();
-		; next; };
-	    /^toports$|^to-ports$/ && do {
-		$fw[$lev]{'toports'}=getvar();
-		; next; };
-	    /^tosrc$|^to-source$/ && do {
-		$fw[$lev]{'tosrc'}=getvar();
-		; next; };
-	    /^todest$|^to-destination$/ && do {
-		$fw[$lev]{'todest'}=getvar();
-		; next; };
-	    /^ulog-nlgroup$/ && do {
-	        $fw[$lev]{'ulog-nlgroup'}=getvar();
-		; next; };
-	    /^ulog-prefix$/ && do {
-	        $fw[$lev]{'ulog-prefix'}=getvar();
-		; next; };
-	    /^ulog-cprange$/ && do {
-	        $fw[$lev]{'ulog-cprange'}=getvar();
-		; next; };
-	    /^ulog-qthreshold$/ && do {
-	        $fw[$lev]{'ulog-qthreshold'}=getvar();
-		; next; };
-	    /^clamp-mss-to-pmtu$/ && do {
-	        $fw[$lev]{'clamp-mss-to-pmtu'}='set';
-		; next; };
-	    /^set-mss$/ && do {
-	        $fw[$lev]{'set-mss'}=getvar();
-		; next; };
+            /^to$/ && do {
+                $fw[$lev]{'to'}=getvar();
+                ; next; };
+            /^toports$|^to-ports$/ && do {
+                $fw[$lev]{'toports'}=getvar();
+                ; next; };
+            /^tosrc$|^to-source$/ && do {
+                $fw[$lev]{'tosrc'}=getvar();
+                ; next; };
+            /^todest$|^to-destination$/ && do {
+                $fw[$lev]{'todest'}=getvar();
+                ; next; };
+            /^ulog-nlgroup$/ && do {
+                $fw[$lev]{'ulog-nlgroup'}=getvar();
+                ; next; };
+            /^ulog-prefix$/ && do {
+                $fw[$lev]{'ulog-prefix'}=getvar();
+                ; next; };
+            /^ulog-cprange$/ && do {
+                $fw[$lev]{'ulog-cprange'}=getvar();
+                ; next; };
+            /^ulog-qthreshold$/ && do {
+                $fw[$lev]{'ulog-qthreshold'}=getvar();
+                ; next; };
+            /^clamp-mss-to-pmtu$/ && do {
+                $fw[$lev]{'clamp-mss-to-pmtu'}='set';
+                ; next; };
+            /^set-mss$/ && do {
+                $fw[$lev]{'set-mss'}=getvar();
+                ; next; };
 
             # jump action
             /^goto$|^jump$/ && do {
-		$fw[$lev]{'action'}=getvar();
+                $fw[$lev]{'action'}=getvar();
                 ; next; };
 
-	    # policy keywords
+            # policy keywords
             /^policy$/ && do {
-		$fw[$lev]{'policy'}=getvar();
-		for ( $fw[$lev]{'policy'} ) {
-		    /^ACCEPT$|^accept$|^REJECT$|^reject$|^QUEUE$|^queue$|^RETURN$|^return$|^MIRROR$|^mirror$/ && do {
-			$fw[$lev]{'policy'}= lc $fw[$lev]{'policy'} ; next ; } ;
+                $fw[$lev]{'policy'}=getvar();
+                for ( $fw[$lev]{'policy'} ) {
+                    /^ACCEPT$|^accept$|^REJECT$|^reject$|^QUEUE$|^queue$|^RETURN$|^return$|^MIRROR$|^mirror$/ && do {
+                        $fw[$lev]{'policy'}= lc $fw[$lev]{'policy'} ; next ; } ;
                     /^DROP$|^drop$|^DENY$|^deny$/ && do {
                         $fw[$lev]{'policy'}='drop'; next ; } ;
-		} ; next; };
+                } ; next; };
 
             # action keywords
-	    /^ACCEPT$|^accept$|^BALANCE$|^balance$|^FTOS$|^ftos$|^LOG$|^MARK$|^MIRROR$|^mirror$|^NETLINK$|^netlink$|^NOP$|^nop$|^QUEUE$|^queue$|^REJECT$|^reject$|^RETURN$|^return$|^TCPMSS$|^tcpmss$|^TOS$|^TTL$|^ttl$|^ULOG$|^ulog$/ && do {
-		$fw[$lev]{'action'}= lc $keyword ; next ; };
-	    /^MASQ$|^masq$/ && do {
+            /^ACCEPT$|^accept$|^BALANCE$|^balance$|^FTOS$|^ftos$|^LOG$|^MARK$|^MIRROR$|^mirror$|^NETLINK$|^netlink$|^NOP$|^nop$|^QUEUE$|^queue$|^REJECT$|^reject$|^RETURN$|^return$|^TCPMSS$|^tcpmss$|^TOS$|^TTL$|^ttl$|^ULOG$|^ulog$/ && do {
+                $fw[$lev]{'action'}= lc $keyword ; next ; };
+            /^MASQ$|^masq$/ && do {
                 $fw[$lev]{'action'}='masq';
-		; next; };
-	    /^DROP$|^drop$|^DENY$|^deny$/ && do {
-		$fw[$lev]{'action'}='drop';
-		; next; };
-	    /^PROXY$|^proxy$|^REDIRECT$|^redirect$/ && do {
+                ; next; };
+            /^DROP$|^drop$|^DENY$|^deny$/ && do {
+                $fw[$lev]{'action'}='drop';
+                ; next; };
+            /^PROXY$|^proxy$|^REDIRECT$|^redirect$/ && do {
                 $fw[$lev]{'action'}='redirect';
                 ; next; };
-	    /^DNAT$|^dnat$|^SNAT$|^snat$/ && do {
+            /^DNAT$|^dnat$|^SNAT$|^snat$/ && do {
                 $fw[$lev]{'action'} = lc $keyword;
-		; next; };
+                ; next; };
 
             # configuration options
-	    /^option$/ && do {
-		$option{$words[$c++]} = '1';
-		# some options require immediate attention:
-		for ( $words[$c-1] ) {
-		    /^clearall$/ && do { clearall(); };
-		    /^flushall$/ && do { flushall(); };
-		    }; next; };
+            /^option$/ && do {
+                $option{$words[$c++]} = '1';
+                # some options require immediate attention:
+                for ( $words[$c-1] ) {
+                    /^clearall$/ && do { clearall(); };
+                    /^flushall$/ && do { flushall(); };
+                    }; next; };
 
-	    # variable handling
-	    /^set$/ && do {
-		setvar(getvar(), getvalues());
-		next; };
-    
+            # variable handling
+            /^set$/ && do {
+                setvar(getvar(), getvalues());
+                next; };
+
             # effectuation operator
             /(\x3b)/ && do {
-	        # check for action (required)
-		local $ac_def=0;
+                # check for action (required)
+                local $ac_def=0;
                 for $i ( 0 .. $#fw ) {
                     if ( exists $fw[$i]{'action'} ) { $ac_def='1' };
-		    if ( exists $fw[$i]{'policy'} ) { $ac_def='1' };
-	        }
-		# check for chain (required)
-		local $ch_def=0;
+                    if ( exists $fw[$i]{'policy'} ) { $ac_def='1' };
+                }
+                # check for chain (required)
+                local $ch_def=0;
                 for $i ( 0 .. $#fw ) {
                     if ( exists $fw[$i]{'chain'} ) { $ch_def='1' };
                 }
-	        if ( ($ac_def == 0 ) || ($ch_def == 0) ) {
-		    error("no action, policy or chain defined, exiting") };
+                if ( ($ac_def == 0 ) || ($ch_def == 0) ) {
+                    error("no action, policy or chain defined, exiting") };
 
                 # clear any policy-related stuff in this level
-                if ( exists $fw[$#fw]{'policy'} || 
-			exists $fw[$#fw-1]{'policy'} ) {
+                if ( exists $fw[$#fw]{'policy'} ||
+                        exists $fw[$#fw-1]{'policy'} ) {
                     $chains{'input'} &= 2;
                     $chains{'forward'} &= 2;
                     $chains{'output'} &= 2;
@@ -1340,25 +1340,25 @@ sub enter {
                     $tables{'mangle_output'} &= 2;
                 }
 
-		mkrules();
-	
-	        # and clean up variables set in this level
+                mkrules();
+
+                # and clean up variables set in this level
                 undef $fw[$lev];
                 ; next ; } ;
-	    
+
             # recursing operators
             /\x7b/ && do {
                 enter();
                 ; next SWITCH; };
             /\x7d/ && do {
-		# consistency check: check if they hanven't
-		# forgotten the ';' before the last statement
-		if (( $words[$c-2] ne "\x7d" ) && ( $words[$c-2] ne "\x3b" )) {
-		     error("Missing semicolon before closing section, exiting");
-		};
-		# clear any policy-related stuff in this level
-    		if ( exists $fw[$#fw]{'policy'} ||
-			exists $fw[$#fw-1]{'policy'} ) {
+                # consistency check: check if they hanven't
+                # forgotten the ';' before the last statement
+                if (( $words[$c-2] ne "\x7d" ) && ( $words[$c-2] ne "\x3b" )) {
+                     error("Missing semicolon before closing section, exiting");
+                };
+                # clear any policy-related stuff in this level
+                    if ( exists $fw[$#fw]{'policy'} ||
+                        exists $fw[$#fw-1]{'policy'} ) {
                     $chains{'input'} &= 2;
                     $chains{'forward'} &= 2;
                     $chains{'output'} &= 2;
@@ -1375,22 +1375,22 @@ sub enter {
                 # and clean up variables set in this level
                 undef $fw[$lev--];
                 $#fw--;
-		# clean the previous level as well, as otherwise
-		# defines would survive for a very long time!
-		undef $fw[$lev];
-		# and exit
-		if ($debug) {
-		    push @rules, "# leaving level $lev\n";
-		};
+                # clean the previous level as well, as otherwise
+                # defines would survive for a very long time!
+                undef $fw[$lev];
+                # and exit
+                if ($debug) {
+                    push @rules, "# leaving level $lev\n";
+                };
 
                 last LOOP; };
 
-	    /\x21/ && do {
-		# don't check anything for now...
-		; next ; } ;
+            /\x21/ && do {
+                # don't check anything for now...
+                ; next ; } ;
 
             # default
-	    error("Unrecognized keyword: $keyword, exiting");
+            error("Unrecognized keyword: $keyword, exiting");
         }
     }} while ($c <= $#words);
 };
