@@ -786,17 +786,6 @@ sub tables {
             $rr .= '! --syn '; } ;
         } ;
 
-    if (defined $rule{'tos'} ) {
-        $rr .= "--tos ";
-        for ( $rule{'tos'} ) {
-            /mincost|min-cost|2/ && do { $rr .= "0x02 "};
-            /reliability|reliable|4/ && do { $rr .= "0x04 "};
-            /max-throughput|maxthroughput|8/ && do { $rr .= "0x08 "};
-            /lowdelay|interactive|min-delay|10/ && do { $rr .= "0x10 "};
-            /clear|^0$|^00$|^0x00$/ && do { $rr .= "0x00 "};
-            }
-        ; } ;
-
     if (defined $rule{'mark'} ) {
         $rr .= "--mark " . $rule{'mark'} . " "; } ;
     if (defined $rule{'fragment'} ) {
@@ -812,76 +801,9 @@ sub tables {
                                 . join(',',split(/:/,$rule{'flagsmatch'})) . " ";};
     if (defined $rule{'tcpoption'} ) {
         $rr .= "--tcp-option " . $rule{'tcpoption'} . " "; } ;
-    if (defined $rule{'macsource'} ) {
-        $rr .= "--mac-source " . $rule{'macsource'} . " "; } ;
-
-    if (defined $rule{'limit'} ) {
-        $rr .= "--limit " . $rule{'limit'} . " "; } ;
-    if (defined $rule{'limitburst'} ) {
-        $rr .= "--limit-burst " . $rule{'limitburst'} . " "; } ;
-
-    if (defined $rule{'iplimitabove'} ) {
-        $rr .= "--iplimit-above " . $rule{'iplimitabove'} . " "; } ;
-    if (defined $rule{'iplimitmask'} ) {
-        $rr .= "--iplimit-mask " . $rule{'iplimitmask'} . " "; } ;
-
-    if (defined $rule{'uidowner'} ) {
-        $rr .= "--uid-owner " . $rule{'uidowner'} . " "; } ;
-    if (defined $rule{'gidowner'} ) {
-        $rr .= "--gid-owner " . $rule{'gidowner'} . " "; } ;
-    if (defined $rule{'pidowner'} ) {
-        $rr .= "--pid-owner " . $rule{'pidowner'} . " "; } ;
-    if (defined $rule{'sidowner'} ) {
-        $rr .= "--sid-owner " . $rule{'sidowner'} . " "; } ;
-
-    if (defined $rule{'psdweightthreshold'} ) {
-        $rr .= "--psd-weight-threshold " . $rule{'psdweightthreshold'} . " "; } ;
-    if (defined $rule{'psddelaythreshold'} ) {
-        $rr .= "--psd-delay-threshold " . $rule{'psddelaythreshold'} . " "; } ;
-    if (defined $rule{'psdloportsweight'} ) {
-        $rr .= "--psd-lo-ports-weight " . $rule{'psdloportsweight'} . " "; } ;
-    if (defined $rule{'psdhiportsweight'} ) {
-        $rr .= "psd-hi-ports-weight " . $rule{'psdhiportsweight'} . " "; } ;
-
-    if (defined $rule{'length'} ) {
-        $rr .= "--length " . $rule{'length'} . " "; } ;
-
-    if (defined $rule{'random'} ) {
-        $rr .= "--average " . $rule{'average'} . " "; } ;
-
-    if (defined $rule{'every'} ) {
-        $rr .= "--every " . $rule{'every'} . " "; } ;
-    if (defined $rule{'counter'} ) {
-        $rr .= "--counter " . $rule{'counter'} . " "; } ;
-    if (defined $rule{'start'} ) {
-        $rr .= "--start " . $rule{'start'} . " "; } ;
-    if (defined $rule{'packet'} ) {
-        $rr .= "--packet " . $rule{'packet'} . " "; } ;
-
-    if (defined $rule{'pkttype'} ) {
-        $rr .= "--pkt-type " . $rule{'pkttype'} . " "; } ;
-
-    if (defined $rule{'state'} ) {
-        $rr .= "--state " . join(',',split(/:/,$rule{'state'})) . " "; } ;
-
-    if (defined $rule{'ttl'} ) {
-        $rr .= "--ttl " . $rule{'ttl'} . " "; } ;
-   if (defined $rule{'ttleq'} ) {
-        $rr .= "--ttl-eq " . $rule{'ttleq'} . " "; } ;
-    if (defined $rule{'ttllt'} ) {
-        $rr .= "--ttl-lt " . $rule{'ttllt'} . " "; } ;
-    if (defined $rule{'ttlgt'} ) {
-        $rr .= "--ttl-gt " . $rule{'ttlgt'} . " "; } ;
 
     if (defined $rule{'string'} ) {
         $rr .= "--string " . $rule{'string'} . " "; } ;
-
-    if (defined $rule{'timestart'} ) {
-        $rr .= "--timestart " . $rule{'timestart'} . " "; } ;
-    if (defined $rule{'timestop'} ) {
-        $rr .= "--timestop " . $rule{'timestop'} . " "; } ;
-    if (defined $rule{'days'} ) {
-        $rr .= "--days " . $rule{'days'} . " "; } ;
 
     unless ($rule{'action'} eq 'nop') {
         $rr .= "-j "; } ;
@@ -930,9 +852,6 @@ sub tables {
     if (defined $rule{'setftos'} ) {
         $rr .= "--set-ftos " . $rule{'setftos'} . " "; };
 
-    if (defined $rule{'setmark'} ) {
-        $rr .= "--set-mark " . $rule{'setmark'} . " "; };
-
     if (defined $rule{'loglevel'} ) {
         $rr .= "--log-level " . $rule{'loglevel'} . " "; };
     if (defined $rule{'logprefix'} ) {
@@ -978,9 +897,72 @@ sub tables {
     $rr .= "--ahspi $rule{ahspi} "
       if exists $rule{ahspi};
 
+    # ipt_conntrack parameters
+    foreach (qw(ctstate ctproto ctorigsrc ctorigdst),
+             qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
+        $rr .= "--$_ $rule{$_} "
+          if exists $rule{$_};
+    }
+
+    # ipt_iplimit parameters
+    $rr .= "--iplimit-above $rule{iplimitabove} "
+      if exists $rule{iplimitabove};
+
+    $rr .= "--iplimit-mask $rule{iplimitmask} "
+      if exists $rule{iplimitmask};
+
+    # ipt_length parameters
+    $rr .= "--length $rule{length} "
+      if exists $rule{length};
+
+    # ipt_limit parameters
+    $rr .= "--limit $rule{limit} "
+      if exists $rule{limit};
+
+    $rr .= "--limit-burst $rule{limitburst} "
+      if exists $rule{limitburst};
+
+    # ipt_mac parameters
+    $rr .= "--mac-source $rule{macsource} "
+      if exists $rule{macsource};
+
+    # ipt_mark parameters
+    $rr .= "--set-mark $rule{setmark} "
+      if exists $rule{setmark};
+
+    # ipt_nth parameters
+    foreach (qw(every counter start packet)) {
+        $rr .= "--$_ $rule{$_} "
+          if exists $rule{$_};
+    }
+
+    # ipt_owner parameters
+    foreach (qw(uid gid pid sid)) {
+        $rr .= "--${_}-owner $rule{${_} . 'owner'} "
+          if exists $rule{${_} . 'owner'};
+    }
+
+    # ipt_pkttype switches
+    $rr .= "--pkt-type $rule{pkttype} "
+      if exists $rule{pkttype};
+
+    # ipt_psd switches
+    $rr .= "--psd-weight-threshold $rule{psdweightthreshold} "
+      if exists $rule{psdweightthreshold};
+    $rr .= "--psd-delay-threshold $rule{psddelaythreshold} "
+      if exists $rule{psddelaythreshold};
+    $rr .= "--psd-lo-ports-weight $rule{psdloportsweight} "
+      if exists $rule{psdloportsweight};
+    $rr .= "--psd-hi-ports-weight $rule{psdhiportsweight} "
+      if exists $rule{psdhiportsweight};
+
+    # ipt_random parameters
+    $rr .= "--average $rule{average} "
+      if exists $rule{average};
+
     # ipt_recent parameters
     foreach (qw(name seconds hitcount)) {
-        $rr .= "--$_ " . $rule{$_} . " "
+        $rr .= "--$_ $rule{$_} "
           if exists $rule{$_};
     }
     foreach (qw(set rcheck update remove rttl)) {
@@ -988,13 +970,38 @@ sub tables {
           if exists $rule{$_};
     }
 
-    # ipt_conntrack parameters
-    foreach (qw(ctstate ctproto ctorigsrc ctorigdst),
-             qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
-        $rr .= "--$_ " . $rule{$_} . " "
+    # ipt_state parameters
+    $rr .= "--state " . join(',', split(/:/, $rule{state})) . " "
+      if exists $rule{state};
+
+    # ipt_time parameters
+    foreach (qw(timestart timestop days)) {
+        $rr .= "--$_ $rule{$_} "
           if exists $rule{$_};
     }
 
+    # ipt_tos parameters
+    if (exists $rule{tos}) {
+        $rr .= "--tos ";
+        for ($rule{tos}) {
+            /mincost|min-cost|2/ && do { $rr .= "0x02 "};
+            /reliability|reliable|4/ && do { $rr .= "0x04 "};
+            /max-throughput|maxthroughput|8/ && do { $rr .= "0x08 "};
+            /lowdelay|interactive|min-delay|10/ && do { $rr .= "0x10 "};
+            /clear|^0$|^00$|^0x00$/ && do { $rr .= "0x00 "};
+        }
+    }
+
+    # ipt_ttl parameters
+    foreach (qw(ttl ttl-eq ttl-lt ttl-gt)) {
+        my $key = $_;
+        $key =~ s/-//;
+
+        $rr .= "--$_ $rule{$key} "
+          if exists $rule{$key};
+    }
+
+    # this line is done
     $rr .= "\n";
     push @rules, $rr;
 };
@@ -1471,8 +1478,9 @@ sub enter {
             s/^deny$/drop/i;
             s/^proxy$/redirect/i;
 
-            /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mark|mirror|
-                 netlink|nop|queue|reject|return|tcpmss|tos|ttl|ulog)$/ix && do {
+            ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
+                   netlink|nop|queue|reject|return|tcpmss|ttl|ulog)$/ix or
+              /^(?:TOS|MARK)$/ ) && do {
                 if (exists $current->{action}) {
                     if ($current->{action} eq 'log') {
                         # if the action is already set to "log",
