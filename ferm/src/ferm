@@ -880,20 +880,6 @@ sub tables {
         shell_append(\$rr, '-f')
     }
 
-    # more common options (mostly NAT)
-    shell_append(\$rr, '--to', $rule{to})
-      if defined $rule{to};
-    shell_append(\$rr, '--to-ports', $rule{'to-ports'})
-      if defined $rule{'to-ports'};
-    shell_append(\$rr, '--to-destination', $rule{'to-destination'})
-      if defined $rule{'to-destination'};
-
-    if (exists $rule{'to-source'}) {
-        foreach (split /,/, $rule{'to-source'}) {
-            shell_append(\$rr, '--to-source', $_);
-        }
-    }
-
     # proto tcp [udp]
     shell_append(\$rr, '--sport', $rule{sport})
       if defined $rule{sport};
@@ -919,6 +905,20 @@ sub tables {
 
     shell_append(\$rr, '-j', $rule{action})
       unless $rule{'action'} eq 'NOP';
+
+    # more common options (mostly NAT)
+    shell_append(\$rr, '--to', $rule{to})
+      if defined $rule{to};
+    shell_append(\$rr, '--to-ports', $rule{'to-ports'})
+      if defined $rule{'to-ports'};
+    shell_append(\$rr, '--to-destination', $rule{'to-destination'})
+      if defined $rule{'to-destination'};
+
+    if (exists $rule{'to-source'}) {
+        foreach (split /,/, $rule{'to-source'}) {
+            shell_append(\$rr, '--to-source', $_);
+        }
+    }
 
     # proto icmp
     shell_append(\$rr, '--icmp-type', $rule{'icmp-type'})
