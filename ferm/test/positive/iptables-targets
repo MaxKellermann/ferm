@@ -6,7 +6,6 @@ chain INPUT {
   BALANCE;
   dnat;
   drop;
-  FTOS;
   LOG;
   MARK;
   masq;
