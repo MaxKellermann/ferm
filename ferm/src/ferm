@@ -25,6 +25,8 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #
 
+# $Id$
+
 use strict;
 use IO::File;
 use Getopt::Long;
@@ -33,7 +35,7 @@ use Pod::Usage;
 use vars qw($VERSION $DATE);
 
 $VERSION = '1.1+cvs';
-$DATE = '19 oct 2004';
+$DATE = '17 nov 2004';
 
 # global data vars
 my @rules;     # will contain all rules
