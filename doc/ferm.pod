@@ -982,6 +982,12 @@ Shows the version number of the program.
 Explicitly define the exact name and location of the
 kernel backend program, for the paranoid people out there.
 
+=item B<--fast>
+
+Enable fast mode: ferm generates an iptables-save(8) file, and
+installs it with iptables-restore(8). This is much faster, because
+ferm calls iptables(8) once for every rule by default.
+
 =back
 
 
