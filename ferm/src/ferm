@@ -824,7 +824,7 @@ sub tables {
         /^nop$/ && last;
         /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^mirror$|^netlink$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && do {
              $rr .= (uc $rule{'action'}) . " " ; last; };
-        $rr .= $rule{'action'};
+        $rr .= $rule{'action'} . " ";
     };
 
     # check for '--to' and '--to-[ports|source|destination]'
