@@ -58,6 +58,12 @@ use vars qw(@ip_tables_names %chains);
 ## functions
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
+## constants
+use vars qw(%deprecated_keywords);
+%deprecated_keywords = ( macsource => 'mac-source',
+                         settos => 'set-tos',
+                       );
+
 # Get command line stuff
 {
     my ($opt_noexec, $opt_lines, $opt_location, $opt_clearall, $opt_flushall,
@@ -1243,6 +1249,13 @@ sub enter {
         # the core: parse all data
         SWITCH: for ($keyword)
         {
+            # deprecated keyword?
+            if (exists $deprecated_keywords{$keyword}) {
+                my $new_keyword = $deprecated_keywords{$keyword};
+                warning("'$keyword' is deprecated, please use '$new_keyword' instead");
+                $keyword = $new_keyword;
+            }
+
             # effectuation operator
             if ($keyword eq ';') {
                 my $has_rule = find_option(\@fw, 'has_rule');
@@ -1712,10 +1725,11 @@ sub enter {
                 ; next; };
 
             # ipt_mac switches
-            /^mac$|^mac-source$|^macsource$/ && do {
+            if (/^mac$|^mac-source$/) {
                 $current->{'mac-source'} = getvalues();
                 $current->{auto_modules}{mac} = 1;
-                ; next; };
+                next;
+            }
 
             # ipt_mark switches
             /^mark$/ && do {
@@ -1919,8 +1933,8 @@ sub enter {
 
                 # TOS target switches
                 if ($action eq 'TOS' and
-                    $keyword =~ /^set-?tos$/) {
-                    $current->{'set-tos'} = getvar();
+                    $keyword eq 'set-tos') {
+                    $current->{$keyword} = getvar();
                     next;
                 }
 
