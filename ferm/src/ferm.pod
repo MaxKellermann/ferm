@@ -343,6 +343,7 @@ variable references or lists (arrays):
     proto udp
     saddr %TRUSTED_HOSTS;
     proto tcp dport (http https ssh);
+    LOG log-prefix "funky wardriver alert: ";
 
 Some of them can be negated (lists cannot be negated):
 
