@@ -1,0 +1,4 @@
+2c2
+< iptables -t filter -A INPUT -m limit -j ACCEPT
+---
+> iptables -t filter -A INPUT -m limit -m state -j ACCEPT

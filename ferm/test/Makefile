@@ -13,10 +13,13 @@ clean:
 	rm -rf tmp
 
 define gen_template
+tmp/$(1)/%.$(2): PATCHFILE = $$(shell test $(2) = "OLD" -a -f "patch/$$(<).$(1)" && echo "patch/$$(<).$(1)" )
 tmp/$(1)/%.$(2): % $$($(2)_FERM) ./canonical.pl
 	mkdir -p `dirname $$@`
-	$$($(2)_FERM) --use $(1) --lines --noexec $$< |./canonical.pl >$$@.tmp
-	mv $$@.tmp $$@
+	$$($(2)_FERM) --use $(1) --lines --noexec $$< >$$@.tmp1 ||true
+	if test -n "$$(PATCHFILE)"; then patch -i$$(PATCHFILE) $$@.tmp1; fi
+	./canonical.pl <$$@.tmp1 >$$@.tmp2
+	mv $$@.tmp2 $$@
 endef
 
 $(foreach frontend,iptables ipchains ipfwadm,$(foreach version,OLD NEW,$(eval $(call gen_template,$(frontend),$(version)))))
