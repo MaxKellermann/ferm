@@ -10,7 +10,6 @@ chain INPUT {
   MARK;
   masq;
   mirror;
-  NETLINK;
   nop;
   queue;
   redirect;
