@@ -1357,21 +1357,21 @@ sub enter {
             /^settos$/ && do {
                 $current->{'settos'}=getvar();
                 ; next; };
-            /^setftos$|^set-ftos$/ && do {
+            /^set-?ftos$/ && do {
                 $current->{'setftos'}=getvar();
                 ; next; };
-            /^tcp-flags$|^tcpflags$|^flags$/ && do {
+            /^(?:tcp-?)flags$/ && do {
                 $current->{'tcpflags'}='1';
                 $current->{'flagsmask'}=join(':',split(/\x2c/,getvalues()));
                 $current->{'flagsmatch'}=join(':',split(/\x2c/,getvalues()));
                 ; next; };
-            /^tcp-option$|^tcpoption$/ && do {
+            /^tcp-?option$/ && do {
                 $current->{'tcpoption'}=getvalues();
                 ; next; };
             /^log-level$|^loglev$/ && do {
                 $current->{'loglevel'}=getvar();
                 ; next; };
-            /^log-prefix$|^logprefix$/ && do {
+            /^log-?prefix$/ && do {
                 $current->{'logprefix'}=getvar();
                 ; next; };
             /^log-tcp-sequence$|^logseq$/ && do {
@@ -1391,7 +1391,7 @@ sub enter {
             /^table$/ && do {
                 $current->{'table'}=getvalues();
                 ; next; };
-            /^reject-with$|^rejectwith$/ && do {
+            /^reject-?with$/ && do {
                 $current->{'rejectwith'}=getvar();
                 ; next; };
             /^string$/ && do {
@@ -1539,14 +1539,12 @@ sub enter {
             };
 
             # ipt_iplimit switches
-            /^iplimitabove$|^ip-limit-above$/ && do {
-                $current->{'iplimitabove'}=getvar();
+            /^ip-?limit-?(?:above|mask)$/ && do {
+                s/-//;
+                $current->{$_} = getvar();
                 $current->{auto_modules}{iplimit} = 1;
-                ; next; };
-            /^iplimitmask$|^ip-limit-mask$/ && do {
-                $current->{'iplimitmask'}=getvar();
-                $current->{auto_modules}{iplimit} = 1;
-                ; next; };
+                next;
+            };
 
             # ipt_length switches
             /^length$/ && do {
@@ -1559,7 +1557,7 @@ sub enter {
                 $current->{'limit'}=getvar();
                 $current->{auto_modules}{limit} = 1;
                 ; next; };
-            /^burst$|^limit-burst$|^limitburst$/ && do {
+            /^burst$|^limit-?burst$/ && do {
                 $current->{'limitburst'}=getvar();
                 $current->{auto_modules}{limit} = 1;
                 ; next; };
@@ -1575,7 +1573,7 @@ sub enter {
                 $current->{'mark'}=getvar();
                 $current->{auto_modules}{mark} = 1;
                 ; next; };
-            /^set-mark$|^setmark$/ && do {
+            /^set-?mark$/ && do {
                 $current->{'setmark'}=getvar();
                 $current->{auto_modules}{mark} = 1;
                 # XXX: MARK/CONNMARK conflict
@@ -1588,46 +1586,28 @@ sub enter {
                 ; next; };
 
             # ipt_owner switches
-            /^uid-owner$|^uidowner$|^uid$/ && do {
-                $current->{'uidowner'}=getvalues();
+            /^(uid|gid|pid|sid)(?:-?owner)?$/ && do {
+                $current->{$1 . 'owner'} = getvalues();
                 $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^gid-owner$|^gidowner$|^gid$/ && do {
-                $current->{'gidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^pid-owner$|^pidowner$|^pid$/ && do {
-                $current->{'pidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
-            /^sid-owner$|^sidowner$|^sid$/ && do {
-                $current->{'sidowner'}=getvalues();
-                $current->{auto_modules}{owner} = 1;
-                ; next; };
+                next;
+            };
 
             # ipt_pkttype switches
-            /^pkttype$|^pkt-type$/ && do {
-                $current->{'pkttype'}=getvalues();
+            /^pkt-?type$/ && do {
+                s/-//;
+                $current->{$_} = getvalues();
                 $current->{auto_modules}{pkttype} = 1;
-                ; next; };
+                next;
+            };
 
             # ipt_psd switches
-            /^psdweightthreshold$|^psd-weight-threshold$/ && do {
-                $current->{'psdweightthreshold'}=getvar();
+            /^(?:psd-?weight-?threshold|psd-?delay-?threshold|
+                 psd-?lo-?ports-?weight|psd-?hi-?ports-?weight)$/x && do {
+                s/-//;
+                $current->{$_} = getvar();
                 $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^psddelaythreshold$|^psd-delay-threshold$/ && do {
-                $current->{'psddelaythreshold'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
-                $current->{'psdloportsweight'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
-            /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
-                $current->{'psdhiportsweight'}=getvar();
-                $current->{auto_modules}{psd} = 1;
-                ; next; };
+                next;
+            };
 
             # ipt_random switches
             /^average$/ && do {
@@ -1666,34 +1646,12 @@ sub enter {
                 ; next; };
 
             # ipt_ttl switches
-            /^ttl$/ && do {
-                $current->{'ttl'}=getvar();
+            /^ttl(?:-?(?:|set|inc|dec|eq|lt|gt))$/ && do {
+                s/-//;
+                $current->{$_} = getvar();
                 $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-set$|^ttlset$/ && do {
-                $current->{'ttlset'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-inc$|^ttlinc$/ && do {
-                $current->{'ttlinc'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-dec$|^ttldec$/ && do {
-                $current->{'ttldec'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-eq$|^ttleq$/ && do {
-                $current->{'ttleq'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-lt$|^ttllt$/ && do {
-                $current->{'ttllt'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
-            /^ttl-gt$|^ttlgt$/ && do {
-                $current->{'ttlgt'}=getvar();
-                $current->{auto_modules}{ttl} = 1;
-                ; next; };
+                next;
+            };
 
             # effectuation operator
             /(\x3b)/ && do {
