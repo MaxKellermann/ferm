@@ -1486,18 +1486,13 @@ sub enter {
             # effectuation operator
             /(\x3b)/ && do {
                 # check for action (required)
-                my $ac_def = 0;
-                for my $i ( 0 .. $#fw ) {
-                    if ( exists $fw[$i]{'action'} ) { $ac_def='1' };
-                    if ( exists $fw[$i]{'policy'} ) { $ac_def='1' };
-                }
+                error("no action or policy defined, exiting")
+                  unless grep {
+                      exists $_->{action} or exists $_->{policy}
+                  } @fw;
                 # check for chain (required)
-                my $ch_def=0;
-                for my $i ( 0 .. $#fw ) {
-                    if ( exists $fw[$i]{'chain'} ) { $ch_def='1' };
-                }
-                if ( ($ac_def == 0 ) || ($ch_def == 0) ) {
-                    error("no action, policy or chain defined, exiting") };
+                error("no chain defined, exiting")
+                  unless defined $current_chain;
 
                 # clear any policy-related stuff in this level
                 if ( exists $fw[$#fw]{'policy'} ||
