@@ -14,11 +14,12 @@ MANSRC		= src/ferm.pod
 
 VERSION := $(shell ${SRC} --version | awk '{print $$2}' | head -1 | tr -d ',')
 
-TARDIR		= ferm-${VERSION}
-TARFILE		= ferm-${VERSION}.tar
-LSMFILE		= lsm/ferm-${VERSION}.lsm
+DISTDIR = build/ferm-$(VERSION)
 
-SIZE = $(shell du -h -D $(TARFILE).gz | awk '{print $$1}')
+TARFILE = build/ferm-${VERSION}.tar.gz
+LSMFILE	= build/ferm-${VERSION}.lsm
+
+SIZE = $(shell du -h -D $(TARFILE) | awk '{print $$1}')
 DATE            = `date '+%Y-%m-%d'`
 
 WEBDIR		= /home/web/users/koka/ferm
@@ -68,24 +69,16 @@ ferm.txt:
 	@echo "Making plain text manual page..."
 	@pod2text $(MANSRC) > man/ferm.txt
 
-$(TARFILE).gz: all
-	@rm -rf $(TARDIR)
-	@mkdir $(TARDIR)
-	@mkdir $(TARDIR)/examples
-	@echo "Gathering files in ferm-$(VERSION)/..."
-	@cp $(SRC) $(TARDIR)
-	@cp $(MANSRC) $(TARDIR)
-	@cp scripts/Makefile $(TARDIR)
-	@cp man/ferm.* $(TARDIR)
-	@cp info/AUTHORS info/CHANGES info/COPYING info/README info/TODO $(TARDIR)
-	@cp examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(TARDIR)/examples
-	@echo "Making tar file..."
-	@tar cf $(TARFILE) $(TARDIR)
-	@gzip -f $(TARFILE)
-	@rm -rf $(TARDIR)
-	@echo "Done."
+build/ferm-$(VERSION).tar.gz: all
+	rm -rf $(DISTDIR)
+	install -d -m 755 build $(DISTDIR) $(DISTDIR)/doc $(DISTDIR)/examples
+	install -m 755 src/ferm $(DISTDIR)
+	install -m 644 scripts/Makefile info/AUTHORS info/CHANGES info/COPYING info/README info/TODO $(DISTDIR)
+	install -m 644 man/ferm.1 man/ferm.html man/ferm.txt $(DISTDIR)/doc
+	install -m 644 examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(DISTDIR)/examples
+	cd build && tar czf ferm-$(VERSION).tar.gz ferm-$(VERSION)
 
-dist: ferm-$(VERSION).tar.gz
+dist: build/ferm-$(VERSION).tar.gz
 
 #
 # misc targets
@@ -120,8 +113,7 @@ ftp:	tar
 		$(FTPDIR)/CHANGES $(FTPDIR)/VERSION
 	@echo "Done."
 
-.phony: lsm
-lsm: $(TARFILE).gz
+$(LSMFILE): dist
 	@echo "Making lsm entry file..."
 	@echo "Begin4" > ${LSMFILE}
 	@echo "Title:          ferm" >> ${LSMFILE}
@@ -132,7 +124,7 @@ lsm: $(TARFILE).gz
 	@echo "Author:         sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
 	@echo "Maintained-by:  sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
 	@echo "Primary-site:   ferm.foo-projects.org /" >> ${LSMFILE}
-	@echo "                $(SIZE) $(TARFILE).gz" >> ${LSMFILE}
+	@echo "                $(SIZE) $(TARFILE)" >> ${LSMFILE}
 	@echo "Alternate-site:" >> ${LSMFILE}
 	@echo "Original-site:" >> ${LSMFILE}
 	@echo "Platforms:      perl linux>=2.4" >> ${LSMFILE}
@@ -141,4 +133,7 @@ lsm: $(TARFILE).gz
 	@echo "Sending lsm entry..."
         # @mailx -s "add" lsm@execpc.com < ${LSMFILE}
 	@echo "Done."
+
+.phony: lsm
+lsm: $(LSMFILE)
 
