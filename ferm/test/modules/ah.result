@@ -1,1 +1,5 @@
 iptables -t filter -A INPUT -m ah -j ACCEPT --ahspi 0x100
+iptables -t filter -A INPUT -m ah -j DROP --ahspi ! 0x101
+iptables -t filter -A INPUT -m ah -j REJECT --ahspi 0x102
+iptables -t filter -A INPUT -m ah -j REJECT --ahspi 0x105
+iptables -t filter -A INPUT -m ah -j REJECT --ahspi 0x200:0x2ff
