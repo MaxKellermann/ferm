@@ -129,49 +129,52 @@ $verbose && printversion();
 while (<>) {
     # chop comments:
     s/#.*$//g;
-    # split the whole input into words:
-    foreach my $word (m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
-        # explanation of all sections:
-        # \x22[^\x22]+\x22 == "*"
-        # \x27[^\x27]+\x27 == '*'
-        # \x60[^\x60]+\x60 == `*`
-        # [0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+
-        #        == anything which is not one of these:
-        # \x28 == (
-        # \x29 == )
-        # \x7b == }
-        # \x7d == {
-        # \x3b == ;
-        push @words, $word;
 
-        # sneak preview: scan for the 'option' word and see what kernel program
-        # we will be using and which path/name we should use for it
-        if ($words[$#words-1] eq 'option' and
-            $word =~ /^(?:ipfwadm|ipchains|iptables)$/) {
-            # found match: set kernel interface program
-            $option{$word} = 1;
-            $#words -= 2;
+    # tokenize the line
+    my @line = tokenize_string($_);
+    next unless @line > 0;
+
+    # look at the first word, then decide what to do. some special
+    # keywords are handled here, everything else gets added to @words
+    if ($line[0] eq 'option') {
+        # option: edit the %option hash
+        shift @line;
+        my $name = shift @line;
+        my $value = shift @line;
+
+        unless (defined $value) {
+            $value = 1;
+        } elsif ($value eq 'off') {
+            $value = undef;
         }
-        if ($words[$#words-2] eq 'option' and
-            $words[$#words-1] eq 'location') {
-            # found match: set the /path/to/name
-            $option{'location'} = $word;
-            $#words -= 3;
-            # check if it is executable anyway:
-            if ( ! -X $option{'location'}) {
-                mydie("Specified location is not executable or does not exist! Exiting");
-            }
-        }
+
+        $option{$name} = $value;
+
+        $option{frontend} = $name
+          if $value and $name =~ /^(?:ipfwadm|ipchains|iptables)$/;
+    } elsif ($line[0] eq 'set') {
+        # set: set a variable
+        shift @line;
+        my $name = shift @line;
+        my $value = getvalues2(\@line);
+        setvar($name, $value);
+    } else {
+        # the next parser stage eats this
+        push @words, @line;
     }
 }
 
-# since we know the kernel backend program:
-if (!defined $option{'location'}) {
-    $option{'ipfwadm'} && do { $option{'location'} = 'ipfwadm';};
-    $option{'ipchains'} && do { $option{'location'} = 'ipchains';};
-    $option{'iptables'} && do {$option{'location'} = 'iptables';};
-}
+# option checks
+mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter')
+  unless defined $option{frontend};
 
+if (defined $option{location}) {
+    mydie("Specified location is not executable or does not exist! Exiting")
+      unless -X $option{'location'};
+} else {
+    # set a default location
+    $option{location} = $option{frontend};
+}
 
 # clearing and flushing needs to be done first:
 $option{'clearall'} && clearall();
@@ -257,6 +260,79 @@ sub error {
         { print $lines[$l]; if ($l != $#lines ) {print "\n"} ; };
     print "<--\n";
     mydie(shift);
+}
+
+sub tokenize_string {
+    # split the an input string into words
+    my ($string) = @_;
+
+    my @ret;
+
+    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
+        # explanation of all sections:
+        # \x22[^\x22]+\x22 == "*"
+        # \x27[^\x27]+\x27 == '*'
+        # \x60[^\x60]+\x60 == `*`
+        # [0-9a-zA-Z\x21\x23-\x26\x2a-\x3a\x3c-\x7a\x7c\x7e\x7f]+
+        #        == anything which is not one of these:
+        # \x28 == (
+        # \x29 == )
+        # \x7b == }
+        # \x7d == {
+        # \x3b == ;
+        push @ret, $word;
+    }
+
+    return @ret;
+}
+
+sub getvar2 {
+    # see if $array->[0] is contains variables, and try to substitute
+    # them with their values
+    my $array = shift;
+    die unless ref $array eq 'ARRAY';
+
+    my $w = shift @$array;
+    # Substitute all variables in this strings if present
+    while ( $w =~ s/\x25([0-9a-zA-Z\x2d\x5f]+)/$vars{$1}/ ) {
+        if ($debug) {
+            my $db = "# substituting variables: \%$1 ";
+            push @rules, "$db -\> $vars{$1}\n";
+        }
+    }
+    return $w;
+}
+
+
+sub getvalues2 {
+    # retrieves a list of parameters given, syntax:
+    # [keyword]|"("{keyword}")"
+    # starts to read at $c++
+    my $array = shift;
+
+    my @wordlist;
+    my $firstword = getvar2($array);
+
+    return $firstword
+      if $firstword =~ /^[\x22\x27\x60]/;
+    if ($firstword eq '(') {
+        # read a list until ")"
+        my $nextword;
+        do {
+            $nextword = getvar2($array);
+            if ( $nextword ne ')' ) {
+                if ( $nextword eq '!' ) {
+                    $nextword .= getvar2($array);
+                };
+                push @wordlist, $nextword;
+            };
+        } until ( $nextword eq ')' );
+        return (join(',', @wordlist));
+    } elsif ( $firstword eq '!' ) {
+        return $firstword . getvar2($array);
+    } else {
+        return $firstword;
+    };
 }
 
 
@@ -1335,20 +1411,6 @@ sub enter {
             /^DNAT$|^dnat$|^SNAT$|^snat$/ && do {
                 $fw[$lev]{'action'} = lc $keyword;
                 ; next; };
-
-            # configuration options
-            /^option$/ && do {
-                $option{$words[$c++]} = '1';
-                # some options require immediate attention:
-                for ( $words[$c-1] ) {
-                    /^clearall$/ && do { clearall(); };
-                    /^flushall$/ && do { flushall(); };
-                    }; next; };
-
-            # variable handling
-            /^set$/ && do {
-                setvar(getvar(), getvalues());
-                next; };
 
             # effectuation operator
             /(\x3b)/ && do {
