@@ -1,0 +1,11 @@
+table filter chain input mod conntrack {
+    ctstate INVALID DROP;
+    ctproto ftp ACCEPT;
+    ctorigsrc 10.0.0.0/8 ACCEPT;
+    ctorigdst 127.0.0.01 ACCEPT;
+    ctreplsrc ! 1.2.3.3 ACCEPT;
+    ctreplsrc !1.2.3.4 ACCEPT;
+    ctrepldst (1.2.3.5 1.2.3.6) REJECT;
+    ctstatus (ASSURED EXPECTED) ACCEPT;
+    ctexpire 10 ACCEPT;
+}
