@@ -1,0 +1,7 @@
+chain input {
+    LOG;
+    LOG log-prefix "foo bar";
+    LOG log-prefix "foo;bar";
+    LOG log-prefix "foo{}bar";
+    LOG log-tcp-sequence log-tcp-options log-ip-options;
+}
