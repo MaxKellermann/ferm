@@ -1828,17 +1828,14 @@ sub enter {
             };
 
             # ipt_length switches
-            /^length$/ && do {
-                $current->{'length'}=getvar();
+            if ($keyword eq 'length') {
+                $current->{$keyword} = getvalues();
                 $current->{auto_modules}{length} = 1;
-                ; next; };
+                next;
+            }
 
             # ipt_limit switches
-            /^limit$/ && do {
-                $current->{'limit'}=getvar();
-                $current->{auto_modules}{limit} = 1;
-                ; next; };
-            if ($keyword eq 'limit-burst') {
+            if ($keyword =~ /^limit(?:-burst)?$/) {
                 $current->{$keyword} = getvar();
                 $current->{auto_modules}{limit} = 1;
                 next;
