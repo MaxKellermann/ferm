@@ -1,0 +1,10 @@
+def $FOO = tcp;
+
+chain INPUT {
+    proto $FOO ACCEPT;
+    interface eth0 {
+        def $FOO = udp;
+        proto $FOO DROP;
+    }
+    proto $FOO ACCEPT;
+}

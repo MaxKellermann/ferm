@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -p tcp -j ACCEPT 
+iptables -t filter -A INPUT -i eth0 -p udp -j DROP 
+iptables -t filter -A INPUT -p tcp -j ACCEPT 
