@@ -1,0 +1,5 @@
+table filter chain input {
+    proto tcp dport 2000 TTL ttl-set 10;
+    proto tcp dport 2001 TTL ttl-dec 1;
+    proto tcp dport 2002 TTL ttl-inc 2;
+}

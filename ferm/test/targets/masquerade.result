@@ -1,0 +1,2 @@
+iptables -t nat -A POSTROUTING -o ppp0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o ppp0 -j MASQUERADE --to-ports 10000:20000
