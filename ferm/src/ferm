@@ -1251,7 +1251,7 @@ sub enter {
                 error('Missing ";"')
                   unless defined $keyword and $keyword eq ';';
 
-                last;
+                next;
             }
 
             # where to put the rule?
