@@ -135,7 +135,7 @@ lsm: $(TARFILE).gz
 	@echo "                $(SIZE) $(TARFILE).gz" >> ${LSMFILE}
 	@echo "Alternate-site:" >> ${LSMFILE}
 	@echo "Original-site:" >> ${LSMFILE}
-	@echo "Platforms:      perl linux>=2.0" >> ${LSMFILE}
+	@echo "Platforms:      perl linux>=2.4" >> ${LSMFILE}
 	@echo "Copying-policy: GPL" >> ${LSMFILE}
 	@echo "End" >> ${LSMFILE}
 	@echo "Sending lsm entry..."
