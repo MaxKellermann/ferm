@@ -1,3 +1,0 @@
-iptables -t filter -A INPUT -m mport -p tcp -j ACCEPT --source-ports 1,2,3
-iptables -t filter -A INPUT -m mport -p udp -j ACCEPT --destination-ports 3,5,6,7,8,9
-iptables -t filter -A INPUT -m mport -p tcp -j ACCEPT --ports 1024,1234

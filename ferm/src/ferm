@@ -1060,7 +1060,7 @@ sub tables {
     shell_append(\$rr, '--mark', $rule{mark})
       if defined $rule{mark};
 
-    # ipt_mport parameters
+    # ipt_multiport parameters
     foreach (qw(source-ports destination-ports ports)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
@@ -1861,12 +1861,12 @@ sub enter {
                 next;
             }
 
-            # ipt_mport switches
+            # ipt_multiport switches
             if ($keyword =~ /^(?:(?:source-|destination-|)ports)$/ and
                 defined $proto and
                 grep { /^(?:tcp|udp)$/ } to_array $proto) {
                 $current->{$keyword} = join(',', to_array getvalues());
-                $current->{auto_modules}{mport} = 1;
+                $current->{auto_modules}{multiport} = 1;
                 next;
             }
 
