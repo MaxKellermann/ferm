@@ -2164,6 +2164,8 @@ sub check {
 }
 
 sub execute {
+    my $status;
+
     foreach (@rules) {
         s/^\s+//s;
         s/\s+$//s;
@@ -2172,11 +2174,25 @@ sub execute {
         next if $option{noexec};
         next if /^#/;
 
-        system($_);
+        my $ret = system($_);
+        unless ($ret == 0) {
+            if ($? == -1) {
+                print STDERR "failed to execute: $!\n";
+                exit 1;
+            } elsif ($? & 0x7f) {
+                printf "child died with signal %d\n", $? & 0x7f;
+                $status = 1;
+            } else {
+                $status = $? >> 8;
+            }
+        }
 
         print "."
           if $verbose and not $option{lines};
     }
+
+    exit $status
+      if defined $status;
 }
 
 # end of ferm
