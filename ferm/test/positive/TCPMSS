@@ -1,0 +1,6 @@
+option iptables
+option createchains
+
+chain INPUT proto tcp TCPMSS;
+chain INPUT proto tcp TCPMSS set-mss 1000;
+chain INPUT proto tcp TCPMSS clamp-mss-to-pmtu;
