@@ -209,41 +209,6 @@ the end of line is ignored.
 
 =back
 
-These symbols glue all the keywords into a structure, which
-allows you to specify some keys only a few times, and let them
-apply to any key/value pairs defined within an entire block, for
-instance:
-
-    proto tcp {
-	dport 22 ACCEPT;
-	syn DPORT 0:1023 DENY;
-	}
-    ACCEPT;
-
-Now here, the 'proto tcp' is valid within the block, but not anymore
-after is, resulting in:
-
-    ... -p tcp --dport 22 -j accept
-    ... -p tcp -y --dport 0:1023 -j deny
-    ... -j accept # note '-p tcp' is not in here!
-
-B<Some important notes:>
-
-- Ferm inserts the rules 'chronologically', so the first rule will
-be inserted before the second one.
-
-- Anything defined within a block is no longer valid when that block
-ends.
-
-- Everything defined within the current block that is 'effectuated',
-will be no longer defined immediately after that point.
-
-- Everything defined before a block is undefined when this block 
-closes.
-
-If you do not understand this, don't worry, it alle becomes clear
-by itself.
-
 
 Two types of keys exist:
 
