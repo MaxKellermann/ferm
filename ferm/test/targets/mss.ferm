@@ -1,4 +1,4 @@
 table filter chain forward {
-    outerface ppp0 proto tcp tcp-flags SYN,RST SYN TCPMSS clamp-mss-to-pmtu;
-    outerface ppp0 proto tcp tcp-flags SYN,RST SYN TCPMSS set-mss FOO;
+    outerface ppp0 proto tcp tcp-flags (SYN RST) SYN TCPMSS clamp-mss-to-pmtu;
+    outerface ppp0 proto tcp tcp-flags (SYN RST) SYN TCPMSS set-mss FOO;
 }
