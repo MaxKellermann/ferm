@@ -209,6 +209,11 @@ sub error {
     mydie(@_);
 }
 
+sub warning {
+    print STDERR "Warning in $script->{filename} line $script->{line}: "
+      . (shift) . "\n";
+}
+
 sub tokenize_string {
     # split the an input string into words
     my ($string) = @_;
@@ -316,6 +321,23 @@ sub prepare_tokens {
             shift @line;
             my $name = shift @line;
             my $value = getvalues(\&next_array_token, \@line);
+
+            if (@line and $line[0] eq ',') {
+                warning('Lists without parantheses are deprecated');
+
+                $value = [ $value ]
+                  unless ref $value;
+
+                do {
+                    shift @line;
+                    my $v = getvalues(\&next_array_token, \@line);
+                    push @$value, ref $v ? @$v : $v;
+                } while (@line and $line[0] eq ',');
+            }
+
+            error('spare tokens after "set"')
+              if @line;
+
             setvar($name, $value);
         } elsif ($line[0] eq 'include') {
             # include: include another file
@@ -526,6 +548,8 @@ sub getvalues {
 
         return '! ' . $token;
     } elsif ($token =~ /^.+,.+$/) {
+        warning('Lists within a string are deprecated, please use parantheses');
+
         my @array = map {
             my $value = resolve_variable_refs($_);
             ref $value ? @$value : $value;
