@@ -22,6 +22,7 @@ install: .phony
 	@install -m 644 -o 0 -g 0 COPYING $(DOCDIR)
 	@install -m 644 -o 0 -g 0 AUTHORS $(DOCDIR)
 	@install -m 644 -o 0 -g 0 README $(DOCDIR)
+	@install -m 644 -o 0 -g 0 TODO $(DOCDIR)
 	@install -m 644 -o 0 -g 0 ferm.txt $(DOCDIR)
 	@install -m 644 -o 0 -g 0 ferm.html $(DOCDIR)
 	@install -m 644 -o 0 -g 0 examples/* $(DOCDIR)/examples
