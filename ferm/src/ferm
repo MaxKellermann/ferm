@@ -324,7 +324,7 @@ sub prepare_tokens {
             my $value = getvalues(\&next_array_token, \@line);
 
             if (@line and $line[0] eq ',') {
-                warning('Lists without parantheses are deprecated');
+                warning('Arrays without parantheses are deprecated');
 
                 $value = [ $value ]
                   unless ref $value;
@@ -482,7 +482,7 @@ sub string_variable_value {
     my $name = shift;
     my $value = variable_value($name);
 
-    error("variable '$name' must be a string, is a list")
+    error("variable '$name' must be a string, is an array")
       if ref $value;
 
     return $value;
@@ -513,7 +513,7 @@ sub getvalues {
     my $token = require_next_token($code, $param);
 
     if ($token eq '(') {
-        # read a list until ")"
+        # read an array until ")"
         my @wordlist;
 
         for (;;) {
@@ -524,11 +524,11 @@ sub getvalues {
                 last if $token eq ')';
 
                 if ($token eq ',') {
-                    warning('Comma within lists is deprecated, please use only a space');
+                    warning('Comma within arrays is deprecated, please use only a space');
                     next;
                 }
 
-                error('items cannot be negated in a list')
+                error('items cannot be negated in a array')
                   if $token eq '!';
 
                 push @wordlist, $token;
@@ -539,7 +539,7 @@ sub getvalues {
             }
         }
 
-        error('empty lists are not allowed')
+        error('empty arrays are not allowed')
           unless @wordlist;
 
         return @wordlist == 1
@@ -548,14 +548,14 @@ sub getvalues {
     } elsif ($token eq '!') {
         $token = getvalues($code, $param);
 
-        error('it is not possible to negate a list')
+        error('it is not possible to negate an array')
           if ref $token;
         error('double negation is not allowed')
           if $token eq '!';
 
         return '! ' . $token;
     } elsif ($token =~ /^.+,.+$/) {
-        warning('Lists within a string are deprecated, please use parantheses');
+        warning('Arrays within a string are deprecated, please use parantheses');
 
         my @array = map {
             my $value = resolve_variable_refs($_);
@@ -577,7 +577,7 @@ sub getvar {
     # returns the next parameter, but only allow a scalar
     my $token = getvalues(@_);
 
-    error('list not allowed here')
+    error('array not allowed here')
       if ref $token;
 
     return $token;
