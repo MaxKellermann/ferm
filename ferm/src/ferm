@@ -1842,7 +1842,7 @@ sub enter {
                 next;
             }
 
-            # ipt_mark switches
+            # ipt_connmark switches
             if (exists $modules{connmark} and $keyword eq 'mark') {
                 $current->{$keyword} = getvar();
                 next;
