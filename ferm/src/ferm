@@ -392,7 +392,7 @@ sub prepare_tokens {
 
             # prevent opening the same file twice at a time
             for (my $s = $script; defined $s; $s = $s->{parent}) {
-                mydie("Circular refence in $script->{filename} line $script->{line}: $filename")
+                mydie("Circular reference in $script->{filename} line $script->{line}: $filename")
                   if $s->{filename} eq $filename;
             }
 
