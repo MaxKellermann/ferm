@@ -1089,6 +1089,17 @@ sub tables {
           if exists $rule{$_};
     }
 
+    # ipt_physdev switches
+    foreach (qw(physdev-in physdev-out)) {
+        shell_append(\$rr, "--$_", $rule{$_})
+          if exists $rule{$_};
+    }
+
+    foreach (qw(physdev-is-in physdev-is-out physdev-is-bridged)) {
+        shell_append(\$rr, "--$_")
+          if exists $rule{$_};
+    }
+
     # ipt_random parameters
     shell_append(\$rr, '--average', $rule{average})
       if exists $rule{average};
@@ -1894,6 +1905,19 @@ sub enter {
             if (/^psd-(?:(?:weight|delay)-threshold|(?:lo|hi)-ports-weight)$/) {
                 $current->{$keyword} = getvar();
                 $current->{auto_modules}{psd} = 1;
+                next;
+            }
+
+            # ipt_physdev switches
+            if (/^physdev-(?:in|out)$/) {
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{physdev} = 1;
+                next;
+            }
+
+            if (/^physdev-is-(?:in|out|bridged)$/) {
+                $current->{$keyword} = 1;
+                $current->{auto_modules}{physdev} = 1;
                 next;
             }
 
