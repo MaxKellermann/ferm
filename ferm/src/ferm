@@ -26,8 +26,8 @@
 #
 
 
-$VERSION = '1.1rc1';
-$DATE = '5 may 2003';
+$VERSION = '1.1';
+$DATE = '7 may 2003';
 
 # global data vars
 my @fw;        # fwset in list of hashes

@@ -1237,7 +1237,7 @@ characters, the ! and , are also not correctly parsed.
 
 =head1 COPYRIGHT
 
-Copyright (C) 2001, Auke Kok <auke.kok@planet.nl>
+Copyright (C) 2001-2003, Auke Kok <auke.kok@planet.nl>
 
 =head1 LICENSE
 
