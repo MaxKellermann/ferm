@@ -80,7 +80,7 @@ ferm.tar.gz:
 	@cp $(MANSRC) $(TARDIR)
 	@cp scripts/Makefile $(TARDIR)
 	@cp man/ferm.* $(TARDIR)
-	@cp info/AUTHORS info/CHANGES info/COPYING info/README $(TARDIR)
+	@cp info/AUTHORS info/CHANGES info/COPYING info/README info/TODO $(TARDIR)
 	@cp examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(TARDIR)/examples
 	@echo "Making tar file..."
 	@tar cf $(TARDIR).tar $(TARDIR)
