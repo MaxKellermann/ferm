@@ -5,6 +5,29 @@
 
     Auke Kok <sofar@foo-projects.org>
 
+v1.1+cvs - 9 Nov 2004
+  - perl strict mode
+  - removed support for ipfwadm and ipchains
+  - get a list of netfilter table names from /proc/net/ip_tables_names
+  - error messages go to STDERR
+  - lists must be specified with parantheses and no commas (old syntax
+    is deprecated, but still supported)
+  - full support for the match extensions: recent, conntrack, addrtype,
+    ah, owner, time
+  - full support for the targets: CONNMARK, NETMAP, SNAT
+  - stricter syntax checks, e.g.:
+    * some built-in targets must be uppercase
+    * only one target is allowed
+    * target parameters are only recognized after the target name, protocol
+      parameters only after the protocol match etc.
+    * referenced variables must exist
+    * list item negation is not possible
+    * only ACCEPT and DROP are allowed as policy
+  - fixed the double-module bug
+  - show filename and line number in error message
+  - implemented the 'include' command
+  - more shortcuts for command line options
+  - better set-tos parameter parser
 
 v1.1 - 5 May 2003
   - Removed 'mark' as possible target due to nameclash
