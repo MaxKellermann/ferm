@@ -366,34 +366,6 @@ sub tokenize_string {
     return @ret;
 }
 
-sub setvar {
-    my $vname = shift;
-    my $vval = shift;
-
-    for ($vval) {
-        /^\x60/ && do {
-            my $db;
-            if ($debug) {
-                $db = "# Executing backticks: $vval "; };
-            # change all ' to \'
-            $vval =~ s/'/\\'/g;
-            # change `.....` to qx'.....' to prevent perl interpretation
-            $vval =~ s/^\x60(.*)\x60$/qx'$1'/;
-            $vval = eval($vval);
-            # change newlines to comma's, omitting the last newline char
-            $vval =~ s'\n$'';
-            $vval =~ s'\n','g;
-            if ($debug) {
-                push @rules, "$db -\> $vval\n"; };
-        };
-        /^\x22/ && do {
-            $vval =~ s/\x22//g;
-        }
-    }
-
-    $vars{$vname} = $vval;
-}
-
 sub next_array_token {
     my $array = shift;
     shift @$array;
@@ -460,7 +432,7 @@ sub read_header {
             error('spare tokens after "set"')
               if @line;
 
-            setvar($name, $value);
+            $vars{$name} = $value;
         } else {
             # the next parser stage eats this
             push @$tokens, @line;
@@ -732,6 +704,31 @@ sub getvalues {
         return @wordlist == 1
           ? $wordlist[0]
             : \@wordlist;
+    } elsif ($token =~ /^\`(.*)\`$/s) {
+        # execute a shell command, insert output
+        my $command = $1;
+        my $output = `$command`;
+        unless ($? == 0) {
+            if ($? == -1) {
+                error("failed to execute: $!");
+            } elsif ($? & 0x7f) {
+                error("child died with signal " . ($? & 0x7f));
+            } elsif ($? >> 8) {
+                error("child exited with status " . ($? >> 8));
+            }
+        }
+
+        # remove comments
+        $output =~ s/#.*//mg;
+
+        # interpret the result as an array
+        $output = '( ' . $output . ' )';
+
+        # tokenize
+        my @tokens = tokenize_string($output);
+
+        # and recurse
+        return getvalues(\&next_array_token, \@tokens);
     } elsif ($token eq '!') {
         $token = getvalues($code, $param);
 
