@@ -1544,11 +1544,13 @@ sub enter {
 
             # choose a side
             if ($keyword =~ /^(?:source|src)$/) {
+                warning("'$keyword' is deprecated, please use 'saddr' or 'sport'");
                 $current->{side} = 'source';
                 next;
             }
 
             if ($keyword =~ /^(?:destination|dest)$/) {
+                warning("'$keyword' is deprecated, please use 'daddr' or 'dport'");
                 $current->{side} = 'destination';
                 next;
             }
@@ -1556,6 +1558,7 @@ sub enter {
             if ($keyword =~ /^(?:port|addr)$/) {
                 error("source/destination not declared")
                   unless exists $current->{side};
+                warning("'$keyword' is deprecated, please use 's$keyword' or 'd$keyword'");
                 if ($current->{side} eq 'source') {
                     $keyword = 's' . $keyword;
                 } elsif ($current->{side} eq 'destination') {
