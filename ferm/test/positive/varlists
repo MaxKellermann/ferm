@@ -1,7 +1,7 @@
 
-set IF1 'eth0'
-set IF2 'eth1'
-set IFS '%IF1,%IF2'
+set IF1 eth0
+set IF2 eth1
+set IFS %IF1,%IF2
 
 set OF1 "eth0"
 set OF2 "eth1"
