@@ -242,6 +242,7 @@ $verbose && printversion();
 mydie("Specify only one ferm script")
   unless @ARGV == 1;
 
+push @stack, {};
 open_script($ARGV[0]);
 read_header;
 
@@ -1536,11 +1537,15 @@ sub enter {
                     # push stack
                     my $old_stack_depth = @stack;
 
-                    unshift @stack, {};
+                    my $stack = {};
 
-                    # include files may set variables for their parent
-                    $stack[0]{vars} = ($stack[1]{vars} ||= {});
-                    $stack[0]{functions} = ($stack[1]{functions} ||= {});
+                    if (@stack > 0) {
+                        # include files may set variables for their parent
+                        $stack->{vars} = ($stack[0]{vars} ||= {});
+                        $stack->{functions} = ($stack[0]{functions} ||= {});
+                    }
+
+                    unshift @stack, $stack;
 
                     # parse the script
                     enter($lev + 1, @fw);
