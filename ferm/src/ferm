@@ -26,6 +26,7 @@
 #
 
 use strict;
+use IO::File;
 
 use vars qw($VERSION $DATE);
 
@@ -48,11 +49,14 @@ my %tables;    # chain box for iptables
     $tables{'mangle_prerouting'} = 0;
     $tables{'mangle_output'} = 0;
                # 0=made;1=policy set;2=flushed;3=all
-my @words;     # contains all keywords to describe firewall
 my $c=0;       # the current word counter
 my $side='';   # source/destination pointer
 my %option;    # some configuration options
 my %vars;      # holds variable data
+
+use vars qw($script);
+
+use subs qw(open_script);
 
 # Get command line stuff
 use vars qw($opt_noexec $opt_lines $opt_verbose $opt_debug $opt_location),
@@ -124,44 +128,10 @@ if (defined $opt_location) {
 
 $verbose && printversion();
 
-# jerk all data from the input into words
-while (<>) {
-    # chop comments:
-    s/#.*$//g;
+mydie("Specify only one ferm script")
+  unless @ARGV == 1;
 
-    # tokenize the line
-    my @line = tokenize_string($_);
-    next unless @line > 0;
-
-    # look at the first word, then decide what to do. some special
-    # keywords are handled here, everything else gets added to @words
-    if ($line[0] eq 'option') {
-        # option: edit the %option hash
-        shift @line;
-        my $name = shift @line;
-        my $value = shift @line;
-
-        unless (defined $value) {
-            $value = 1;
-        } elsif ($value eq 'off') {
-            $value = undef;
-        }
-
-        $option{$name} = $value;
-
-        $option{frontend} = $name
-          if $value and $name =~ /^(?:ipfwadm|ipchains|iptables)$/;
-    } elsif ($line[0] eq 'set') {
-        # set: set a variable
-        shift @line;
-        my $name = shift @line;
-        my $value = getvalues2(\@line);
-        setvar($name, $value);
-    } else {
-        # the next parser stage eats this
-        push @words, @line;
-    }
-}
+open_script($ARGV[0]);
 
 # option checks
 mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter')
@@ -182,8 +152,7 @@ $option{'flushall'} && flushall();
 
 # parse all input recursively
 $verbose && print "Parsing files\n";
-if ( $#words > 0 ) {
-    enter(0);};
+enter(0);
 
 # and execute all generated rules
 $verbose && print "\nExecuting rules\n";
@@ -228,8 +197,9 @@ sub error {
     my $tabs = 0;
     my @lines;
     my $l = 0;
+    my @words = @{$script->{past_tokens}};
 
-    for my $w ( 0 .. ($c - 1) ) {
+    for my $w ( 0 .. $#words ) {
         if ($words[$w] eq "\x29")
             { $l++ ; $lines[$l] = "    " x ($tabs-- -1) ;};
         if ($words[$w] eq "\x28")
@@ -363,13 +333,145 @@ sub setvar {
     $vars{$vname} = $vval;
 }
 
+sub prepare_tokens {
+    return
+      unless defined $script;
+
+    my $tokens = $script->{tokens};
+    die unless ref $tokens eq 'ARRAY';
+
+    while (@$tokens == 0) {
+        my $line = $script->{handle}->getline;
+        unless (defined $line) {
+            # end of file, switch to the next in the chain and recurse
+            # to read tokens from this file
+            $script = $script->{parent};
+            return prepare_tokens();
+        }
+
+        # chop comments:
+        $line =~ s/#.*$//g;
+
+        my @line = tokenize_string($line);
+
+        # look at the first word, then decide what to do. some special
+        # keywords are handled here, everything else gets added to @tokens
+        if ($line[0] eq 'option') {
+            # option: edit the %option hash
+            shift @line;
+            my $name = shift @line;
+            my $value = shift @line;
+
+            unless (defined $value) {
+                $value = 1;
+            } elsif ($value eq 'off') {
+                $value = undef;
+            }
+
+            $option{$name} = $value;
+
+            $option{frontend} = $name
+              if $value and $name =~ /^(?:ipfwadm|ipchains|iptables)$/;
+        } elsif ($line[0] eq 'set') {
+            # set: set a variable
+            shift @line;
+            my $name = shift @line;
+            my $value = getvalues2(\@line);
+            setvar($name, $value);
+        } else {
+            # the next parser stage eats this
+            push @$tokens, @line;
+        }
+    }
+
+    return 1;
+}
+
+sub open_script {
+    my $filename = shift;
+
+    my $handle = new IO::File("<$filename");
+    mydie("Failed to open $filename: $!")
+      unless defined $handle;
+
+    $script = { filename => $filename,
+                handle => $handle,
+                line => 0,
+                past_tokens => [],
+                tokens => [],
+                parent => $script,
+              };
+
+    prepare_tokens();
+
+    return $script;
+}
+
 sub next_token {
-    $words[$c++];
+    # get a token
+    prepare_tokens();
+
+    return
+      unless defined $script;
+
+    my $tokens = $script->{tokens};
+    die unless ref $tokens eq 'ARRAY';
+
+    return
+      unless @$tokens;
+
+    my $token = shift @$tokens;
+
+    # update $script->{past_tokens}
+    my $past_tokens = $script->{past_tokens};
+    die unless ref $past_tokens eq 'ARRAY';
+
+    if (@$past_tokens and
+        ($past_tokens->[@$past_tokens - 1] eq '}' or
+         $past_tokens->[@$past_tokens - 1] eq ';')) {
+        # now this is tricky: $script->{past_tokens} is used in error
+        # messages. in the following lines, we filter out everything
+        # which has become irrelevant for error messages,
+        # i.e. previous (completed) commands
+
+        my $t = pop @$past_tokens;
+
+        # track the current level - a '}' means one level up (we are
+        # going backwards)
+        my $level = $t eq '}' ? 1 : 0;
+
+        while (@$past_tokens and $level >= 0) {
+            $t = pop @$past_tokens;
+
+            if ($level == 0 and ($t eq '}' or $t eq ';')) {
+                # don't delete another command
+                push @$past_tokens, $t;
+                last;
+            } elsif ($t eq '}') {
+                # one level up
+                $level++;
+            } elsif ($t eq '{') {
+                # one level down. stop here if we're already at level
+                # zero
+                if ($level == 0) {
+                    push @$past_tokens, $t;
+                    last;
+                }
+
+                $level--;
+            }
+        }
+    }
+
+    push @$past_tokens, $token;
+
+    # return
+    return $token;
 }
 
 sub getvar {
-    # see if $words[$c++] is contains variables, and try to substitute
-    # them with their values
+    # see if the next_token() contains variables, and try to
+    # substitute them with their values
 
     my $w = next_token();
 
