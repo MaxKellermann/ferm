@@ -229,29 +229,10 @@ there is no ';' after the closing curly brace. Translated to iptables:
     iptables -A INPUT -p icmp -j DROP
     iptables -A INPUT -d 172.16.0.0/12 -j REJECT
 
-=item B<%>
+=item B<$>
 
-Variable expansion. Replaces '%FOO' by the value of the variable
-'FOO'.
-
-To set variables, write:
-
-    set IF eth0
-    set %IF ACCEPT
-    set TARGET %IF
-
-resulting in:
-
-    %IF = eth0
-    %eth0 = ACCEPT
-    %TARGET = eth0
-
-If you want to put multiple arguments into a variable, you should do
-it like this:
-
-    set %IFS = (eth0 eth1 ppp0)
-
-This way, ferm will recognize it being a list of values (an "array").
+Variable expansion. Replaces '$FOO' by the value of the variable. See
+the section 'VARIABLES' for details.
 
 =item B<()>
 
@@ -858,48 +839,46 @@ Modify the TTL header field.
 
 =head1 VARIABLES
 
-ferm also supports internal variables. This may come in handy if you
-wish to define often used parameters in advance, making the ferm
-configuration files even more easy to understand. 
+In complex firewall files, it is helpful to use variables, e.g. to
+give a network interface a meaningful name.
 
-Setting variables is very easy with the B<set> command. Here's some
-examples:
+To set variables, write:
 
-    set EXTERAL_IP 111.22.33.44
-    set INTERNAL_IP '10.0.0.1'
+    def $DEV_INTERNET = eth0;
+    def $PORTS = (http ftp);
+    def $MORE_PORTS = ($PORTS 8080);
 
-You may afterwards refer to them like this:
+In the real ferm code, variables are used like any other keyword
+parameter:
 
-    chain input daddr ! %EXTERNAL_IP DROP;
+    chain INPUT interface $DEV_INTERNET proto tcp dport $MORE_PORTS ACCEPT;
 
-The value of the variable will then be inserted into the rule and
-passed to the firewall program.
+Variables are only valid in the current block:
 
-the B<set> command can actally be abused even more, since the following
-statements also work:
+    def $DEV_INTERNET = eth1;
+    chain INPUT {
+        proto tcp {
+            def $DEV_INTERNET = ppp0;
+            interface $DEV_INTERNET dport http ACCEPT;
+        }
+        interface $DEV_INTERNET DROP;
+    }
 
-    set A "1"
-    set B %A
-    set %A 2
+will be expanded to:
 
-After these statements, variable %A yields value "1", variable %B holds 
-the value "1", and the variable %1 holds the value "1" also.
+    chain INPUT {
+        proto tcp {
+            interface ppp0 dport http ACCEPT;
+        }
+        interface eth1 DROP;
+    }
 
-More importantly, these variables can be used to store arrays of
-values:
+The "def $DEV_INTERNET = ppp0" is only valid in the "proto tcp" block;
+the parent block still knows "set $DEV_INTERNET = eth1".
 
-    set DNSSERVERS (111.2.33.1 111.2.33.2)
-
-When this variable is inserted into a configuration file, the rule that
-it applies to will automatically be split up into two different firewall
-rules for each IP number given in the array.
-
-Here's some even more complicated stuff that works:
-
-    set INTERNALINTERFACES (eth0 eth1 eth2)
-    set EXTERNALINTERFACES (ppp0 tunl0)
-    set INTERFACES (%INTERNALINTERFACES %EXTERNALINTERFACES lo)
-
+Include files are special - variables declared in an included file are
+still available in the calling block. This is useful when you include
+a file which only declares variables.
 
 =head1 SHELL ESCAPES
 
