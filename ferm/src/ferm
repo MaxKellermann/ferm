@@ -398,16 +398,6 @@ sub prepare_tokens {
 sub open_script {
     my $filename = shift;
 
-    if ($filename =~ m,^[^/], and defined $script and
-        $script->{filename} =~ m,^(.*/),) {
-        # relative filename: it's relative to the parent file
-        $filename = $1 . $filename;
-
-        # remove '.' and '..'
-        $filename =~ s,/\./,/,g;
-        $filename =~ s,/[^/]+/\.\./,/,g;
-    }
-
     for (my $s = $script; defined $s; $s = $s->{parent}) {
         mydie("Circular reference in $script->{filename} line $script->{line}: $filename")
           if $s->{filename} eq $filename;
@@ -426,6 +416,57 @@ sub open_script {
               };
 
     return $script;
+}
+
+sub collect_filenames {
+    my @ret;
+
+    # determine the current script's parent directory for relative
+    # file names
+    die unless defined $script;
+    my $parent_dir = $script->{filename} =~ m,^(.*/),
+      ? $1 : './';
+
+    foreach my $pathname (@_) {
+        # non-absolute file names are relative to the parent script's
+        # file name
+        $pathname = $parent_dir . $pathname
+          if $pathname =~ m,^[^/],;
+
+        if ($pathname =~ m,/$,) {
+            # include all regular files in a directory
+
+            error("'$pathname' is not a directory")
+              unless -d $pathname;
+
+            local *DIR;
+            opendir DIR, $pathname
+              or error("Failed to open directory '$pathname': $!");
+            my @names = readdir DIR;
+            closedir DIR;
+
+            # sort those names for a well-defined order
+            foreach my $name (sort { $a cmp $b } @names) {
+                # don't include hidden and backup files
+                next if /^\.|~$/;
+
+                my $filename = $pathname . $name;
+                push @ret, $filename
+                  if -f $filename;
+            }
+        } else {
+            # include a regular file
+
+            error("'$pathname' is a directory; maybe use trailing '/' to include a directory?")
+              if -d $pathname;
+            error("'$pathname' is not a file")
+              unless -f $pathname;
+
+            push @ret, $pathname;
+        }
+    }
+
+    return @ret;
 }
 
 sub next_token {
@@ -1244,7 +1285,7 @@ sub enter {
             if ($keyword eq 'include') {
                 my $files = getvalues;
 
-                foreach my $filename (to_array $files) {
+                foreach my $filename (collect_filenames to_array $files) {
                     # save old script, open new script
                     my $old_script = $script;
                     open_script($filename);
