@@ -984,42 +984,6 @@ Shows the version number of the program.
 Explicitly define the exact name and location of the
 kernel backend program, for the paranoid people out there.
 
-=item B<--automod>
-
-Automatically insert the correct module parameter when using iptables,
-making the B<module> parameter unnecessary
-
-=back
-
-=head2 Firewall file options
-
-=over 8
-
-=item B<option clearall>
-
-Clears the entire firewall, deletes all user chains and flushes
-the built in chains. Does not alter policies.
-
-=item B<option flushall>
-
-Flushes all chains but does not delete them.
-
-=item B<option flushchains>
-
-Flushes any chain which is defined in the setup, even
-built-in chains are flushed when referred.
-
-=item B<option createchains>
-
-Creates any chain which is referred to, even when no rule is
-specified for the chain, but is only referred by with a 
-"goto" keyword.
-
-=item B<option automod>
-
-Automatically insert the correct module parameter when using iptables,
-making the B<module> parameter unnecessary
-
 =back
 
 
