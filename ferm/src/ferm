@@ -1368,21 +1368,6 @@ sub enter {
             /^tcp-?option$/ && do {
                 $current->{'tcpoption'}=getvalues();
                 ; next; };
-            /^log-level$|^loglev$/ && do {
-                $current->{'loglevel'}=getvar();
-                ; next; };
-            /^log-?prefix$/ && do {
-                $current->{'logprefix'}=getvar();
-                ; next; };
-            /^log-tcp-sequence$|^logseq$/ && do {
-                $current->{'logsequence'}='1';
-                ; next; };
-            /^log-tcp-options$|^logtcpopt$/ && do {
-                $current->{'logtcpoptions'}='1';
-                ; next; };
-            /^log-ip-options$|^logipopt$/ && do {
-                $current->{'logipoptions'}='1';
-                ; next; };
             /^module$|^mod$|^match$/ && do {
                 foreach my $module (split /\x2c|:/, getvalues()) {
                     $current->{modules}{$module} = 1;
@@ -1643,6 +1628,30 @@ sub enter {
                     $keyword =~ /^(?:to-destination|todest)$/) {
                     $current->{todest} = getvar();
                     next;
+                }
+
+                # LOG target switches
+                if ($current->{action} eq 'log') {
+                    if ($keyword =~ /^(?:log-level|loglev)$/) {
+                        $current->{loglevel} = getvar();
+                        next;
+                    }
+                    if ($keyword =~ /^log-?prefix$/) {
+                        $current->{logprefix} = getvar();
+                        next;
+                    }
+                    if ($keyword =~ /^(?:log-tcp-sequence|logseq)$/) {
+                        $current->{logsequence} = 1;
+                        next;
+                    }
+                    if ($keyword =~ /^(?:log-tcp-options|logtcpopt)$/) {
+                        $current->{logtcpoptions} = 1;
+                        next;
+                    }
+                    if ($keyword =~ /^(?:log-ip-options|logipopt)$/) {
+                        $current->{logipoptions} = 1;
+                        next;
+                    }
                 }
 
                 # MARK/CONNMARK target switches
