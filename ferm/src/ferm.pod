@@ -87,7 +87,7 @@ to do with any traffic that matches this condition:
 
 Or, translated to B<ferm>:
 
-    protocol tcp accept;
+    protocol tcp ACCEPT;
 
 Noticed the B<;> character? We're getting to that now, because there
 are some special characters in B<ferm> that make life easy.
@@ -168,7 +168,7 @@ will result in this:
 If you want to put multiple arguments into a variable, you should do
 it like this:
 
-    %IFS = (eth0 eth1 ppp0)
+    set %IFS = (eth0 eth1 ppp0)
 
 This way, ferm will recognize it being a list of values (an "array"),
 and split it whenever needed.
@@ -188,7 +188,7 @@ this will result in three rules:
     ... -p tcp ...
     ... -p udp ...
     ... -p icmp ...
-    
+
 Only values can be 'listed', so you cannot do something like this:
 
     proto tcp ( ACCEPT LOG );
@@ -309,15 +309,15 @@ it is doing.
 The syntax is very simple, let's start with a simple
 example:
 
-    chain input {
+    chain INPUT {
         proto tcp ACCEPT;
     }
 
 This will add a rule to the predefined input chain, matching
 and accepting all tcp packets.  Ok, let's make it more complicated:
 
-    chain (input,output) {
-	proto (udp,tcp) ACCEPT;
+    chain (INPUT OUTPUT) {
+	proto (udp tcp) ACCEPT;
     }
 
 This will insert 4 rules, namely 2 in chain input, and 2 in
@@ -334,9 +334,9 @@ Note how much less typing we need to do? :-)
 Basically, this is all there is to it, although you can
 make it quite more complex. Something to look at:
 
-   chain input policy ACCEPT {
-       destination 10/8 port ! ftp goto mychain sport :1023 tos 4 settos 8 mark 2;
-       destination 10/8 port ftp DENY;
+   chain INPUT policy ACCEPT {
+       daddr 10/8 port ! ftp goto mychain sport :1023 TOS 4 settos 8 mark 2;
+       daddr 10/8 port ftp DENY;
    }
 
 My point here is, that *you* need to make nice rules, keep
@@ -354,7 +354,7 @@ Try using comments to show what you are doing:
 
 You will be thankfull for it later!
 
-    chain input policy ACCEPT {
+    chain INPUT policy ACCEPT {
         interface (eth0,ppp0) {
             # deny access to notorius hackers, return here if
             # no match was found to resume normal firewalling
@@ -368,7 +368,7 @@ You will be thankfull for it later!
 The more you nest, the better it looks. Make sure the order you
 specify is correct, you would not want to do this:
 
-    chain forward {
+    chain FORWARD {
         proto ! udp DENY;
         proto tcp dport ftp ACCEPT;
     }
@@ -796,7 +796,7 @@ never see the real value of that.
 Examples:
 
     set DNSSERVERS `grep nameserver /etc/resolv.conf | awk '{print $2}'`
-    chain input proto tcp saddr %DNSSERVERS ACCEPT;
+    chain INPUT proto tcp saddr %DNSSERVERS ACCEPT;
 
 This way, ferm will interpret the value for DSSERVERS itself, put
 a separating comma between multiple values if needed, and store
