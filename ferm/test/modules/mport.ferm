@@ -1,0 +1,5 @@
+table filter chain INPUT mod mport {
+    proto tcp source-ports (1 2 3) ACCEPT;
+    proto udp destination-ports (3 5 6 7 8 9) ACCEPT;
+    proto tcp ports (1024 1234) ACCEPT;
+}
