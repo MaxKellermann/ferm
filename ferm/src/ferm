@@ -1141,6 +1141,10 @@ sub enter {
                     $current->{'fragment'}='set';}
                 ; next; } ;
 
+            ###
+            # actions
+            #
+
             # jump action
             /^goto$|^jump$/ && do {
                 $current->{'action'}=getvar();
@@ -1149,8 +1153,6 @@ sub enter {
             # policy keywords
             if ($keyword eq 'policy') {
                 my $policy = uc getvar();
-                $policy = 'DROP'
-                  if $policy eq 'DENY';
                 error('invalid policy target, exiting')
                   unless $policy =~ /^(?:ACCEPT|DROP|REJECT)$/;
                 $current->{policy} = $policy;
