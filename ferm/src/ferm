@@ -1033,6 +1033,15 @@ sub tables {
     shell_append(\$rr, '--iplimit-mask', $rule{'iplimit-mask'})
       if exists $rule{'iplimit-mask'};
 
+    # ipt_iplimit parameters
+    foreach (qw(src-range dst-range)) {
+        if (exists $rule{$_}) {
+            shell_append(\$rr, '!')
+              if $rule{$_} =~ s/^!\s*//;
+            shell_append(\$rr, "--$_", $rule{$_})
+        }
+    }
+
     # ipt_length parameters
     shell_append(\$rr, '--length', $rule{length})
       if exists $rule{length};
@@ -1813,6 +1822,13 @@ sub enter {
             if ($keyword eq 'iplimit-mask') {
                 $current->{$keyword} = getvar();
                 $current->{auto_modules}{iplimit} = 1;
+                next;
+            };
+
+            # ipt_iprange switches
+            if ($keyword =~ /^(?:src|dst)-range$/) {
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{iprange} = 1;
                 next;
             };
 
