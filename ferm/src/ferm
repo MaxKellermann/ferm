@@ -49,7 +49,7 @@ use vars qw(%chains);
 
 use vars qw($verbose $debug);
 
-use subs qw(initialize_netfilter open_script);
+use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 # Get command line stuff
 {
@@ -117,6 +117,7 @@ mydie("Specify only one ferm script")
   unless @ARGV == 1;
 
 open_script($ARGV[0]);
+read_header;
 
 # option checks
 if (defined $option{location}) {
@@ -297,21 +298,17 @@ sub next_array_token {
     shift @$array;
 }
 
-sub prepare_tokens {
-    return
-      unless defined $script;
+sub read_header {
+    die unless defined $script;
+    die if defined $script->{parent};
 
     my $tokens = $script->{tokens};
     die unless ref $tokens eq 'ARRAY';
+    die if @$tokens;
 
-    while (@$tokens == 0) {
+    while (1) {
         my $line = $script->{handle}->getline;
-        unless (defined $line) {
-            # end of file, switch to the next in the chain and recurse
-            # to read tokens from this file
-            $script = $script->{parent};
-            return prepare_tokens();
-        }
+        return unless defined $line;
 
         $script->{line} ++;
 
@@ -319,6 +316,7 @@ sub prepare_tokens {
         $line =~ s/#.*$//g;
 
         my @line = tokenize_string($line);
+        next unless @line;
 
         # look at the first word, then decide what to do. some special
         # keywords are handled here, everything else gets added to @tokens
@@ -363,6 +361,7 @@ sub prepare_tokens {
 
             setvar($name, $value);
         } elsif ($line[0] eq 'include') {
+            # XXX: fix this, this does not belong into the header
             # include: include another file
             shift @line;
 
@@ -380,11 +379,43 @@ sub prepare_tokens {
 
             # open it, put it on stack
             open_script($filename);
+            prepare_tokens;
             last;
         } else {
             # the next parser stage eats this
             push @$tokens, @line;
+            last;
         }
+    }
+
+    return 1;
+}
+
+sub prepare_tokens {
+    return
+      unless defined $script;
+
+    my $tokens = $script->{tokens};
+    die unless ref $tokens eq 'ARRAY';
+
+    while (@$tokens == 0) {
+        my $line = $script->{handle}->getline;
+        unless (defined $line) {
+            # end of file, switch to the next in the chain and recurse
+            # to read tokens from this file
+            $script = $script->{parent};
+            return prepare_tokens();
+        }
+
+        $script->{line} ++;
+
+        # chop comments:
+        $line =~ s/#.*$//g;
+
+        my @line = tokenize_string($line);
+
+        # the next parser stage eats this
+        push @$tokens, @line;
     }
 
     return 1;
@@ -404,8 +435,6 @@ sub open_script {
                 tokens => [],
                 parent => $script,
               };
-
-    prepare_tokens();
 
     return $script;
 }
