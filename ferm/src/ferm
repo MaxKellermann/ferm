@@ -1767,7 +1767,7 @@ sub enter {
                               )$/x) {
                 error('There is only one action per rule')
                   if exists $current->{action};
-                $current->{'action'} = uc $keyword;
+                $current->{action} = $keyword;
                 next;
             }
 
