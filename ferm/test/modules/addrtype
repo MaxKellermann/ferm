@@ -1,0 +1,6 @@
+table filter chain input mod addrtype {
+    src-type UNSPEC ACCEPT;
+    src-type BLACKHOLE ACCEPT;
+    src-type PROHIBIT ACCEPT;
+    src-type (UNICAST BROADCAST) ACCEPT;
+}

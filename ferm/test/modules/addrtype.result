@@ -1,0 +1,5 @@
+iptables -t filter -A INPUT -m addrtype -j ACCEPT --src-type UNSPEC
+iptables -t filter -A INPUT -m addrtype -j ACCEPT --src-type BLACKHOLE
+iptables -t filter -A INPUT -m addrtype -j ACCEPT --src-type PROHIBIT
+iptables -t filter -A INPUT -m addrtype -j ACCEPT --src-type UNICAST
+iptables -t filter -A INPUT -m addrtype -j ACCEPT --src-type BROADCAST
