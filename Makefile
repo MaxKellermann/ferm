@@ -16,7 +16,7 @@ LSMFILE	= build/ferm-${VERSION}.lsm
 
 all:
 	make -C doc $@
-	make -C test $@
+	[ ! -d test ] || make -C test $@
 
 clean:
 	rm -rf build
@@ -31,10 +31,10 @@ check:
 
 build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
-	install -d -m 755 build $(DISTDIR) $(DISTDIR)/doc $(DISTDIR)/examples
-	install -m 755 src/ferm $(DISTDIR)
-	install -m 644 scripts/Makefile AUTHORS NEWS COPYING README TODO $(DISTDIR)
-	install -m 644 man/ferm.1 man/ferm.html man/ferm.txt $(DISTDIR)/doc
+	install -d -m 755 $(DISTDIR) $(DISTDIR)/src $(DISTDIR)/doc $(DISTDIR)/examples
+	install -m 755 src/ferm $(DISTDIR)/src
+	install -m 644 doc/Makefile doc/ferm.pod doc/ferm.txt doc/ferm.html doc/ferm.1 $(DISTDIR)/doc
+	install -m 644 config.mk Makefile AUTHORS COPYING NEWS README TODO $(DISTDIR)
 	install -m 644 examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(DISTDIR)/examples
 	cd build && tar czf ferm-$(VERSION).tar.gz ferm-$(VERSION)
 
