@@ -54,20 +54,16 @@ check:
 # compiling targets
 #
 
-ferm.1:
-	@echo "Making unix manual page..."
-	@pod2man --section=1 --release="ferm $(VERSION)" \
+man/ferm.1: src/ferm.pod
+	pod2man --section=1 --release="ferm $(VERSION)" \
 		--center="FIREWALL RULES MADE EASY" \
-		--official $(MANSRC) > man/ferm.1
+		--official $< > $@
 
-ferm.html:
-	@echo "Making HTML manual page..."
-	@pod2html $(MANSRC) --netscape --flush > man/ferm.html
-	@rm -f $(tmpfiles)
+man/ferm.html: src/ferm.pod
+	pod2html $< --netscape --flush > $@
 
-ferm.txt:
-	@echo "Making plain text manual page..."
-	@pod2text $(MANSRC) > man/ferm.txt
+man/ferm.txt: src/ferm.pod
+	pod2text $< > $@
 
 build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
@@ -84,11 +80,8 @@ dist: build/ferm-$(VERSION).tar.gz
 # misc targets
 #
 
-install:
-	@cd $(TARDIR) && make install
-
-uninstall:
-	@cd $(TARDIR) && make uninstall
+install uninstall: dist
+	make -C $(DISTDIR) $@
 
 www:	tar
 	@echo "Publishing tarfiles in $(WEBDIR)..."
@@ -115,25 +108,24 @@ ftp:	tar
 
 $(LSMFILE): dist
 	@echo "Making lsm entry file..."
-	@echo "Begin4" > ${LSMFILE}
-	@echo "Title:          ferm" >> ${LSMFILE}
-	@echo "Version:        $(VERSION)" >> ${LSMFILE}
-	@echo "Entered-date:   $(DATE)" >> ${LSMFILE}
-	@echo "Description:    A tool for structured firewall-rule making" >> ${LSMFILE}
-	@echo "Keywords:       iptables ipchains ipfwadm firewall rules rule" >> ${LSMFILE}
-	@echo "Author:         sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
-	@echo "Maintained-by:  sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
-	@echo "Primary-site:   ferm.foo-projects.org /" >> ${LSMFILE}
-	@echo "                $(SIZE) $(TARFILE)" >> ${LSMFILE}
-	@echo "Alternate-site:" >> ${LSMFILE}
-	@echo "Original-site:" >> ${LSMFILE}
-	@echo "Platforms:      perl linux>=2.4" >> ${LSMFILE}
-	@echo "Copying-policy: GPL" >> ${LSMFILE}
-	@echo "End" >> ${LSMFILE}
-	@echo "Sending lsm entry..."
-        # @mailx -s "add" lsm@execpc.com < ${LSMFILE}
+	@echo "Begin4" > $@
+	@echo "Title:          ferm" >> $@
+	@echo "Version:        $(VERSION)" >> $@
+	@echo "Entered-date:   $(DATE)" >> $@
+	@echo "Description:    A tool for structured firewall-rule making" >> $@
+	@echo "Keywords:       iptables ipchains ipfwadm firewall rules rule" >> $@
+	@echo "Author:         sofar@foo-projects.org (A. Kok)" >> $@
+	@echo "Maintained-by:  sofar@foo-projects.org (A. Kok)" >> $@
+	@echo "Primary-site:   ferm.foo-projects.org /" >> $@
+	@echo "                $(SIZE) $(TARFILE)" >> $@
+	@echo "Alternate-site:" >> $@
+	@echo "Original-site:" >> $@
+	@echo "Platforms:      perl linux>=2.4" >> $@
+	@echo "Copying-policy: GPL" >> $@
+	@echo "End" >> $@
+# @echo "Sending lsm entry..."
+# @mailx -s "add" lsm@execpc.com < $@
 	@echo "Done."
 
 .phony: lsm
 lsm: $(LSMFILE)
-
