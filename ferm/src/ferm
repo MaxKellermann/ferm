@@ -994,7 +994,7 @@ sub tables {
       if exists $rule{state};
 
     # ipt_time parameters
-    foreach (qw(timestart timestop days)) {
+    foreach (qw(timestart timestop days datestart datestop)) {
         $rr .= "--$_ $rule{$_} "
           if exists $rule{$_};
     }
@@ -1640,7 +1640,7 @@ sub enter {
                 ; next; };
 
             # ipt_time switches
-            /^timestart$|^timestop$|^days$/ && do {
+            /^(?:timestart|timestop|days|datestart|datestop)$/ && do {
                 $current->{$keyword}=getvar();
                 $current->{auto_modules}{time} = 1;
                 ; next; };
