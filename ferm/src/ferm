@@ -1572,6 +1572,7 @@ sub enter {
                               )$/ix or
                 $keyword =~ /^(?:CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
                                 |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
+                                |TARPIT
                               )$/x) {
                 error('There is only one action per rule')
                   if exists $current->{action};
