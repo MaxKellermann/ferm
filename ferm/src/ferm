@@ -35,20 +35,27 @@ use Pod::Usage;
 use vars qw($VERSION $DATE);
 
 $VERSION = '1.1+cvs';
-$DATE = '17 nov 2004';
+$DATE = '23 nov 2004';
 
-# global data vars
-my @rules;     # will contain all rules
-my %option;    # some configuration options
-my %vars;      # holds variable data
+## interface variables
+# %option = command line and other options
+# $verbose = true in verbose mode
+# $debug = true in debug mode
+use vars qw(%option $verbose $debug);
 
-use vars qw(@ip_tables_names);
+## parser variables
+# $script: current script file
+# %vars = ferm variables, name => value
+# %subs = ferm functions, name => \@tokens
+# @rules = the rules which are being created
+use vars qw($script %vars @rules);
 
-use vars qw($script);
-use vars qw(%chains);
+## netfilter variables
+# @ip_tables_names = a list of supported table names (filter, nat, mangle)
+# %chains = ferm state information about the chains
+use vars qw(@ip_tables_names %chains);
 
-use vars qw($verbose $debug);
-
+## functions
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 # Get command line stuff
