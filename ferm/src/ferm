@@ -221,7 +221,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|!|,|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
+    foreach my $word ($string =~ m/(\x22[^\x22]+\x22|\x27[^\x27]+\x27|\x60[^\x60]+\x60|[!,=]|[0-9a-zA-Z\x23-\x26\x2a\x2b\x2d-\x3a\x3c-\x7a\x7c\x7e\x7f]+|\x28|\x29|\x7b|\x7d|\x3b)/g) {
         # explanation of all sections:
         # \x22[^\x22]+\x22 == "*"
         # \x27[^\x27]+\x27 == '*'
@@ -322,7 +322,7 @@ sub prepare_tokens {
             shift @line;
             my $name = getvar(\&next_array_token, \@line);
             my $value = getvalues(\&next_array_token, \@line,
-                                 empty_allowed => 1);
+                                  empty_allowed => 1);
 
             if (@line and $line[0] eq ',') {
                 warning('Arrays without parantheses are deprecated');
@@ -569,6 +569,8 @@ sub getvalues {
           if $options{comma_allowed};
 
         error('comma is not allowed here');
+    } elsif ($token eq '=') {
+        error('equals operator ("=") is not allowed here');
     } else {
         return resolve_variable_refs($token);
     }
