@@ -1057,45 +1057,16 @@ Look in the "examples" directory.
 
 =head2 Operating system
 
-The Operating system currently supported is only linux, although
-it may be possible to port this program to support FreeBSD or
-SOLARIS firewall systems, provided they supply a similar
-firewalling scheme. (Does anybody known about that?)
+Linux 2.4 or newer, with netfilter support and all netfilter modules
+used by your firewall script
 
-=head2 Software/packages
+=head2 Software
 
-Required are 2 packages: Perl5, under which this B<ferm>
-runs, and one of the kernel firewall programs, suited for
-your system and kernel version.
-
-=head2 Kernel
-
-The respective required kernel versions for the kernel firewall
-programs (iptables(8)) is also needed. This means you have to have a
-kernel which can use the firewalling thing, something you might have
-to compile a kernel for, or set some switches in /proc. Look at the
-man pages of those kernel programs for more information.
-
-
-=head1 RESTRICTIONS
-
-B<ferm> allows almost anything the used firewall program
-allows, so go ahead and specify complex port ranges, icmp
-by number or worse. Just be warned.
-
-Although quite sophisticated, the kernel interface program
-iptables(8) are very limited in some respects.
-B<ferm> is only an interface to improve the handling of
-these programs, and is therefore limited by the possibilities
-of these programs.
-
+iptables and perl 5.6
 
 =head1 BUGS
 
-Several nasty cleanups are not done well, which may result
-in surviving data. Tried to remove all of them but suspect
-more of them to occur.
-
+Bugs? What bugs?
 
 =head1 COPYRIGHT
 
@@ -1117,5 +1088,3 @@ Auke Kok <sofar@foo-projects.org>, Max Kellermann
 <max@foo-projects.org>
 
 =cut
-
-
