@@ -754,6 +754,18 @@ sub getvalues {
         error('comma is not allowed here');
     } elsif ($token eq '=') {
         error('equals operator ("=") is not allowed here');
+    } elsif ($token eq '$') {
+        my $name = require_next_token;
+        error('variable name expected')
+          unless $name =~ /^\w+$/;
+
+        my @tokens = @{$defs{$name}{tokens}};
+
+        my $result = getvalues(\&next_array_token, \@tokens);
+        error("variable $name has tokens left after value")
+          if @tokens;
+
+        return $result;
     } else {
         return resolve_variable_refs($token);
     }
