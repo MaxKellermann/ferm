@@ -1,0 +1,8 @@
+chain input {
+    ULOG;
+    ULOG ulog-nlgroup 1;
+    ULOG ulog-prefix "foo;bar";
+    ULOG ulog-prefix "foo{}bar";
+    ULOG ulog-cprange 100;
+    ULOG ulog-qthreshold 200;
+}
