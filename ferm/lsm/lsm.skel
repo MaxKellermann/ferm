@@ -4,8 +4,8 @@ Version:	VERSION
 Entered-date:   DATE
 Description:	A tool for structured firewall-rule making
 Keywords:	iptables ipchains ipfwadm firewall rules rule
-Author: 	auke.kok@planet.nl (A. Kok)
-Maintained-by:	auke.kok@planet.nl (A. Kok)
+Author: 	sofar@foo-projects.org (A. Kok)
+Maintained-by:	sofar@foo-projects.org (A. Kok)
 Primary-site:	ferm.sourceforge.net
 		35kB ferm.tar.gz
 Alternate-site: 

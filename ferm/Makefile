@@ -129,8 +129,8 @@ lsm: .phony
 	@echo "Entered-date:   $(DATE)" >> ${LSMFILE}
 	@echo "Description:    A tool for structured firewall-rule making" >> ${LSMFILE}
 	@echo "Keywords:       iptables ipchains ipfwadm firewall rules rule" >> ${LSMFILE}
-	@echo "Author:         auke.kok@planet.nl (A. Kok)" >> ${LSMFILE}
-	@echo "Maintained-by:  auke.kok@planet.nl (A. Kok)" >> ${LSMFILE}
+	@echo "Author:         sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
+	@echo "Maintained-by:  sofar@foo-projects.org (A. Kok)" >> ${LSMFILE}
 	@echo "Primary-site:   ferm.sourceforge.net /" >> ${LSMFILE}
 	@echo "                $(SIZE) ferm.tar.gz" >> ${LSMFILE}
 	@echo "Alternate-site:" >> ${LSMFILE}
