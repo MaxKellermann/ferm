@@ -1,0 +1,7 @@
+table filter chain input {
+    TOS set-tos Minimize-Delay ACCEPT;
+    TOS set-tos Maximize-Throughput ACCEPT;
+    TOS set-tos Maximize-Reliability ACCEPT;
+    TOS set-tos Minimize-Cost ACCEPT;
+    TOS set-tos Normal-Service ACCEPT;
+}
