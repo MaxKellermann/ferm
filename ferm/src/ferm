@@ -824,11 +824,10 @@ sub tables {
       if defined $rule{daddr};
 
     if (defined $rule{'fragment'}) {
-        if ($rule{'fragment'} eq 'set') {
-            $rr .= '-f ';
-        } else {
-            $rr .= '! -f ';
-        }
+        shell_append(\$rr, '!')
+          unless $rule{fragment} eq 'set';
+
+        shell_append(\$rr, '-f')
     }
 
     # more common options (mostly NAT)
@@ -852,11 +851,10 @@ sub tables {
       if defined $rule{dport};
 
     if (defined $rule{'syn'}) {
-        if ($rule{'syn'} eq 'set') {
-            $rr .= '--syn ';
-        } else {
-            $rr .= '! --syn ';
-        }
+        shell_append(\$rr, '!')
+          unless $rule{syn} eq 'set';
+
+        shell_append(\$rr, '--syn')
     }
 
     shell_append(\$rr, '--mss', $rule{mss})
