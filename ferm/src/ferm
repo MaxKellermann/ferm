@@ -1299,7 +1299,7 @@ sub enter {
 
             # tcp protocol switches
             if (defined $proto and
-                $proto eq 'tcp') {
+                grep { $_ eq 'tcp' } to_array $proto) {
                 if ($keyword =~ /^[sd]port$/) {
                     $current->{$keyword} = getvalues();
                     next;
@@ -1337,7 +1337,7 @@ sub enter {
 
             # udp protocol switches
             if (defined $proto and
-                $proto eq 'udp' and
+                grep { $_ eq 'udp' } to_array $proto and
                 $keyword =~ /^[sd]port$/) {
                 $current->{$keyword} = getvalues();
                 next;
