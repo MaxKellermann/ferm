@@ -35,7 +35,7 @@ use Pod::Usage;
 use vars qw($VERSION $DATE);
 
 $VERSION = '1.1+cvs';
-$DATE = '23 nov 2004';
+$DATE = '24 feb 2005';
 
 ## interface variables
 # %option = command line and other options
