@@ -897,6 +897,10 @@ sub tables {
         shell_append(\$rr, '-f')
     }
 
+    #
+    # protocol options
+    #
+
     # proto tcp [udp]
     shell_append(\$rr, '--sport', $rule{sport})
       if defined $rule{sport};
@@ -920,80 +924,13 @@ sub tables {
     shell_append(\$rr, '--tcp-option', $rule{'tcp-option'})
       if exists $rule{'tcp-option'};
 
-    shell_append(\$rr, '-j', $rule{action})
-      unless $rule{'action'} eq 'NOP';
-
-    # more common options (mostly NAT)
-    shell_append(\$rr, '--to', $rule{to})
-      if defined $rule{to};
-    shell_append(\$rr, '--to-ports', $rule{'to-ports'})
-      if defined $rule{'to-ports'};
-    shell_append(\$rr, '--to-destination', $rule{'to-destination'})
-      if defined $rule{'to-destination'};
-
-    if (exists $rule{'to-source'}) {
-        foreach (split /,/, $rule{'to-source'}) {
-            shell_append(\$rr, '--to-source', $_);
-        }
-    }
-
     # proto icmp
     shell_append(\$rr, '--icmp-type', $rule{'icmp-type'})
       if defined $rule{'icmp-type'};
 
-    # target LOG
-    shell_append(\$rr, '--log-level', $rule{'log-level'})
-      if defined $rule{'log-level'};
-    shell_append(\$rr, '--log-prefix', $rule{'log-prefix'})
-      if exists $rule{'log-prefix'};
-    shell_append(\$rr, '--log-tcp-sequence')
-      if defined $rule{'log-tcp-sequence'};
-    shell_append(\$rr, '--log-tcp-options')
-      if defined $rule{'log-tcp-options'};
-    shell_append(\$rr, '--log-ip-options')
-      if defined $rule{'log-ip-options'};
-
-    # taget MARK, CONNMARK
-    shell_append(\$rr, '--set-mark', $rule{'set-mark'})
-      if exists $rule{'set-mark'};
-    shell_append(\$rr, '--save-mark')
-      if defined $rule{'save-mark'};
-    shell_append(\$rr, '--restore-mark')
-      if defined $rule{'restore-mark'};
-
-    # target REJECT
-    shell_append(\$rr, '--reject-with', $rule{'reject-with'})
-      if defined $rule{'reject-with'};
-
-    # target TCPMSS
-    shell_append(\$rr, '--set-mss', $rule{'set-mss'})
-      if defined $rule{'set-mss'};
-    shell_append(\$rr, '--clamp-mss-to-pmtu')
-      if defined $rule{'clamp-mss-to-pmtu'};
-
-    # target TOS
-    if (defined $rule{'set-tos'} ) {
-        # some translations for ferm 1.1 compatibility
-        $rule{'set-tos'} =~ s/^min-?cost$/0x02/;
-        $rule{'set-tos'} =~ s/^(?:reliability|reliable)$/0x04/;
-        $rule{'set-tos'} =~ s/^max-?throughput$/0x08/;
-        $rule{'set-tos'} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-        $rule{'set-tos'} =~ s/^clear$/0x00/;
-
-        shell_append(\$rr, '--set-tos', $rule{'set-tos'});
-    }
-
-    # target TTL
-    foreach (qw(set inc dec)) {
-        shell_append(\$rr, "--ttl-$_", $rule{"ttl-$_"})
-          if defined $rule{"ttl-$_"};
-    }
-
-    # target ULOG
-    foreach (qw(nlgroup prefix cprange qthreshold)) {
-        shell_append(\$rr, "--ulog-$_", $rule{"ulog-$_"})
-          if defined $rule{"ulog-$_"};
-    }
+    #
+    # match module options
+    #
 
     # ipt_addrtype parameters
     shell_append(\$rr, '--src-type', $rule{'src-type'})
@@ -1170,10 +1107,85 @@ sub tables {
           if exists $rule{$_};
     }
 
-    # ROUTE parameters
+    #
+    # target options
+    #
+
+    shell_append(\$rr, '-j', $rule{action})
+      unless $rule{'action'} eq 'NOP';
+
+    # common target options (mostly NAT)
+    shell_append(\$rr, '--to', $rule{to})
+      if defined $rule{to};
+    shell_append(\$rr, '--to-ports', $rule{'to-ports'})
+      if defined $rule{'to-ports'};
+    shell_append(\$rr, '--to-destination', $rule{'to-destination'})
+      if defined $rule{'to-destination'};
+
+    if (exists $rule{'to-source'}) {
+        foreach (split /,/, $rule{'to-source'}) {
+            shell_append(\$rr, '--to-source', $_);
+        }
+    }
+
+    # target LOG
+    shell_append(\$rr, '--log-level', $rule{'log-level'})
+      if defined $rule{'log-level'};
+    shell_append(\$rr, '--log-prefix', $rule{'log-prefix'})
+      if exists $rule{'log-prefix'};
+    shell_append(\$rr, '--log-tcp-sequence')
+      if defined $rule{'log-tcp-sequence'};
+    shell_append(\$rr, '--log-tcp-options')
+      if defined $rule{'log-tcp-options'};
+    shell_append(\$rr, '--log-ip-options')
+      if defined $rule{'log-ip-options'};
+
+    # taget MARK, CONNMARK
+    shell_append(\$rr, '--set-mark', $rule{'set-mark'})
+      if exists $rule{'set-mark'};
+    shell_append(\$rr, '--save-mark')
+      if defined $rule{'save-mark'};
+    shell_append(\$rr, '--restore-mark')
+      if defined $rule{'restore-mark'};
+
+    # target REJECT
+    shell_append(\$rr, '--reject-with', $rule{'reject-with'})
+      if defined $rule{'reject-with'};
+
+    # target ROUTE
     foreach (qw(oif iif gw)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
+    }
+
+    # target TCPMSS
+    shell_append(\$rr, '--set-mss', $rule{'set-mss'})
+      if defined $rule{'set-mss'};
+    shell_append(\$rr, '--clamp-mss-to-pmtu')
+      if defined $rule{'clamp-mss-to-pmtu'};
+
+    # target TOS
+    if (defined $rule{'set-tos'} ) {
+        # some translations for ferm 1.1 compatibility
+        $rule{'set-tos'} =~ s/^min-?cost$/0x02/;
+        $rule{'set-tos'} =~ s/^(?:reliability|reliable)$/0x04/;
+        $rule{'set-tos'} =~ s/^max-?throughput$/0x08/;
+        $rule{'set-tos'} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+        $rule{'set-tos'} =~ s/^clear$/0x00/;
+
+        shell_append(\$rr, '--set-tos', $rule{'set-tos'});
+    }
+
+    # target TTL
+    foreach (qw(set inc dec)) {
+        shell_append(\$rr, "--ttl-$_", $rule{"ttl-$_"})
+          if defined $rule{"ttl-$_"};
+    }
+
+    # target ULOG
+    foreach (qw(nlgroup prefix cprange qthreshold)) {
+        shell_append(\$rr, "--ulog-$_", $rule{"ulog-$_"})
+          if defined $rule{"ulog-$_"};
     }
 
     shell_append(\$rr, '--continue')
