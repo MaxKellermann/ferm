@@ -1511,7 +1511,7 @@ sub enter {
             if (defined $current->{action}) {
                 # DNAT target switches
                 if ($current->{action} eq 'DNAT' and
-                    $keyword =~ /^(?:to-destination|todest)$/) {
+                    $keyword =~ /^(?:to-destination|todest|to)$/) {
                     $current->{todest} = getvar();
                     next;
                 }
@@ -1584,7 +1584,7 @@ sub enter {
 
                 # SNAT target switches
                 if ($current->{action} eq 'SNAT' and
-                    $keyword =~ /^(?:to-source|tosrc)$/) {
+                    $keyword =~ /^(?:to-source|tosrc|to)$/) {
                     my @params = to_array getvalues(undef, undef,
                                                     non_empty => 1);
                     $current->{tosrc} = join(',', @params);
