@@ -1,1 +1,1 @@
-table nat chain output MASQ to 123-321;
+table nat chain output MASQ to-ports 123-321;

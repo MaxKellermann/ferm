@@ -1,0 +1,13 @@
+chain input {
+    proto tcp dport 22 ACCEPT;
+    proto tcp dport ! 22 DROP;
+    proto tcp {
+        tcp-flags (SYN FIN RST) SYN DROP;
+        syn REJECT;
+        !syn ACCEPT;
+        tcp-option 2 ACCEPT;
+        tcp-option ! 3 DROP;
+        tcp-option (4 5) REJECT;
+        mss 100:200 DROP;
+    }
+}

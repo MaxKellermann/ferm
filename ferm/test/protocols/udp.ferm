@@ -1,0 +1,4 @@
+chain input {
+    proto udp dport 22 ACCEPT;
+    proto udp sport 100:200 DROP;
+}

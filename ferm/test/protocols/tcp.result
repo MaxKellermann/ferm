@@ -1,0 +1,10 @@
+iptables -t filter -A INPUT -p tcp --dport 22 -j ACCEPT
+iptables -t filter -A INPUT -p tcp --dport ! 22 -j DROP
+iptables -t filter -A INPUT -p tcp --tcp-flags SYN,FIN,RST SYN -j DROP
+iptables -t filter -A INPUT -p tcp --syn -j REJECT
+iptables -t filter -A INPUT -p tcp ! --syn -j ACCEPT
+iptables -t filter -A INPUT -p tcp --tcp-option 2 -j ACCEPT
+iptables -t filter -A INPUT -p tcp --tcp-option ! 3 -j DROP
+iptables -t filter -A INPUT -p tcp --tcp-option 4 -j REJECT
+iptables -t filter -A INPUT -p tcp --tcp-option 5 -j REJECT
+iptables -t filter -A INPUT -p tcp --mss 100:200 -j DROP
