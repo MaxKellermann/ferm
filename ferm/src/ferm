@@ -403,7 +403,7 @@ sub open_script {
           if $s->{filename} eq $filename;
     }
 
-    my $handle = new IO::File("<$filename");
+    my $handle = new IO::File($filename);
     mydie("Failed to open $filename: $!")
       unless defined $handle;
 
@@ -431,7 +431,7 @@ sub collect_filenames {
         # non-absolute file names are relative to the parent script's
         # file name
         $pathname = $parent_dir . $pathname
-          if $pathname =~ m,^[^/],;
+          if $pathname =~ m,^\.,;
 
         if ($pathname =~ m,/$,) {
             # include all regular files in a directory
@@ -454,6 +454,11 @@ sub collect_filenames {
                 push @ret, $filename
                   if -f $filename;
             }
+        } elsif ($pathname =~ m,\|$,) {
+            # run a program and use its output
+            push @ret, $pathname;
+        } elsif ($pathname =~ m,^\|,) {
+            error('This kind of pipe is not allowed');
         } else {
             # include a regular file
 
