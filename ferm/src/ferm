@@ -1004,6 +1004,13 @@ sub tables {
           if exists $rule{$_};
     }
 
+    # ipt_dscp parameters
+    shell_append(\$rr, '--dscp', $rule{dscp})
+      if exists $rule{dscp};
+
+    shell_append(\$rr, '--dscp-class', split(/\0/, $rule{'dscp-class'}))
+      if exists $rule{'dscp-class'};
+
     # ipt_iplimit parameters
     if (exists $rule{'iplimit-above'}) {
         shell_append(\$rr, '!')
@@ -1745,6 +1752,19 @@ sub enter {
                 $current->{auto_modules}{conntrack} = 1;
                 next;
             };
+
+            # ipt_dscp switches
+            if ($keyword eq 'dscp') {
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{dscp} = 1;
+                next;
+            }
+
+            if ($keyword eq 'dscp-class') {
+                $current->{$keyword} = getvar() . "\0" . getvar();
+                $current->{auto_modules}{dscp} = 1;
+                next;
+            }
 
             # ipt_iplimit switches
             if ($keyword eq 'iplimit-above') {
