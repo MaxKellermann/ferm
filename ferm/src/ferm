@@ -1154,7 +1154,7 @@ sub enter {
             if ($keyword eq 'policy') {
                 my $policy = uc getvar();
                 error('invalid policy target, exiting')
-                  unless $policy =~ /^(?:ACCEPT|DROP|REJECT)$/;
+                  unless $policy =~ /^(?:ACCEPT|DROP)$/;
                 $current->{policy} = $policy;
                 next;
             }
