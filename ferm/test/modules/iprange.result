@@ -1,0 +1,4 @@
+iptables -t filter -A INPUT -m iprange -j ACCEPT --src-range 10.0.0.0-10.1.0.0
+iptables -t filter -A INPUT -m iprange -j ACCEPT ! --dst-range 10.2.0.0-10.3.0.0
+iptables -t filter -A INPUT -m iprange -j DROP --dst-range 10.2.0.0-10.3.0.0
+iptables -t filter -A INPUT -m iprange -j DROP --dst-range 172.16.0.0-172.16.15.0
