@@ -34,7 +34,6 @@ $DATE = '19 oct 2004';
 
 # global data vars
 my @fw;        # fwset in list of hashes
-my %rule;      # a rule container
 my @rules;     # will contain all rules
 my %chains;    # chain box for ipchains
     $chains{'input'} = 0;
@@ -422,6 +421,9 @@ sub getvalues {
 # here are the three currently known fw-set interfaces to the kernel
 
 sub chains {
+    my $rule = shift;
+    my %rule = %$rule;
+
     # ipchains
     my $rr = "";
 
@@ -555,6 +557,9 @@ sub chains {
 
 
 sub tables {
+    my $rule = shift;
+    my %rule = %$rule;
+
     # iptables, for 2.3/2.4 kernels
     my $rr = "";
     my $rrr = "";
@@ -918,6 +923,9 @@ sub tables {
 
 
 sub fwadm {
+    my $rule = shift;
+    my %rule = %$rule;
+
     # obsolete ipfwadm
     my $rr;
 
@@ -1044,20 +1052,22 @@ sub flushall {
 
 
 sub printrule {
+    my $rule = shift;
+
     # debug: print whatever is in memory
     if ($debug) {
         my $db;
         $db = "# Rule parsed   : ";
-        foreach my $key ( keys %rule) {
-            $db .= $key . "=" . $rule{$key} . " ";
+        while (my ($key, $value) = each %$rule) {
+            $db .= $key . "=" . $value . " ";
         };
         push @rules, $db . "\n";
     };
 
     # prints all rules in a hash
-    if ( $option{'ipchains'} ) { chains () ; }
-    elsif ( $option{'iptables'} ) { tables () ; }
-    elsif ( $option{'ipfwadm'} ) { fwadm () ; }
+    if ( $option{'ipchains'} ) { chains ($rule) ; }
+    elsif ( $option{'iptables'} ) { tables ($rule) ; }
+    elsif ( $option{'ipfwadm'} ) { fwadm ($rule) ; }
     else {
         mydie ('Unknown or no kernel interface specified, try to set "option [iptables|ipchains|ipfwadm] or use the --use parameter'); } ;
 }
@@ -1088,6 +1098,7 @@ sub mkrules {
     };
 
     sub dofr {
+        my $rule = shift;
         my $current = shift;
 
         # loop over all keys in this level (only 1)
@@ -1105,20 +1116,20 @@ sub mkrules {
                 }
                 $value =~ s/^!/! /;
                 # set this one and recurse
-                $rule{$key} = $value;
+                $rule->{$key} = $value;
 
                 if (@_) {
-                    dofr(@_);
+                    dofr($rule, @_);
                 } else {
-                    printrule();
+                    printrule($rule);
                 }
             }
 
-            delete $rule{$key};
+            delete $rule->{$key};
         }
     }
 
-    dofr(@fr);
+    dofr({}, @fr);
 }
 
 
