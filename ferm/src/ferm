@@ -1302,6 +1302,27 @@ sub enter {
         # the core: parse all data
         SWITCH: for ($keyword)
         {
+            # choose a side
+            if ($keyword =~ /^(?:source|src)$/) {
+                $current->{side} = 'source';
+                next;
+            }
+
+            if ($keyword =~ /^(?:destination|dest)$/) {
+                $current->{side} = 'destination';
+                next;
+            }
+
+            if ($keyword =~ /^(?:port|addr)$/) {
+                error("source/destination not declared, exiting")
+                  unless exists $current->{side};
+                if ($current->{side} eq 'source') {
+                    $keyword = 's' . $keyword;
+                } elsif ($current->{side} eq 'destination') {
+                    $keyword = 'd' . $keyword;
+                }
+            }
+
             # routing base parameters
             /^chain$/ && do {
                 $current->{'chain'} = getvalues();
@@ -1321,16 +1342,6 @@ sub enter {
             /^dport$/ && do {
                 $current->{'dport'}=getvalues();
                 ; next; };
-            /^port$/ && do {
-                error("source/destination not declared, exiting")
-                  unless exists $current->{side};
-                if ($current->{side} eq 'source' ) {
-                    $current->{sport} = getvalues();
-                } elsif ($current->{side} eq 'destination' ) {
-                    $current->{dport} = getvalues();
-                }
-                next;
-            };
 
             /^icmptype$|^icmp-type$/ && do {
                 $current->{'icmptype'}=getvalues();
@@ -1341,16 +1352,6 @@ sub enter {
             /^daddr$/ && do {
                 $current->{'daddr'}=getvalues();
                 ; next; };
-            /^addr$/ && do {
-                error("source/destination not declared, exiting")
-                  unless exists $current->{side};
-                if ($current->{side} eq 'source') {
-                    $current->{'saddr'} = getvalues();
-                } elsif ($current->{side} eq 'destination') {
-                    $current->{'daddr'} = getvalues();
-                }
-                next;
-            };
 
             # extended parameters:
             /^settos$/ && do {
@@ -1422,12 +1423,6 @@ sub enter {
                     undef $negated;
                 } else {
                     $current->{'fragment'}='set';}
-                ; next; } ;
-            /^source$|^src$/ && do {
-                $current->{side} = 'source';
-                ; next; } ;
-            /^destination$|^dest$/&& do {
-                $current->{side} = 'destination';
                 ; next; } ;
             /^to$/ && do {
                 $current->{'to'}=getvar();
