@@ -823,6 +823,13 @@ sub tables {
           if exists $rule{$_};
     }
 
+    # ipt_conntrack parameters
+    foreach (qw(ctstate ctproto ctorigsrc ctorigdst),
+             qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
+        $rr .= "--$_ " . $rule{$_} . " "
+          if exists $rule{$_};
+    }
+
     $rr .= "\n";
     push @rules, $rr;
 };
@@ -1222,6 +1229,12 @@ sub enter {
             };
             /^(?:set|rcheck|update|remove|rttl)$/ && do {
                 $fw[$lev]{$keyword}=1;
+                next;
+            };
+
+            # ipt_conntrack switches
+            /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
+                $fw[$lev]{$keyword}=getvar();
                 next;
             };
 
