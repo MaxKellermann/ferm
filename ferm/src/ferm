@@ -644,11 +644,6 @@ sub tables {
     # pre-setup rrr for creation of chains
     $rrr .= "$option{'location'} -t " . $rule{'table'} . " ";
 
-    # in iptables, built-in chains are UPPERCASE
-    for( $rule{'chain'} ) {
-        /^input$|^forward$|^output$|^prerouting$|^postrouting$/ && do {
-            $rule{'chain'} = uc $rule{'chain'} ; } };
-
     # should we set a policy?
     if (exists $chains{$rule{table}}{$rule{chain}}{set_policy}) {
         my $policy = $chains{$rule{table}}{$rule{chain}}{policy};
@@ -1241,6 +1236,16 @@ sub enter {
                   if exists $current->{chain};
                 $current->{chain} = getvalues();
 
+                if (ref $current->{chain}) {
+                    foreach (@{$current->{chain}}) {
+                        s/^(?:input|forward|output|prerouting|postrouting)$/uc $&/e
+                          and warning('Please write built-in chain names in upper case');
+                    }
+                } else {
+                    $current->{chain} =~ s/^(?:input|forward|output|prerouting|postrouting)$/uc $&/e
+                      and warning('Please write built-in chain names in upper case');
+                }
+
                 $current->{table} = 'filter'
                   unless defined find_option(\@fw, 'table');
 
@@ -1328,15 +1333,15 @@ sub enter {
 
                 foreach my $table (to_array $tables) {
                     foreach my $chain (to_array $chains) {
-                        error('cannot set the policy for non-built in chains, exiting')
-                          unless grep { $_ eq uc $chain }
+                        error("cannot set the policy for non-builtin chain '$chain'")
+                          unless grep { $_ eq $chain }
                             qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
 
-                        if (exists $chains{$table}{uc $chain}{policy}) {
+                        if (exists $chains{$table}{$chain}{policy}) {
                             warning('policy for this chain is specified for the second time');
                         } else {
-                            $chains{$table}{uc $chain}{policy} = $policy;
-                            $chains{$table}{uc $chain}{set_policy} = 1;
+                            $chains{$table}{$chain}{policy} = $policy;
+                            $chains{$table}{$chain}{set_policy} = 1;
                         }
                     }
                 }
