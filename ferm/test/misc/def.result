@@ -1,0 +1,9 @@
+iptables -t filter -A INPUT -p http -j ACCEPT 
+iptables -t filter -A INPUT -p ftp -j ACCEPT 
+iptables -t filter -A INPUT -p ah -j DROP 
+iptables -t filter -A OUTPUT -p tcp --dport https -j REJECT 
+iptables -t filter -A OUTPUT -p tcp --dport http -j REJECT 
+iptables -t filter -A OUTPUT -p tcp --dport ftp -j REJECT 
+iptables -t filter -A OUTPUT -p tcp --dport ntp -j REJECT 
+iptables -t filter -A OUTPUT -p ah -j ACCEPT 
+iptables -t filter -A OUTPUT -p esp -j ACCEPT 
