@@ -721,14 +721,19 @@ sub getvalues {
         # remove comments
         $output =~ s/#.*//mg;
 
-        # interpret the result as an array
-        $output = '( ' . $output . ' )';
-
         # tokenize
         my @tokens = tokenize_string($output);
 
+        my @values;
+        while (@tokens) {
+            my $value = getvalues(\&next_array_token, \@tokens);
+            push @values, to_array($value);
+        }
+
         # and recurse
-        return getvalues(\&next_array_token, \@tokens);
+        return @values == 1
+          ? $values[0]
+            : \@values;
     } elsif ($token eq '!') {
         $token = getvalues($code, $param);
 
