@@ -92,6 +92,9 @@ use vars qw(%deprecated_keywords);
                          todest => 'to-destination',
                          burst => 'limit-burst',
                          limitburst => 'limit-burst',
+                         match => 'module',
+                         frag => 'fragment',
+                         'out-interface' => 'outerface',
                        );
 
 # Get command line stuff
@@ -1561,15 +1564,18 @@ sub enter {
             }
 
             # routing base parameters
-            /^(?:interface|if)$/ && do {
-                $current->{'interface'}=getvalues();
-                ; next; } ;
-            /^outerface$|^out-interface$|^of$/ && do {
-                $current->{'outerface'}=getvalues();
-                ; next; } ;
-            /^protocol$|^proto$/ && do {
-                $current->{'proto'}=getvalues();
-                ; next; } ;
+            if (/^(?:interface|if)$/) {
+                $current->{interface} = getvalues();
+                next;
+            }
+            if (/^(?:outerface|of)$/) {
+                $current->{outerface} = getvalues();
+                next;
+            }
+            if (/^proto(?:col)?$/) {
+                $current->{proto} = getvalues();
+                next;
+            }
 
             /^saddr$/ && do {
                 $current->{'saddr'}=getvalues();
@@ -1579,20 +1585,23 @@ sub enter {
                 ; next; };
 
             # extended parameters:
-            /^module$|^mod$|^match$/ && do {
+            if (/^mod(?:ule)?$/) {
                 foreach my $module(to_array getvalues) {
                     $current->{modules}{$module} = 1;
                 }
-                ; next; };
+                next;
+            }
 
             # miscelleanous switches
-            /^fragment$|^frag$/ && do {
+            if ($keyword eq 'fragment') {
                 if ($negated) {
-                    $current->{'fragment'}='unset';
+                    $current->{$keyword} = 'unset';
                     undef $negated;
                 } else {
-                    $current->{'fragment'}='set';}
-                ; next; } ;
+                    $current->{$keyword} = 'set';
+                }
+                next;
+            }
 
             ###
             # actions
