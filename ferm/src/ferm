@@ -114,7 +114,9 @@ $option{'createchains'} = (defined $opt_createchains);
 $option{'automod'} = (defined $opt_automod);
 $option{'ipchains'} = $option{'iptables'} = $option{'ipfwadm'} = 0;
 if (defined $opt_use) {
-    $option{$opt_use} = 1; }
+    $option{$opt_use} = 1;
+    $option{frontend} = $opt_use;
+}
 if (defined $opt_location) {
     $option{'location'} = $opt_location;
     if ( ! -X $option{'location'}) {
