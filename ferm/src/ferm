@@ -46,9 +46,9 @@ use vars qw(%option $verbose $debug);
 ## parser variables
 # $script: current script file
 # %vars = ferm variables, name => value
-# %defs = ferm functions and variables
+# %functions = ferm functions and variables
 # @rules = the rules which are being created
-use vars qw($script %vars %defs @rules);
+use vars qw($script %vars %functions @rules);
 
 ## netfilter variables
 # @ip_tables_names = a list of supported table names (filter, nat, mangle)
@@ -765,15 +765,11 @@ sub getvalues {
           unless $name =~ /^\w+$/;
 
         error("no such variable: $name")
-          unless exists $defs{$name};
+          unless exists $vars{$name};
 
-        my @tokens = @{$defs{$name}{tokens}};
-
-        my $result = getvalues(\&next_array_token, \@tokens);
-        error("spare tokens after value of \$$name")
-          if @tokens;
-
-        return $result;
+        return $vars{$name};
+    } elsif ($token eq '&') {
+        error("function calls are not allowed as keyword parameter");
     } else {
         return resolve_variable_refs($token);
     }
@@ -1518,89 +1514,94 @@ sub enter {
 
             # definition of a variable or function
             if ($keyword eq 'def') {
-                my %def;
+                error('"def" must be the first token in a command')
+                  if keys %$current;
 
-                my $type = require_next_token;
-                error('"$" (variable) or "&" (function) expected')
-                  unless $type eq '&' or $type eq '$';
+                my $type = require_next_token();
+                if ($type eq '$') {
+                    my $name = require_next_token();
+                    error('invalid variable name')
+                      unless $name =~ /^\w+$/;
 
-                my $name = getvar;
-                error('function/variable name expected')
-                  unless $name =~ /^\w+$/;
+                    $keyword = require_next_token();
+                    error('"=" expected after variable name')
+                      unless $keyword eq '=';
 
-                if ($type eq '&') {
+                    my $value = getvalues();
+
+                    $keyword = next_token();
+                    error('";" expected after variable declaration')
+                      unless defined $keyword and $keyword eq ';';
+
+                    $vars{$name} = $value;
+                } elsif ($type eq '&') {
+                    my $name = require_next_token();
+                    error('invalid function name')
+                      unless $name =~ /^\w+$/;
+
                     my @params;
-                    my $token = require_next_token;
+                    my $token = require_next_token();
                     error('function parameter list expected')
                       unless $token eq '(';
                     while (($token = require_next_token) ne ')') {
                         if (@params) {
                             error('comma expected')
                               unless $token eq ',';
-                            $token = require_next_token;
+                            $token = require_next_token();
                         }
 
-                        error('function parameter name expected')
+                        error('invalid function parameter name')
                           unless $token =~ /^\w+$/;
                         push @params, $token;
                     }
 
-                    $def{params} = \@params;
-                }
+                    my %function;
 
-                $keyword = require_next_token;
-                error('"=" expected')
-                  unless $keyword eq '=';
+                    $function{params} = \@params;
 
-                my @level;
-                my @tokens;
+                    $keyword = require_next_token;
+                    error('"=" expected')
+                      unless $keyword eq '=';
 
-                while (defined ($keyword = next_token)) {
-                    if ($keyword =~ /^[\{\(]$/) {
-                        push @level, $keyword;
-                    } elsif ($keyword =~ /^[\}\)]$/) {
-                        my $expected = $keyword;
-                        $expected =~ tr/\}\)/\{\(/;
-                        my $opener = pop @level;
-                        error("unmatched '$keyword'")
-                          unless defined $opener and $opener eq $expected;
-                    } elsif ($keyword eq ';' and @level == 0) {
-                        last;
+                    my @level;
+                    my @tokens;
+
+                    while (1) {
+                        $keyword = next_token();
+                        error('unexpected end of file within function/variable declaration')
+                          unless defined $keyword;
+
+                        if ($keyword =~ /^[\{\(]$/) {
+                            push @level, $keyword;
+                        } elsif ($keyword =~ /^[\}\)]$/) {
+                            my $expected = $keyword;
+                            $expected =~ tr/\}\)/\{\(/;
+                            my $opener = pop @level;
+                            error("unmatched '$keyword'")
+                              unless defined $opener and $opener eq $expected;
+                        } elsif ($keyword eq ';' and @level == 0) {
+                            last;
+                        }
+
+                        push @tokens, $keyword;
+
+                        last
+                          if $keyword eq '}' and @level == 0;
                     }
 
-                    push @tokens, $keyword;
+                    $function{tokens} = \@tokens;
 
-                    last
-                      if $keyword eq '}' and @level == 0;
+                    $functions{$name} = \%function;
+                } else {
+                    error('"$" (variable) or "&" (function) expected');
                 }
 
-                error('unexpected end of file within function/variable declaration')
-                  if @level;
-
-                $def{tokens} = \@tokens;
-
-                $defs{$name} = \%def;
-
-                %$current = ();
                 next;
             }
 
             # def references
             if ($keyword eq '$') {
-                my $name = require_next_token;
-                error('variable name expected')
-                  unless $name =~ /^\w+$/;
-
-                my $def = $defs{$name};
-                error("no such variable: \$$name")
-                  unless defined $def;
-
-                error("is a function, not a variable: \&$name")
-                  if exists $def->{params};
-
-                unshift @{$script->{tokens}}, @{$def->{tokens}};
-
-                next;
+                error('variable references are only allowed as keyword parameter');
             }
 
             if ($keyword eq '&') {
@@ -1608,12 +1609,9 @@ sub enter {
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
-                my $def = $defs{$name};
+                my $def = $functions{$name};
                 error("no such function: \&$name")
                   unless defined $def;
-
-                error("not a function: \$$name")
-                  unless exists $def->{params};
 
                 my $params = getvalues();
                 error('function name must be followed by "()"')
