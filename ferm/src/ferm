@@ -1505,7 +1505,7 @@ sub enter {
 
             ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
                    netlink|nop|queue|reject|return|tcpmss|ttl|ulog)$/ix or
-              /^(?:TOS|MARK)$/ ) && do {
+              /^(?:TOS|MARK|CONNMARK)$/ ) && do {
                 if (exists $current->{action}) {
                     if ($current->{action} eq 'log') {
                         # if the action is already set to "log",
@@ -1592,11 +1592,6 @@ sub enter {
                 $current->{'mark'}=getvar();
                 $current->{auto_modules}{mark} = 1;
                 ; next; };
-            /^set-?mark$/ && do {
-                $current->{'setmark'}=getvar();
-                $current->{auto_modules}{mark} = 1;
-                # XXX: MARK/CONNMARK conflict
-                ; next; };
 
             # ipt_nth switches
             /^every$|^counter$|^start$|^packet$/ && do {
@@ -1677,6 +1672,15 @@ sub enter {
                 $current->{auto_modules}{ttl} = 1;
                 next;
             };
+
+            # MARK/CONNMARK target switches
+            if (defined $current->{action} and
+                ($current->{action} eq 'mark' or
+                 $current->{action} eq 'connmark') and
+                $keyword =~ /^set-?mark$/) {
+                $current->{'setmark'} = getvar();
+                next;
+            }
 
             # effectuation operator
             /(\x3b)/ && do {
