@@ -102,6 +102,10 @@ use vars qw(%deprecated_keywords);
                          iplimitmask => 'iplimit-mask',
                          'ip-limit-above' => 'iplimit-above',
                          'ip-limit-mask' => 'iplimit-mask',
+                         psdweightthreshold => 'psd-weight-threshold',
+                         psddelaythreshold => 'psd-delay-threshold',
+                         psdloportsweight => 'psd-lo-ports-weight',
+                         psdhiportsweight => 'psd-hi-ports-weight',
                        );
 
 # Get command line stuff
@@ -1038,14 +1042,11 @@ sub tables {
       if exists $rule{'pkt-type'};
 
     # ipt_psd switches
-    shell_append(\$rr, '--psd-weight-threshold', $rule{psdweightthreshold})
-      if exists $rule{psdweightthreshold};
-    shell_append(\$rr, '--psd-delay-threshold', $rule{psddelaythreshold})
-      if exists $rule{psddelaythreshold};
-    shell_append(\$rr, '--psd-lo-ports-weight', $rule{psdloportsweight})
-      if exists $rule{psdloportsweight};
-    shell_append(\$rr, '--psd-hi-ports-weight', $rule{psdhiportsweight})
-      if exists $rule{psdhiportsweight};
+    foreach (qw(psd-weight-threshold psd-delay-threshold
+                psd-lo-ports-weight psd-hi-ports-weight)) {
+        shell_append(\$rr, "--$_", $rule{$_})
+          if exists $rule{$_};
+    }
 
     # ipt_random parameters
     shell_append(\$rr, '--average', $rule{average})
@@ -1808,13 +1809,11 @@ sub enter {
             }
 
             # ipt_psd switches
-            /^(?:psd-?weight-?threshold|psd-?delay-?threshold|
-                 psd-?lo-?ports-?weight|psd-?hi-?ports-?weight)$/x && do {
-                s/-//;
-                $current->{$_} = getvar();
+            if (/^psd-(?:(?:weight|delay)-threshold|(?:lo|hi)-ports-weight)$/) {
+                $current->{$keyword} = getvar();
                 $current->{auto_modules}{psd} = 1;
                 next;
-            };
+            }
 
             # ipt_random switches
             /^average$/ && do {
