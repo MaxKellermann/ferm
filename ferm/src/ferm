@@ -42,12 +42,14 @@ my @rules;     # will contain all rules
 my %option;    # some configuration options
 my %vars;      # holds variable data
 
+use vars qw(@ip_tables_names);
+
 use vars qw($script);
 use vars qw(%chains);
 
 use vars qw($verbose $debug);
 
-use subs qw(open_script);
+use subs qw(initialize_netfilter open_script);
 
 # Get command line stuff
 {
@@ -108,6 +110,8 @@ use subs qw(open_script);
 }
 
 $verbose && printversion();
+
+&initialize_netfilter;
 
 mydie("Specify only one ferm script")
   unless @ARGV == 1;
@@ -214,6 +218,23 @@ sub error {
 sub warning {
     print STDERR "Warning in $script->{filename} line $script->{line}: "
       . (shift) . "\n";
+}
+
+sub initialize_netfilter {
+    local *FILE;
+
+    undef @ip_tables_names;
+    if (not $option{test} and open FILE, '</proc/net/ip_tables_names') {
+        while (<FILE>) {
+            push @ip_tables_names, $1
+              if /(\w+)/;
+        }
+
+        close FILE;
+    }
+
+    @ip_tables_names = qw(filter nat mangle)
+      unless @ip_tables_names;
 }
 
 sub tokenize_string {
@@ -966,32 +987,11 @@ sub tables {
     push @rules, $rr;
 };
 
-sub ip_tables_names {
-    # return all possible tables in emulation mode
-    return qw(filter nat mangle)
-      if $option{test};
-
-    my @tables;
-
-    local *TABLES;
-    open TABLES, '</proc/net/ip_tables_names'
-      or return qw(filter nat mangle);
-
-    while (<TABLES>) {
-        push @tables, $1
-          if /(\w+)/;
-    }
-
-    close TABLES;
-
-    return @tables;
-}
-
 sub clearall {
     # flush and delete all chains...
     flushall();
 
-    foreach my $table (ip_tables_names) {
+    foreach my $table (@ip_tables_names) {
         push @rules, "$option{'location'} \-X -t $table\n";
     }
 }
@@ -999,7 +999,7 @@ sub clearall {
 
 sub flushall {
     # flush all chains...
-    foreach my $table (ip_tables_names) {
+    foreach my $table (@ip_tables_names) {
         push @rules, "$option{'location'} \-F -t $table\n";
     }
 }
@@ -1222,11 +1222,9 @@ sub enter {
                   if exists $current->{table};
                 $current->{table} = getvalues();
 
-                my @all_tables = ip_tables_names;
-
                 foreach my $table (to_array $current->{table}) {
                     error("Table '$table' does not exist")
-                      unless grep { $_ eq $table } @all_tables;
+                      unless grep { $_ eq $table } @ip_tables_names;
                 }
 
                 next;
