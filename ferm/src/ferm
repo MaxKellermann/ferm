@@ -1375,10 +1375,6 @@ sub enter {
             /^reverse$|^bidirectional$|^swap$/ && do {
                 $fw[$lev]{'reverse'}='1';
                 ; next; };
-            /^log$/ && do {
-                # turn the logging switch on
-                $fw[$lev]{'log'}='set';
-                ; next; } ;
             /^syn$/ && do {
                 # match tcp packages with syn-byte set
                 if ($negated) {
@@ -1447,20 +1443,42 @@ sub enter {
                 } ; next; };
 
             # action keywords
-            /^ACCEPT$|^accept$|^BALANCE$|^balance$|^FTOS$|^ftos$|^LOG$|^MARK$|^MIRROR$|^mirror$|^NETLINK$|^netlink$|^NOP$|^nop$|^QUEUE$|^queue$|^REJECT$|^reject$|^RETURN$|^return$|^TCPMSS$|^tcpmss$|^TOS$|^TTL$|^ttl$|^ULOG$|^ulog$/ && do {
-                $fw[$lev]{'action'}= lc $keyword ; next ; };
-            /^MASQ$|^masq$/ && do {
-                $fw[$lev]{'action'}='masq';
-                ; next; };
-            /^DROP$|^drop$|^DENY$|^deny$/ && do {
-                $fw[$lev]{'action'}='drop';
-                ; next; };
-            /^PROXY$|^proxy$|^REDIRECT$|^redirect$/ && do {
-                $fw[$lev]{'action'}='redirect';
-                ; next; };
-            /^DNAT$|^dnat$|^SNAT$|^snat$/ && do {
+            /^log$/i && do {
+                if ($option{frontend} eq 'iptables'
+                    and (not exists $fw[$lev]{action} or
+                         $keyword eq 'LOG')) {
+                    # set "log" action
+
+                    # for backwards compatibility with ferm 1.1, an
+                    # existing action is only overwritten if "LOG" is
+                    # written in all uppercase
+                    $fw[$lev]{action} = lc $keyword;
+                } else {
+                    # turn the logging switch on
+                    $fw[$lev]{log} = 'set';
+                }
+                next;
+            };
+
+            s/^deny$/drop/i;
+            s/^proxy$/redirect/i;
+
+            /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mark|mirror|
+                 netlink|nop|queue|reject|return|tcpmss|tos|ttl|ulog)$/ix && do {
+                if (exists $fw[$lev]{action}) {
+                    if ($fw[$lev]{action} eq 'log') {
+                        # if the action is already set to "log",
+                        # change that to a "log" flag for backwards
+                        # compatibility
+                        $fw[$lev]{log} = 'set';
+                    } else {
+                        error("two actions not allowed, exiting");
+                    }
+                }
+
                 $fw[$lev]{'action'} = lc $keyword;
-                ; next; };
+                next;
+            };
 
             # effectuation operator
             /(\x3b)/ && do {
