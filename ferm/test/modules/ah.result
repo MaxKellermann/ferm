@@ -1,2 +1,1 @@
 iptables -t filter -A INPUT -m ah -j ACCEPT --ahspi 0x100
-iptables -t filter -A INPUT -m ah -j ACCEPT --ahspi 0x101
