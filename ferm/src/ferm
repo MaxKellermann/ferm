@@ -531,9 +531,6 @@ sub getvalues {
                 error('items cannot be negated in a list')
                   if $token =~ /^!/;
 
-                $token .= getvar($code, $param)
-                  if $token eq '!';
-
                 push @wordlist, $token;
             } elsif (ref $token eq 'ARRAY') {
                 push @wordlist, @$token;
