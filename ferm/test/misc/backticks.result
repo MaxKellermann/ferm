@@ -1,0 +1,9 @@
+iptables -t filter -A INPUT -p tcp --dport 8080 -j ACCEPT 
+iptables -t filter -A INPUT -p tcp --dport 8081 -j ACCEPT 
+iptables -t filter -A INPUT -p tcp --dport 8082 -j ACCEPT 
+iptables -t filter -A INPUT -p tcp --sport http -j REJECT 
+iptables -t filter -A INPUT -p tcp --sport https -j REJECT 
+iptables -t filter -A INPUT -p tcp --sport ftp -j REJECT 
+iptables -t filter -A INPUT -p udp -j DROP 
+iptables -t filter -A INPUT -p ah -j ACCEPT 
+iptables -t filter -A INPUT -p esp -j ACCEPT 

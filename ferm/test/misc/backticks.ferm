@@ -1,0 +1,15 @@
+# just a backtick array
+set A `seq 8080 8082`
+
+# backticks nested in an array
+set B (`echo http https` ftp)
+
+# multiline output with comments
+set C `echo ah; echo -e '\x23a comment'; echo -e 'esp\x23another comment'`
+
+chain INPUT {
+        proto tcp dport %A ACCEPT;
+        proto tcp sport %B REJECT;
+        proto `echo udp` DROP;
+        proto %C ACCEPT;
+}
