@@ -510,8 +510,9 @@ Drop matching packets without further notice.
 
 Rejects matching packets, i.e. send an ICMP packet to the sender,
 which is port-unreachable by default. You may specify another ICMP
-type:
+type.
 
+    REJECT; # default to icmp-port-unreachable
     REJECT reject-with icmp-net-unreachable;
 
 Type "iptables -j REJECT -h" for details.
@@ -531,6 +532,85 @@ modules which are currently supported.
 
 
 =head2 Netfilter match modules
+
+=item B<addrtype>
+
+Check the address type; either source address or destination address.
+
+    mod addrtype src-type BROADCAST;
+    mod addrtype dst-type LOCAL;
+
+Type "iptables -m addrtype -h" for details.
+
+=item B<ah>
+
+Checks the SPI header in an AH packet.
+
+    mod ah ahspi 0x101;
+    mod ah ahspi ! 0x200:0x2ff;
+
+=item B<connmark>
+
+Check the mark field associated with the connection, set by the
+CONNMARK target.
+
+    mod connmark mark 64;
+    mod connmark mark 6/7;
+
+=item B<conntrack>
+
+Check connection tracking information.
+
+    mod conntrack ctstate (ESTABLISHED RELATED);
+    mod conntrack ctproto tcp;
+    mod conntrack ctorigsrc 192.168.0.2;
+    mod conntrack ctorigdst 1.2.3.0/24;
+    mod conntrack ctreplsrc 2.3.4.5;
+    mod conntrack ctrepldst ! 3.4.5.6;
+    mod conntrack ctstatus ASSURED;
+    mod conntrack ctexpire 60;
+    mod conntrack ctexpire 180:240;
+
+Type "iptables -m conntrack -h" for details.
+
+=item B<dscp>
+
+Match the 6 bit DSCP field within the TOS field.
+
+    mod dscp dscp 11;
+    mod dscp dscp-class AF41;
+
+=item B<ecn>
+
+Match the ECN bits of an IPv4 TCP header.
+
+    mod ecn ecn-tcp-cwr;
+    mod ecn ecn-tcp-ece;
+    mod ecn ecn-ip-ect 2;
+
+Type "iptables -m ecn -h" for details.
+
+=item B<esp>
+
+Checks the SPI header in an ESP packet.
+
+    mod esp espspi 0x101;
+    mod esp espspi ! 0x200:0x2ff;
+
+=item B<helper>
+
+Checks which conntrack helper module tracks this connection.  The port
+may be specified with "-portnr".
+
+    mod helper helper irc;
+    mod helper helper ftp-21;
+
+=item B<iprange>
+
+Match a range of IPv4 addresses.
+
+    mod iprange src-range 192.168.2.0-192.168.3.255;
+    mod iprange dst-range ! 192.168.6.0-192.168.6.255;
 
 =item B<length>
 
@@ -561,6 +641,27 @@ bit integer between 0 and 4294967295.
 
     mod mark mark 42;
 
+=item B<multiport>
+
+Match a set of source or destination ports (UDP and TCP only).
+
+    mod multiport source-ports (https ftp);
+    mod multiport destination-ports (mysql domain);
+
+This rule has a big advantage over "dport" and "sport": it generates
+only one rule for up to 15 ports instead of one rule for every port.
+
+=item B<nth>
+
+Match every 'n'th packet.
+
+    mod nth every 3;
+    mod nth counter 5 every 2;
+    mod nth start 2 every 3;
+    mod nth start 5 packet 2 every 6;
+
+Type "iptables -m nth -h" for details.
+
 =item B<owner>
 
 Check information about the packet creator, namely user id, group id,
@@ -571,6 +672,54 @@ process id, session id and command name.
     mod owner pid-owner 5432;
     mod owner sid-owner 6543;
     mod owner cmd-owner "sendmail";
+
+=item B<physdev>
+
+Matches the physical device on which a packet entered or is about to
+leave the machine. This is useful for bridged interfaces.
+
+    mod physdev physdev-in ppp1;
+    mod physdev physdev-out eth2;
+    mod physdev physdev-is-in;
+    mod physdev physdev-is-out;
+    mod physdev physdev-is-bridged;
+
+=item B<pkttype>
+
+Check the link-layer packet type.
+
+    mod pkttype unicast;
+    mod pkttype broadcase;
+    mod pkttype multicast;
+
+=item B<random>
+
+Match a random percentage of all packets.
+
+    mod random average 70;
+
+=item B<realm>
+
+Match the routing realm. Useful in environments using BGP.
+
+    mod realm realm 3;
+
+=item B<recent>
+
+Temporarily mark source IP addresses.
+
+    mod recent set;
+    mod recent rcheck seconds 60;
+    mod recent set rsource name "badguy";
+    mod recent set rdest;
+    mod recent rcheck rsource name "badguy" seconds 60;
+    mod recent update seconds 120;
+
+This netfilter module has a design flaw: although it is implemented as
+a match module, it has target-like behaviour when using the "set"
+keyword.
+
+L<http://snowman.net/projects/ipt_recent/>
 
 =item B<state>
 
@@ -596,6 +745,19 @@ when you use "protocol tcp".
 
 Type "iptables -p tcp -h" for details.
 
+=item B<time>
+
+Check if the time a packet arrives is in given range.
+
+    mod time timestart 12:00;
+    mod time timestop 13:30;
+    mod time days (Mon Wed Fri);
+    mod time datestart 2005:01:01;
+    mod time datestart 2005:01:01:23:59:59;
+    mod time datestop 2005:04:01;
+
+Type "iptables -m time -h" for details.
+
 =item B<tos>
 
 Matches a packet on the specified TOS-value.
@@ -611,6 +773,12 @@ Matches the ttl (time to live) field in the IP header.
     mod ttl ttl-eq 12; # ttl equals
     mod ttl ttl-gt 10; # ttl greater than
     mod ttl ttl-lt 16; # ttl less than
+
+=item B<unclean>
+
+Matches packets which seem malformed or unusual. This match has no
+further parameters.
+
 
 =head2 Netfilter target modules
 
