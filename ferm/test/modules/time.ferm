@@ -4,6 +4,7 @@ table filter chain input mod time {
         REJECT reject-with icmp-host-prohibited;
     }
     days Sun DROP;
+    days (Fri Sat) REJECT;
     proto tcp dport http {
         datestart 2005/02/01 ACCEPT;
         REJECT;
