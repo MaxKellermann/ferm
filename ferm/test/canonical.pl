@@ -67,16 +67,8 @@ while (<>) {
 
         # evaluate options with zero, one, two parameters
         s/(!\s*)?--(syn|clamp-mss-to-pmtu)\b/$item->{$2} = $1; ''/eg;
-        s/--(gid-owner|uid-owner|pid-owner|sid-owner|jump|protocol|
-             in-interface|out-interface|limit|mac-source|uid-owner|
-             tos|ttl-set|mark|state|
-             ulog-(?:nlgroup|prefix|cprange|qthreshold)|
-             psd-(?:weight-threshold|delay-threshold|lo-ports-weight|hi-ports-weight)|
-             source|destination|log-prefix|to|to-destination|dport|sport|
-             log-level|set-mss
-             |(src|dst)-type
-            )\s+(".*?"|(?:!\s*)?\S+)/$item->{$1} = $2; ''/egx;
         s/--(tcp-flags)\s+(\S+)\s+(\S+)/$item->{$1} = [ $2, $3 ]; ''/eg;
+        s/--(\w[-\w]*)\s+(".*?"|(?:!\s*)?\S+)/$item->{$1} = $2; ''/eg;
 
         # after we parsed everything we know, nothing must be left
         die "unparsed rest from line $.: $_"
