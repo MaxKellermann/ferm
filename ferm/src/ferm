@@ -71,7 +71,7 @@ use subs qw(open_script);
                automod => \$opt_automod,
                'version|V' => \$opt_version,
                'use=s' => \$opt_use,
-               test => \$opt_test;
+               test => \$opt_test,
               );
 
     pod2usage(-exitstatus => 0)
