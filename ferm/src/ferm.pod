@@ -170,8 +170,8 @@ it like this:
 
     %IFS = (eth0 eth1 ppp0)
 
-This way, ferm will recognize it being a list of values, and split it
-whenever needed.
+This way, ferm will recognize it being a list of values (an "array"),
+and split it whenever needed.
 
 =item B<()>
 
@@ -697,13 +697,13 @@ Matches packets originating from these mac-addresses.
 =item B<state [value]>
 
 Matches packets with this state. The value may be specified as a ferm
-list: "(ESTABLISHED RELATED)" or a single value.
+array: "(ESTABLISHED RELATED)" or a single value.
 
 =item B<tcp-flags [!] [flagmask] [flagmatch]>
 
 Specify tcp-flags, the B<!> is optional and has to precede the mask,
 mask and match are mandatory. The list of mask or match flags may be
-specified as a normal ferm-list: "(SYN ACK RST)" or a single value.
+specified as a ferm array: "(SYN ACK RST)" or a single value.
 
 =item B<tcp-option [value]>
 
@@ -757,14 +757,14 @@ statements also work:
 After these statements, variable %A yields value "1", variable %B holds 
 the value "1", and the variable %1 holds the value "1" also.
 
-More importantly, these variables can be used to store arrays or lists
-of values:
+More importantly, these variables can be used to store arrays of
+values:
 
     set DNSSERVERS (111.2.33.1 111.2.33.2)
 
 When this variable is inserted into a configuration file, the rule that
 it applies to will automatically be split up into two different firewall
-rules for each IP number given in the list.
+rules for each IP number given in the array.
 
 Here's some even more complicated stuff that works:
 
