@@ -803,8 +803,8 @@ sub tables {
     if (defined $rule{'outerface'} ) {
         $rr .= "-o " . $rule{'outerface'} . " " ; };
 
-    if (defined $rule{'proto'} ) {
-        $rr .= "-p " . $rule{'proto'} . " "; };
+    shell_append(\$rr, '-p', $rule{proto})
+      if defined $rule{proto};
 
     # modules
     my %modules = ( ( exists $rule{modules}
@@ -815,77 +815,98 @@ sub tables {
                       : () )
                   );
 
-    foreach my $module (keys %modules) {
-        $rr .= '-m ' . $module . ' ';
+    shell_append(\$rr, '-m', $_)
+      foreach (keys %modules);
+
+    # general iptables options
+    shell_append(\$rr, '-s', $rule{saddr})
+      if defined $rule{saddr};
+    shell_append(\$rr, '-d', $rule{daddr})
+      if defined $rule{daddr};
+
+    if (defined $rule{'fragment'}) {
+        if ($rule{'fragment'} eq 'set') {
+            $rr .= '-f ';
+        } else {
+            $rr .= '! -f ';
+        }
     }
 
-    # address and port
-    if (defined $rule{'saddr'} ) {
-        $rr .= "-s " . $rule{'saddr'} . " " ;}
-    if ( defined $rule{'sport'} ) {
-        $rr .= "--sport " . $rule{'sport'} . " ";}
-    if (defined $rule{'daddr'} ) {
-        $rr .= "-d " . $rule{'daddr'} . " " ;}
-    if ( defined $rule{'dport'} ) {
-        $rr .= "--dport " . $rule{'dport'} . " ";}
+    # more common options (mostly NAT)
+    shell_append(\$rr, '--to', $rule{to})
+      if defined $rule{to};
+    shell_append(\$rr, '--to-ports', $rule{toports})
+      if defined $rule{toports};
+    shell_append(\$rr, '--to-destination', $rule{todest})
+      if defined $rule{todest};
 
-    if (defined $rule{'icmptype'} ) {
-        $rr .= "--icmp-type " . $rule{'icmptype'} . " "; } ;
-    if (defined $rule{'syn'} ) {
-        if ( $rule{'syn'} eq 'set' ) {
-            $rr .= '--syn '  ; }
-        else {
-            $rr .= '! --syn '; } ;
-        } ;
-    $rr .= "--mss $rule{mss} "
-      if exists $rule{mss};
-
-    if (defined $rule{'mark'} ) {
-        $rr .= "--mark " . $rule{'mark'} . " "; } ;
-    if (defined $rule{'fragment'} ) {
-        if ( $rule{'fragment'} eq 'set' ) {
-            $rr .= '-f '  ; }
-        else {
-            $rr .= '! -f '; } ;
-        } ;
-
-    # iptables extensions:
-    shell_append(\$rr, '--tcp-flags', $rule{flagsmask}, $rule{flagsmatch})
-      if exists $rule{tcpflags};
-
-    if (defined $rule{'tcpoption'} ) {
-        $rr .= "--tcp-option " . $rule{'tcpoption'} . " "; } ;
-
-    if (defined $rule{'string'} ) {
-        $rr .= "--string " . $rule{'string'} . " "; } ;
-
-    # target
-    $rr .= "-j $rule{action} "
-      unless $rule{'action'} eq 'NOP';
-
-    # check for '--to' and '--to-[ports|source|destination]'
-    if (defined $rule{'to'}) {
-        $rr .= "--to " . $rule{'to'} . " "; };
-    if (defined $rule{'toports'}) {
-        $rr .= "--to-ports " . $rule{'toports'} . " "; };
     if (exists $rule{tosrc}) {
         foreach (split /,/, $rule{tosrc}) {
             shell_append(\$rr, '--to-source', $_);
         }
     }
-    if (defined $rule{'tosrc'}) {
-        $rr .= "--to-source " . $rule{'tosrc'} . " "; };
-    if (defined $rule{'todest'}) {
-        $rr .= "--to-destination " . $rule{'todest'} . " "; };
 
-    if (defined $rule{'ttlset'} ) {
-        $rr .= "--ttl-set " . $rule{'ttlset'} . " "; } ;
-    if (defined $rule{'ttlinc'} ) {
-        $rr .= "--ttl-inc " . $rule{'ttlinc'} . " "; } ;
-    if (defined $rule{'ttldec'} ) {
-        $rr .= "--ttl-dec " . $rule{'ttldec'} . " "; } ;
+    # proto tcp [udp]
+    shell_append(\$rr, '--sport', $rule{sport})
+      if defined $rule{sport};
+    shell_append(\$rr, '--dport', $rule{dport})
+      if defined $rule{dport};
 
+    if (defined $rule{'syn'}) {
+        if ($rule{'syn'} eq 'set') {
+            $rr .= '--syn ';
+        } else {
+            $rr .= '! --syn ';
+        }
+    }
 
+    shell_append(\$rr, '--mss', $rule{mss})
+      if exists $rule{mss};
+
+    shell_append(\$rr, '--tcp-flags', $rule{flagsmask}, $rule{flagsmatch})
+      if exists $rule{tcpflags};
+
+    shell_append(\$rr, '--tcp-option', $rule{tcpoption})
+      if exists $rule{tcpoption};
+
+    shell_append(\$rr, '-j', $rule{action})
+      unless $rule{'action'} eq 'NOP';
+
+    # proto icmp
+    shell_append(\$rr, '--icmp-type', $rule{icmptype})
+      if defined $rule{icmptype};
+
+    # target LOG
+    shell_append(\$rr, '--log-level', $rule{loglevel})
+      if defined $rule{loglevel};
+    shell_append(\$rr, '--log-prefix', $rule{'logprefix'})
+      if exists $rule{'logprefix'};
+    shell_append(\$rr, '--log-tcp-sequence')
+      if defined $rule{logsequence};
+    shell_append(\$rr, '--log-tcp-options')
+      if defined $rule{logtcpoptions};
+    shell_append(\$rr, '--log-ip-options')
+      if defined $rule{logipoptions};
+
+    # taget MARK, CONNMARK
+    shell_append(\$rr, '--set-mark', $rule{setmark})
+      if exists $rule{setmark};
+    shell_append(\$rr, '--save-mark')
+      if defined $rule{'save-mark'};
+    shell_append(\$rr, '--restore-mark')
+      if defined $rule{'restore-mark'};
+
+    # target REJECT
+    shell_append(\$rr, '--reject-with', $rule{rejectwith})
+      if defined $rule{rejectwith};
+
+    # target TCPMSS
+    shell_append(\$rr, '--set-mss', $rule{'set-mss'})
+      if defined $rule{'set-mss'};
+    shell_append(\$rr, '--clamp-mss-to-pmtu')
+      if defined $rule{'clamp-mss-to-pmtu'};
+
+    # target TOS
     if (defined $rule{'settos'} ) {
         # some translations for ferm 1.1 compatibility
         $rule{settos} =~ s/^min-?cost$/0x02/;
@@ -894,36 +915,22 @@ sub tables {
         $rule{settos} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
         $rule{settos} =~ s/^clear$/0x00/;
 
-        $rr .= "--set-tos $rule{settos} ";
+        shell_append(\$rr, '--set-tos', $rule{settos});
     }
 
-    if (defined $rule{'loglevel'} ) {
-        $rr .= "--log-level " . $rule{'loglevel'} . " "; };
-    shell_append(\$rr, '--log-prefix', $rule{'logprefix'})
-      if exists $rule{'logprefix'};
-    if (defined $rule{'logsequence'} ) {
-        $rr .= "--log-tcp-sequence "; };
-    if (defined $rule{'logtcpoptions'} ) {
-        $rr .= "--log-tcp-options "; };
-    if (defined $rule{'logipoptions'} ) {
-        $rr .= "--log-ip-options "; } ;
+    # target TTL
+    shell_append(\$rr, '--ttl-set', $rule{ttlset})
+      if defined $rule{ttlset};
+    shell_append(\$rr, '--ttl-inc', $rule{ttlinc})
+      if defined $rule{ttlinc};
+    shell_append(\$rr, '--ttl-dec', $rule{ttldec})
+      if defined $rule{ttldec};
 
-    if (defined $rule{'ulog-nlgroup'} ) {
-        $rr .= "--ulog-nlgroup " . $rule{'ulog-nlgroup'} . " " } ;
-    if (defined $rule{'ulog-prefix'} ) {
-        $rr .= "--ulog-prefix " . $rule{'ulog-prefix'} . " " } ;
-    if (defined $rule{'ulog-cprange'} ) {
-        $rr .= "--ulog-cprange " . $rule{'ulog-cprange'} . " " } ;
-    if (defined $rule{'ulog-qthreshold'} ) {
-        $rr .= "--ulog-qthreshold " . $rule{'ulog-qthreshold'} . " " } ;
-
-    if (defined $rule{'rejectwith'} ) {
-        $rr .= "--reject-with " . $rule{'rejectwith'} . " " } ;
-
-    if ( defined $rule{'clamp-mss-to-pmtu'} ) {
-        $rr .= "--clamp-mss-to-pmtu "; } ;
-    if ( defined $rule{'set-mss'} ) {
-        $rr .= "--set-mss " . $rule{'set-mss'} . " " } ;
+    # target ULOG
+    foreach (qw(nlgroup prefix cprange qthreshold)) {
+        shell_append(\$rr, "--ulog-$_", $rule{"ulog-$_"})
+          if defined $rule{"ulog-$_"};
+    }
 
     # ipt_addrtype parameters
     $rr .= "--src-type " . $rule{srctype} . " "
@@ -967,9 +974,9 @@ sub tables {
     $rr .= "--mac-source $rule{macsource} "
       if exists $rule{macsource};
 
-    # ipt_mark parameters
-    $rr .= "--set-mark $rule{setmark} "
-      if exists $rule{setmark};
+    # ipt_mark, ipt_connmark
+    shell_append(\$rr, '--mark', $rule{mark})
+      if defined $rule{mark};
 
     # ipt_nth parameters
     foreach (qw(every counter start packet)) {
@@ -1809,6 +1816,17 @@ sub enter {
             #
 
             if (defined $action) {
+                # CONNMARK target switches
+                if ($action eq 'CONNMARK') {
+                    if ($keyword eq 'set-mark') {
+                        $current->{setmark} = getvar();
+                        next;
+                    } elsif ($keyword =~ /^(?:save|restore)-mark$/) {
+                        $current->{$keyword} = 1;
+                        next;
+                    }
+                }
+
                 # DNAT target switches
                 if ($action eq 'DNAT' and
                     $keyword =~ /^(?:to-destination|todest|to)$/) {
@@ -1841,8 +1859,7 @@ sub enter {
                 }
 
                 # MARK/CONNMARK target switches
-                if (($action eq 'MARK' or
-                     $action eq 'CONNMARK') and
+                if ($action eq 'MARK' and
                     $keyword =~ /^set-?mark$/) {
                     $current->{setmark} = getvar();
                     next;
