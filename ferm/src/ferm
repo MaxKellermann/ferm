@@ -1533,7 +1533,13 @@ sub enter {
 
             # ipt_conntrack switches
             /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
-                $current->{$keyword}=getvar();
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{conntrack} = 1;
+                next;
+            };
+
+            /^ctexpire$/ && do {
+                $current->{$keyword} = getvar();
                 $current->{auto_modules}{conntrack} = 1;
                 next;
             };
