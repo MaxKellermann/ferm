@@ -1,0 +1,3 @@
+chain input policy DROP;
+chain output policy ACCEPT;
+chain forward policy DROP;

@@ -7,7 +7,7 @@ NEW_FERM = ../src/ferm
 FERM_SCRIPTS = positive/flush positive/iptables-targets positive/masqto positive/mod positive/multimod positive/multipolicy positive/negated-varlist positive/policyorder positive/state positive/SUSE positive/TCPMSS positive/ttlset positive/ulog
 FERM_SCRIPTS_ipchains = positive/kwbug positive/multivar
 FERM_SCRIPTS_iptables = positive/bug positive/logLOG params/owner positive/tables2 positive/varlists
-FERM_SCRIPTS_iptables += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm)
+FERM_SCRIPTS_iptables += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard misc/*.ferm)
 FERM_SCRIPTS_iptables += $(FERM_SCRIPTS_ipchains)
 
 all:
