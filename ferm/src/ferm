@@ -27,6 +27,8 @@
 
 use strict;
 use IO::File;
+use Getopt::Long;
+use Pod::Usage;
 
 use vars qw($VERSION $DATE);
 
@@ -54,74 +56,64 @@ my %option;    # some configuration options
 my %vars;      # holds variable data
 
 use vars qw($script);
+use vars qw($verbose $debug);
 
 use subs qw(open_script);
 
 # Get command line stuff
-use vars qw($opt_noexec $opt_lines $opt_verbose $opt_debug $opt_location),
-  qw($opt_clearall $opt_flushall $opt_createchains),
-  qw($opt_flushchains $opt_help $opt_automod $opt_version $opt_use);
+{
+    #use vars qw($opt_noexec $opt_lines $opt_verbose $opt_debug $opt_location),
+    #  qw($opt_clearall $opt_flushall $opt_createchains),
+    #    qw($opt_flushchains $opt_help $opt_automod $opt_version $opt_use);
+    my ($opt_noexec, $opt_lines, $opt_location, $opt_clearall, $opt_flushall,
+        $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
+        $opt_version, $opt_use);
 
-use Getopt::Long;
+    Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
+                            'no_auto_abbrev');
 
-GetOptions(
-        'noexec', 'lines', 'verbose', 'debug', 'location=s',
-        'clearall', 'flushall', 'createchains',
-        'flushchains', 'help', 'automod', 'version', 'use=s'
-          );
+    GetOptions('noexec|l' => \$opt_noexec,
+               lines => \$opt_lines,
+               'verbose|v' => \$verbose,
+               debug => \$debug,
+               'location=s' => \$opt_location,
+               clearall => \$opt_clearall,
+               flushall => \$opt_flushall,
+               createchains => \$opt_createchains,
+               flushchains => \$opt_flushchains,
+               'help|h' => \$opt_help,
+               automod => \$opt_automod,
+               'version|V' => \$opt_version,
+               'use=s' => \$opt_use,
+              );
 
-if (defined $opt_help) {
-    printversion();
-    # a brief handout to the user
-    print "\nUsage:\n";
-    print "ferm \[options\] \<files\>\n\n";
-    print "options are:\n";
-    print "        \-\-noexec          Do not execute the rules, just simulate\n";
-    print "        \-\-lines           Show all rules that were created\n";
-    print "        \-\-verbose         Show some more information\n";
-    print "        \-\-debug           Show debug information\n";
-    print "        \-\-version         Show current version number\n";
-    print "        \-\-clearall        Flush and delete all chains before adding rules\n";
-    print "        \-\-flushall        Flush all chains before adding rules\n";
-    print "        \-\-createchains    Create all neccesary chains\n";
-    print "        \-\-flushchains     Flush all used chains\n";
-    print "        \-\-automod         Enable automatic module parameters for iptables\n";
-    print "        \-\-help            Look at this text\n";
-    print "        \-\-use [kernel firewall program]\n";
-    print "                          Either iptables, ipchains or ipfwadm\n";
-    print "        \-\-location /path/to/iptables\n";
-    print "                          Specify the location and name of the kernel program\n";
-    print "\n";
-    print "For more detailed information and syntax description of the\n";
-    print "firewall files, read \"man $0\".\n";
-    exit 0;
-};
+    pod2usage(-exitstatus => 0)
+      if defined $opt_help;
 
-if (defined $opt_version) {
-    printversion();
-    exit 0;
-};
+    if (defined $opt_version) {
+        printversion();
+        exit 0;
+    };
 
-use vars qw($verbose $debug);
-
-$option{'noexec'} = (defined $opt_noexec);
-$option{'lines'} = (defined $opt_lines);
-$verbose = (defined $opt_verbose);
-$debug = (defined $opt_debug);
-$option{'clearall'} = (defined $opt_clearall);
-$option{'flushall'} = (defined $opt_flushall);
-$option{'flushchains'} = (defined $opt_flushchains);
-$option{'createchains'} = (defined $opt_createchains);
-$option{'automod'} = (defined $opt_automod);
-$option{'ipchains'} = $option{'iptables'} = $option{'ipfwadm'} = 0;
-if (defined $opt_use) {
-    $option{$opt_use} = 1;
-    $option{frontend} = $opt_use;
-}
-if (defined $opt_location) {
-    $option{'location'} = $opt_location;
-    if ( ! -X $option{'location'}) {
-        mydie("Specified location is not executable or does not exist! Exiting");
+    $option{'noexec'} = (defined $opt_noexec);
+    $option{'lines'} = (defined $opt_lines);
+    $verbose = (defined $opt_verbose);
+    $debug = (defined $opt_debug);
+    $option{'clearall'} = (defined $opt_clearall);
+    $option{'flushall'} = (defined $opt_flushall);
+    $option{'flushchains'} = (defined $opt_flushchains);
+    $option{'createchains'} = (defined $opt_createchains);
+    $option{'automod'} = (defined $opt_automod);
+    $option{'ipchains'} = $option{'iptables'} = $option{'ipfwadm'} = 0;
+    if (defined $opt_use) {
+        $option{$opt_use} = 1;
+        $option{frontend} = $opt_use;
+    }
+    if (defined $opt_location) {
+        $option{'location'} = $opt_location;
+        if ( ! -X $option{'location'}) {
+            mydie("Specified location is not executable or does not exist! Exiting");
+        }
     }
 }
 
@@ -1791,4 +1783,33 @@ sub enter {
 };
 
 # end of ferm
+
+__END__
+
+=head1 NAME
+
+ferm - a firewall rule parser for linux
+
+=head1 SYNOPSIS
+
+ferm [options] <file>
+
+ Options:
+   --noexec          Do not execute the rules, just simulate
+   --lines           Show all rules that were created
+   --verbose         Show some more information
+   --debug           Show debug information
+   --version         Show current version number
+   --clearall        Flush and delete all chains before adding rules
+   --flushall        Flush all chains before adding rules
+   --createchains    Create all neccesary chains
+   --flushchains     Flush all used chains
+   --automod         Enable automatic module parameters for iptables
+   --help            Look at this text
+   --use [kernel firewall program]
+                     Either iptables, ipchains or ipfwadm
+   --location /path/to/iptables
+                     Specify the location and name of the kernel program
+
+=head1 DESCRIPTION
 
