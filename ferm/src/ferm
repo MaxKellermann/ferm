@@ -1108,8 +1108,7 @@ sub enter {
     };
 
     # read keywords 1 by 1 and dump into parser
-    do
-    { LOOP: {
+    do {
         my $keyword = getvar();
         $verbose && print ".";
 
@@ -1464,13 +1463,18 @@ sub enter {
             # recursing operators
             /\x7b/ && do {
                 enter($lev + 1);
+
+                # after a block, the command is finished, clear this
+                # level
+                undef $fw[$lev];
+
                 ; next SWITCH; };
             /\x7d/ && do {
                 # consistency check: check if they hanven't
                 # forgotten the ';' before the last statement
-                if (( $words[$c-2] ne "\x7d" ) && ( $words[$c-2] ne "\x3b" )) {
-                     error("Missing semicolon before closing section, exiting");
-                };
+                error("Missing semicolon before closing section, exiting")
+                  if defined $fw[$lev] and keys %{$fw[$lev]};
+
                 # clear any policy-related stuff in this level
                     if ( exists $fw[$#fw]{'policy'} ||
                         exists $fw[$#fw-1]{'policy'} ) {
@@ -1488,17 +1492,14 @@ sub enter {
                 }
 
                 # and clean up variables set in this level
-                undef $fw[$lev];
-                $#fw--;
-                # clean the previous level as well, as otherwise
-                # defines would survive for a very long time!
-                undef $fw[$lev - 1];
+                $#fw = $lev - 1;
                 # and exit
                 if ($debug) {
                     push @rules, "# leaving level $lev\n";
                 };
 
-                last LOOP; };
+                return;
+            };
 
             # default
             error("Unrecognized keyword: $keyword, exiting");
@@ -1508,7 +1509,7 @@ sub enter {
         # supported
         error("Doesn't support negation: $keyword, exiting")
           if $negated;
-    }} while ($c <= $#words);
+    } while ($c <= $#words);
 };
 
 # end of ferm
