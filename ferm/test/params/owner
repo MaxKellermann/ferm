@@ -1,0 +1,8 @@
+
+chain test_owner {
+	uid-owner root ACCEPT;
+	gid-owner users ACCEPT;
+	pid-owner 1 ACCEPT;
+	sid-owner 0 ACCEPT;
+}
+

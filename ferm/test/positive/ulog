@@ -1,0 +1,4 @@
+option iptables
+
+table filter chain INPUT ulog-nlgroup nlgroup ulog-prefix prefix ulog-cprange size ulog-qthreshold size ULOG;
+

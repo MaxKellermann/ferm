@@ -1,0 +1,17 @@
+set INTERNET eth0
+
+set smtpServerInterno  10.1.4.100
+
+option flushchains
+option createchains
+option automod
+option iptables
+
+table nat chain PREROUTING {
+        interface %INTERNET {
+                protocol tcp {
+                        dport smtp DNAT %smtpServerInterno:28;
+                }
+        }
+
+

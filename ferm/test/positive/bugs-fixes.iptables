@@ -1,0 +1,24 @@
+
+option iptables
+option clearall
+option createchains
+
+table nat {
+	chain POSTROUTING {
+		of ppp0 masq;
+	}
+	chain PREROUTING {
+		proto tcp daddr 1.2.3.4 dport 8080 DNAT to 192.168.1.1:80;
+}
+
+table mangle {
+	chain INPUT {
+		tcp-flags ! ABC:DEF:GHI ABC ACCEPT;
+	}
+}
+
+table filter {
+	chain INPUT {
+		LOG logprefix "foo";
+	}
+}

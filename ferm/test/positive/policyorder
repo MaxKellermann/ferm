@@ -1,0 +1,8 @@
+chain input policy ACCEPT {
+	proto tcp DROP;
+	}
+
+chain input {
+	proto UDP DROP;
+	policy ACCEPT;
+	}

@@ -1,0 +1,5 @@
+
+set HACKERS `cat /etc/hackers.ip | grep -v "^#" | awk '{print $1}'`
+
+proto %HACKERS LOG;
+

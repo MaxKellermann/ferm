@@ -1,0 +1,8 @@
+chain LREJECT {
+        REJECT log log-prefix "REJ ";
+}
+
+chain input policy drop {
+        goto LREJECT;
+}
+

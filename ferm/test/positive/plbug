@@ -1,0 +1,12 @@
+
+chain (input,output,forward) policy DENY;
+
+chain ifilt proto tcp DENY;
+
+chain input policy ACCEPT {
+	goto ifilt;
+	}
+
+chain output policy ACCEPT;
+chain forward policy MASQ;
+

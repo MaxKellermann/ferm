@@ -1,0 +1,35 @@
+option iptables
+option clearall
+option createchains
+
+table filter {
+    chain INPUT {
+	saddr 127.0.0.1/32 daddr 127.0.0.1/32 ACCEPT;
+	saddr 192.168.0.0/24 daddr 0/0 ACCEPT; # for masquerading subnets
+	proto udp {
+	    sport 53 ACCEPT;
+	    goto fw;
+	}
+	proto tcp {
+	    sport 113 ACCEPT;
+	    dport 113 ACCEPT;
+	    ! syn sport ftp-data dport 1024: ACCEPT;
+	    dport ssh ACCEPT;
+	    syn goto fw;
+	}
+	proto icmp goto fw;
+    }
+
+    chain fw {
+        LOG log-level info log-prefix "Firewall: ";
+        DROP;
+    }
+
+    chain FORWARD policy ACCEPT;
+}
+
+table nat {
+    chain POSTROUTING {
+	saddr 192.168.0.1/24 MASQ; # for masquerading subnets
+    }
+}
