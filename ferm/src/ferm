@@ -1235,6 +1235,8 @@ sub enter {
               if $keyword eq '!';
         }
 
+        my $action = find_option(\@fw, 'action');
+
         # the core: parse all data
         SWITCH: for ($keyword)
         {
@@ -1806,16 +1808,16 @@ sub enter {
             # target specific options
             #
 
-            if (defined $current->{action}) {
+            if (defined $action) {
                 # DNAT target switches
-                if ($current->{action} eq 'DNAT' and
+                if ($action eq 'DNAT' and
                     $keyword =~ /^(?:to-destination|todest|to)$/) {
                     $current->{todest} = getvar();
                     next;
                 }
 
                 # LOG target switches
-                if ($current->{action} eq 'LOG') {
+                if ($action eq 'LOG') {
                     if ($keyword =~ /^(?:log-level|loglev)$/) {
                         $current->{loglevel} = getvar();
                         next;
@@ -1839,37 +1841,37 @@ sub enter {
                 }
 
                 # MARK/CONNMARK target switches
-                if (($current->{action} eq 'MARK' or
-                     $current->{action} eq 'CONNMARK') and
+                if (($action eq 'MARK' or
+                     $action eq 'CONNMARK') and
                     $keyword =~ /^set-?mark$/) {
                     $current->{setmark} = getvar();
                     next;
                 }
 
                 # MASQUERADE/REDIRECT target switches
-                if (($current->{action} eq 'MASQUERADE' or
-                     $current->{action} eq 'REDIRECT') and
+                if (($action eq 'MASQUERADE' or
+                     $action eq 'REDIRECT') and
                     $keyword =~ /^to-?ports$/) {
                     $current->{toports} = getvar();
                     next;
                 }
 
                 # NETMAP target switches
-                if ($current->{action} eq 'NETMAP' and
+                if ($action eq 'NETMAP' and
                     $keyword eq 'to') {
                     $current->{to} = getvar();
                     next;
                 }
 
                 # REJECT target switches
-                if ($current->{action} eq 'REJECT' and
+                if ($action eq 'REJECT' and
                     $keyword =~ /^reject-?with$/) {
                     $current->{rejectwith} = getvar();
                     next;
                 }
 
                 # ROUTE target switches
-                if ($current->{action} eq 'ROUTE') {
+                if ($action eq 'ROUTE') {
                     if ($keyword =~ /^(?:oif|iif|gw)$/) {
                         $current->{$keyword} = getvar();
                         next;
@@ -1881,7 +1883,7 @@ sub enter {
                 }
 
                 # SNAT target switches
-                if ($current->{action} eq 'SNAT' and
+                if ($action eq 'SNAT' and
                     $keyword =~ /^(?:to-source|tosrc|to)$/) {
                     my @params = to_array getvalues(undef, undef,
                                                     non_empty => 1);
@@ -1890,7 +1892,7 @@ sub enter {
                 }
 
                 # TCPMSS target switches
-                if ($current->{action} eq 'TCPMSS') {
+                if ($action eq 'TCPMSS') {
                     if ($keyword eq 'set-mss') {
                         $current->{$keyword} = getvar();
                         next;
@@ -1903,7 +1905,7 @@ sub enter {
                 }
 
                 # TOS target switches
-                if ($current->{action} eq 'TOS' and
+                if ($action eq 'TOS' and
                     $keyword =~ /^set-?tos$/) {
                     $keyword =~ s/-//;
                     $current->{$keyword} = getvar();
@@ -1911,7 +1913,7 @@ sub enter {
                 }
 
                 # TTL target switches
-                if ($current->{action} eq 'TTL' and
+                if ($action eq 'TTL' and
                     $keyword =~ /^ttl-?(?:set|dec|inc)$/) {
                     $keyword =~ s/-//;
                     $current->{$keyword} = getvar();
@@ -1919,7 +1921,7 @@ sub enter {
                 }
 
                 # ULOG target switches
-                if ($current->{action} eq 'ULOG' and
+                if ($action eq 'ULOG' and
                     $keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
                     $current->{$keyword} = getvar();
                     next;
