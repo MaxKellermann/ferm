@@ -1634,13 +1634,10 @@ sub enter {
                   if exists $current->{chain};
                 $current->{chain} = getvalues();
 
-                if (ref $current->{chain}) {
-                    foreach (@{$current->{chain}}) {
-                        s/^(?:input|forward|output|prerouting|postrouting)$/uc $&/e
-                          and warning('Please write built-in chain names in upper case');
-                    }
-                } else {
-                    $current->{chain} =~ s/^(?:input|forward|output|prerouting|postrouting)$/uc $&/e
+                # ferm 1.1 compatibility: uppercase built-in chain
+                # names
+                foreach (ref $current->{chain} ? @{$current->{chain}} : $current->{chain}) {
+                    s/^(?:input|forward|output|prerouting|postrouting)$/uc $&/e
                       and warning('Please write built-in chain names in upper case');
                 }
 
