@@ -1060,6 +1060,12 @@ sub tables {
     shell_append(\$rr, '--mark', $rule{mark})
       if defined $rule{mark};
 
+    # ipt_mport parameters
+    foreach (qw(source-ports destination-ports ports)) {
+        shell_append(\$rr, "--$_", $rule{$_})
+          if exists $rule{$_};
+    }
+
     # ipt_nth parameters
     foreach (qw(every counter start packet)) {
         shell_append(\$rr, "--$_", $rule{$_})
@@ -1852,6 +1858,15 @@ sub enter {
             if ($keyword eq 'mark') {
                 $current->{$keyword} = getvar();
                 $current->{auto_modules}{mark} = 1;
+                next;
+            }
+
+            # ipt_mport switches
+            if ($keyword =~ /^(?:(?:source-|destination-|)ports)$/ and
+                defined $proto and
+                grep { /^(?:tcp|udp)$/ } to_array $proto) {
+                $current->{$keyword} = join(',', to_array getvalues());
+                $current->{auto_modules}{mport} = 1;
                 next;
             }
 
