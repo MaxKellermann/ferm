@@ -642,8 +642,6 @@ sub tables {
     my $rrr = "";
 
     # pre-setup rrr for creation of chains
-    if (!defined $rule{'table'} ) {
-         $rule{'table'} = 'filter';}
     $rrr .= "$option{'location'} -t " . $rule{'table'} . " ";
 
     # in iptables, built-in chains are UPPERCASE
@@ -1314,10 +1312,8 @@ sub enter {
 
             # policy keywords
             if ($keyword eq 'policy') {
-                my $tables = find_option(\@fw, 'table') || 'filter';
+                my $tables = find_option(\@fw, 'table');
                 my $chains = find_option(\@fw, 'chain');
-                error('No chain specified yet')
-                  unless defined $chains;
 
                 my $policy = uc getvar();
                 error('invalid policy target, exiting')
