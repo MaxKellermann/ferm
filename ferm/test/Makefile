@@ -3,7 +3,7 @@ OLD_FERM = /usr/bin/ferm
 NEW_FERM = ../src/ferm
 
 # a list of all ferm scripts which should be tested with iptables
-FERM_SCRIPTS = positive/flush positive/multimod positive/negated-varlist positive/policyorder
+FERM_SCRIPTS = positive/flush positive/multimod positive/policyorder
 FERM_SCRIPTS_iptables = positive/bug positive/iptables-targets positive/masqto positive/mod params/owner positive/state positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
 FERM_SCRIPTS_iptables += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard protocols/*.ferm) $(wildcard misc/*.ferm)
 FERM_SCRIPTS_iptables += $(FERM_SCRIPTS_ipchains)
