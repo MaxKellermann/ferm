@@ -1537,9 +1537,9 @@ sub enter {
                       unless $name =~ /^\w+$/;
 
                     my @params;
-                    my $token = require_next_token();
-                    error('function parameter list expected')
-                      unless $token eq '(';
+                    my $token = next_token();
+                    error('function parameter list or "()" expected')
+                      unless defined $token and $token eq '(';
                     while (($token = require_next_token) ne ')') {
                         if (@params) {
                             error('comma expected')
@@ -1612,9 +1612,13 @@ sub enter {
                 error("no such function: \&$name")
                   unless defined $function;
 
-                my $params = getvalues();
+                my $token = next_token();
                 error('function name must be followed by "()"')
-                  unless ref $params and @$params == 0;
+                  unless defined $token and $token eq '(';
+
+                $token = next_token();
+                error('")" expected (parameters are not yet supported)')
+                  unless defined $token and $token eq ')';
 
                 if ($function->{block}) {
                     # block {} always ends the current rule, so if the
