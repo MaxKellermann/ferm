@@ -688,9 +688,9 @@ leave the machine. This is useful for bridged interfaces.
 
 Check the link-layer packet type.
 
-    mod pkttype unicast;
-    mod pkttype broadcase;
-    mod pkttype multicast;
+    mod pkttype pkt-type unicast;
+    mod pkttype pkt-type broadcase;
+    mod pkttype pkt-type multicast;
 
 =item B<random>
 
