@@ -1039,6 +1039,13 @@ sub enter {
     { LOOP: {
         my $keyword = getvar();
         $verbose && print ".";
+
+        my $current_chain;
+        foreach my $item (@fw) {
+            $current_chain = $item->{chain}
+              if exists $item->{chain};
+        }
+
         # the core: parse all data
         SWITCH: for ($keyword)
         {
@@ -1225,11 +1232,11 @@ sub enter {
                 ; next; };
 
             # ipt_recent switches
-            /^(?:name|seconds|hitcount)$/ && do {
+            defined $current_chain && /^(?:name|seconds|hitcount)$/ && do {
                 $fw[$lev]{$keyword}=getvar();
                 next;
             };
-            /^(?:set|rcheck|update|remove|rttl)$/ && do {
+            defined $current_chain && /^(?:set|rcheck|update|remove|rttl)$/ && do {
                 $fw[$lev]{$keyword}=1;
                 next;
             };
