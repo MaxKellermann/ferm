@@ -1,0 +1,186 @@
+
+    CHANGES
+
+    version history for ferm
+
+    Auke Kok <auke.kok@planet.nl>
+
+
+v1.1 - 2 December 2001
+  - Removed 'mark' as possible target due to nameclash
+  - Fixed typo in tos values with missing space
+  - Added support for shell escapes
+  - Updated manual page
+  - Fixed bug with ! before variable lists
+  - Added support for multiple variables inside a value
+  - Changed variable character from '$' to '%' to allow system variables
+  - Split up the pod stuff from the ferm source
+  - Fixed word splitter to more a serious approach
+  - Removed internal proxy variable, replaced with 'to' and 'toports' for clearity
+  - Removed the 'relaxed' option, for it wasn't used at it's potential (once)
+  - Added location option for the meek
+  - Have ferm prescan input to look for the kernel program and location
+  - Modified $(DOCDIR) to /usr/share/doc/ferm
+  - Added debug (--debug or -d) parameter for even more output
+  - Added --length,ttl, ttl[set|inc|dec] and ttl-[eq|lt|gt],
+    --[every|counter|start|packet], --average, --pkt-type, --string
+    --time[start|stop] and --days, ip-limit-[above|mask]
+    --psd-[weight-threshold|delay-threshold|[lo|hi]-ports-weight]
+    --to-[source|ports|destination], --set-ftos 
+  - Added BALANCE, FTOS, SAME targets
+  - Fixed bug on log/goto combination (missing space) -debian bugs
+  - Allow lists in set statements -debian bugs
+
+
+v1.0pl8 - 13 july 2001
+  - Fixed nonexistent parameter values for log-[ip|tcp]-...
+  - Made keyword pattern matching strict, better for finding typo's
+  - Added NOP action (for match-counting)
+  - Added option automodule for automaticly loading correct modules
+  - Fixed -m for mark in iptables mixo
+  - Fixed relaxed matching tos values, still relaxed now though
+  - Fixed mark missing as normal target
+  - Added variable support
+  - Updated manual page partly
+
+
+v1.0pl7 - 21 may 2001
+  - Added support for multiple modules
+
+
+v1.0pl6 - 19 may 2001
+  - Fixed wrongly flushing of chains
+  - Fixed bug which infected policies already set
+  - Updated manual to distinguish between 'log' and 'LOG'
+  - Fixed lower case mismatching targets due to faulty
+    substring expression matching
+   
+
+v1.0pl5 - 16 may 2001
+  - Fixed policy keyword bug
+  - Added consistency check for missing semicolons before
+    section closing
+  - Fixed flushall target for multiple tables
+  - Reworked policy system to allow multiple policy settings for
+    single chains
+  - Changed syntax to allow "--state A,B", adapted "--tcp-flags"
+    syntax to do exactly the same (see manual)
+
+
+v1.0pl4 - 11 may 2001
+  - Fixed order of TOS targets/params for iptables
+  - Added correct flushing in combination with policy-setting only
+  - Stripped trailing spaces on rule
+  - Fixed a small grammar error in description
+  - Removed SNAT and DNAT as valid policy targets
+  - Added QUEUE, MARK, MIRROR and RETURN as valid (policy) targets
+  - Added PRE/POSTROUTING chains as valid for policy
+  - Added set-mark parameter, moved 'mark' in ipchains to 'setmark'
+  - Added MASQUERADE <port/range> syntax for iptables
+
+
+v1.0pl3 - 9 may 2001
+  - Fixed DENY rule appearing uncapitalized
+
+
+v1.0pl2 - 8 may 2001
+  - Added support for SNAT and DNAT targets
+  - Added support for the tcp-flags option
+
+
+v1.0pl1 - 3 May 2001
+  - Fixed redirection to host vs port in iptables section
+  - Fixed chain clearing in all tables
+  - Switched to Makefiles for install & uninstall script
+
+
+v1.0 - 2 May 2001
+  - Fixed iptables addr/port combination errors (iptables lacks
+    ipchains shorthand method for this)
+  - Removed 'reverse' for iptables (misses capability)
+  - Added filter and nat cleaning for 'clearall' option
+  - Major update on chain-administration in iptables
+
+
+v0.0.18 - 18 Apr 2001
+  - Fixed two minor bugs (typo/parm ordering)
+  - Added ttl-* options for iptables
+  - Fixed log-tcp-*, which don't want parameters
+  - Return of default kernel program, now checked for at first rule
+    generation moment. Default is ipchains (again)
+  - Added PRE- and POSTROUTING targets for iptables
+
+
+v0.0.17 - 19 Feb 2001
+  - Added better literal string handling enclosed in quotes
+  - Added "module" parameter for iptables
+  - Added "LOG" target for iptables, the "log" option still works
+    the old way, so "proto tcp log ACCEPT;" works fine
+  - Fixed table parameter in clearing/policy/creation of chains
+  - Added a special iptables example
+  - Added support for "! syn" and "! fragment" syntax
+  - Fixed fragment parameter bug
+
+
+v0.0.16 - 12 Feb 2001
+  - Fixed default ipchains option- removed the default kernel
+    interface program
+  - Fixed 5 iptables/ipchains copy-paste typo's
+
+
+v0.0.15 - 7 Feb 2001
+  - Added possibility of "" parameters including spaces and special
+    characters, handy for 'log-prefix'
+  - Fixed minor 'rejectt' bug
+  - Added a realistic ferm config example
+  - Fixed iptables log error (Klaus Lichtenwalder)
+
+
+v0.0.14 - 28 Jan 2001
+  - Fixed tos and set-tos parameter switches for iptables
+  - Added install script
+  - Updated manual page to reflect changes in 0.0.13
+  - Fixed flushing/clearing in iptables
+
+
+v0.0.13 - 10 Jan 2001
+  - Improved iptables support: the following parameters:
+    * table, out-interface, tcp-option, mac-source, limit, limit-burst,
+     all owner-parameters, state, logging options, reject-with
+  - Changed 'tos' into 'settos' to allow 'tos' matching in iptables
+  - Implemented the ! operator, partly by John Auer
+
+
+v0.0.12 - 8 Jan 2001
+  - Fixed an incredibly stupid bug created in 0.0.11
+
+
+v0.0.11 - 5 Jan 2001
+  - Fixed a lot of silly bugs with the policy system (uc/lc, wrong
+    targets)
+  - Allows empty files
+
+
+v0.0.10 - 4 Jan 2001
+  - Policy can now be specified as a single statement, like
+    "chain input policy ACCEPT;", allowing policies to be
+    shut down and opened in the process of loading
+  - Added the 'reverse' option
+  - Fixed fqdn specification (Yannick Le Briquer)
+  - Package contains man page in html
+
+
+v0.0.9 - 14 Dec 2000
+  - REDIRECT option corrected, you can now specify the port number
+    that you are redirecting to (D. Bidwell)
+  - Added basic iptables support
+  - fixed typo error between 's' and 'd' for portspec
+  - Updated manual page
+
+
+v0.0.8 - 12 Dec 2000
+  - initial release, features:
+    * ipchains support
+    * ipfwadm support
+    * complete man page
+    * examples

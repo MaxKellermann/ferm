@@ -1,0 +1,166 @@
+
+        README for ferm
+
+        Auke Kok <auke.kok@planet.nl>
+
+
+Contents:
+
+	- Introduction to ferm
+	- Installing ferm
+	- Uninstalling ferm
+	- Basic use of ferm
+	- Getting a firewall working with ferm on your system
+	- Package contents
+
+
+Introduction to ferm
+
+	Ferm is a tool to maintain and setup complicated firewall
+	rules. It allows to reduce the tedious task of carefully inserting
+	rules and chains by a large factor, thus enabling the firewall
+	administrator to spend more time on developing good rules
+	then the proper implementation of the rule.
+
+	Ferm is a simple perl program, so it's lightweight, does
+	not require any compiling or building, and it's construct
+	can be adapted and modified quickly, so new features should
+	be easy to adopt. The fact that it's perl-based makes it
+	more trustworthy as well.
+
+	Ferm supports ipchains firewalls, ipfwadm rules and
+	iptables firewalls. Changing to another system will be
+	very easy, and ferm will help in the process.
+
+
+Installing ferm
+
+	./make install
+
+	The package does not need to be compiled, just make sure
+	you have perl (which is present in any base linux system)
+	and either ipchains, ipfwadm or iptables, and the according
+	firewall enabled kernel installed.
+
+	Run the make install install script as root to install the
+	package in it's best location, so it can be reached from
+	the command line when called. The manual page will also
+	be installed.
+
+	That's all!
+
+
+Uninstalling ferm
+
+	./make uninstall
+
+	Ferm can now be quickly removed from the system by issuing
+	a "make uninstall" command (as root, of course). This
+	will not remove any configuration files of course!
+
+
+Basic use of ferm
+
+	ferm is designed to parse structured firewall files, 
+	merely it's own language (quite C-like) to describe
+	firewall-rules. Look at the examples for a good idea.
+	To install a firewall, create an appropriate firewall
+	file that suits your needs, store it into a good spot
+	like /etc/firewall.conf and execute:
+
+		ferm /etc/firewall.conf
+
+	ferm will read the file, translate it into your
+	[ipchains|iptables|ipfwadm] rules, and install these
+	into the kernel firewalling system! Read the manual and
+	the examples to get the idea about the syntax of the
+	firewall files.
+
+	Generally, ferm will be called in 2 ways:
+
+	- testing a firewall.conf file:
+
+		ferm -li -n /etc/firewall.conf
+
+	This way, the actual firewall is not implemented, but the
+	resulting rules are printed so you may check them. Add
+	-d or -v for even more information.
+
+	- implementing a ferm setup manually:
+
+		ferm -li /etc/firewall.conf
+
+	This way, you may check any iptables generated errors and
+	check again rules are implemented correctly. It is
+	advisable to carefully check the output.
+
+	When you are satisfied with the generated rules, feel free
+	to insert ferm into an rc.d script or even an ip-up ppp
+	script. Make sure you are satisfied with the setup because
+	a wrong configuration may lead to terrible things. The
+	line you need to insert will look like this:
+
+		ferm /etc/firewall.conf
+
+	Note that some system scripts remove any PATH settings and
+	ferm might want to know the location of the iptables or ipchains
+	binaries and might not find them, which results in more
+	trouble or no firewall at all.
+
+
+Getting a firewall working with ferm on your system
+
+	First, get to know ferm, read the previous section and toy 
+	around with some examples. Ferm is really simple, but still
+	people e-mail me questions that are answered in the man-page.
+	
+	It is a requirement that you get some basic knowledge of
+	networking before experimenting with ferm. I cannot stress
+	that enough. There are many introductions available on
+	the internet that explain the way the internet is constructed
+	and what all those protocols are and how they work.
+
+	Also you should be comfortable as root modifying your system
+	setup and editing some textfiles. Ferm may require you to
+	use text-editors and plain old point and click do not work 
+	with ferm.
+
+	Okay, you've not ran away crying or screaming, good, now do
+	this:
+
+	- make a ferm config file (or even more!)
+
+	Read the examples and compile a firewall that suits your needs,
+	add or remove items at will and test it thoroughly
+
+	- test the ferm config file
+
+	Make sure the firewall behaves as you want it to! Be carefull
+	with this!!!
+
+	- install it on the system
+
+	Execute ferm manually or put it in an rc.d boot script, a ppp
+	script or wherever you see fit. You might have more that one
+	script (like the author).
+
+	That's it! 
+
+	
+Package Contents
+	
+	* README	This file
+	* AUTHORS	List of people who worked on the project
+	* COPYING	Copy of the GPL
+	* CHANGES	A list of changes in the development of ferm
+	* ferm		The program
+	* ferm.pod	The pod (perl doc format) file
+	* ferm.1	The man page
+        * ferm.txt      The man page as plain text
+	* ferm.html	The man page as html file
+	* examples/*	Some examples
+	* Makefile	Installation Makefile
+
+
+--
+Auke Kok <auke.kok@planet.nl>

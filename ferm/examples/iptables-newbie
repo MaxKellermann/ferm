@@ -1,0 +1,190 @@
+#
+# A ferm config example
+#
+# Iptables example showing off a most usefull firewall situation
+#
+# (C) Auke Kok
+#
+
+#
+# important options:
+#
+	option iptables
+	option clearall
+	option createchains
+
+#
+# user specified parameters:
+#
+
+	# EXTIF/INTIF - specify the external and external interfaces
+	# A good start is this diagram:
+	# Provider interface    EXTIF	INTIF
+	#    DSL		ppp0	eth1	(note that most DSL ISP use an eth
+	#					itself for the link to the DSL modem)
+	#    Dialup		ppp0	eth0
+	#    Cable		eth0	eth1
+	# Replace the 0/1 with the number of your interface.
+	# If you have multiple ethernet cards, check which one is configured
+	# for your inside network, could also be slip, plip or even tunl devices.
+
+	set EXTIF "ppp0"
+	set INTIF "eth0"
+
+
+
+
+#
+# firewall rules:
+#
+
+	# pre-setup
+	#
+	# all chains have just been cleared so we shut down all network
+	# traffic temporary
+	policy DROP {
+	    table filter chain (INPUT FORWARD OUTPUT);
+	    table mangle chain (PREROUTING OUTPUT);
+	    table nat chain (PREROUTING OUTPUT POSTROUTING);
+	}
+
+	# main firewall
+	#
+	# first we set up the structure along which packets will follow
+	# a tree of chains until they match and are either rejected or
+	# dropped
+
+	table filter {
+	    # the filter table is for classic firewalling: stopping
+	    # packets or allowing them
+	    chain INPUT {
+		# We're only going to firewall incoming packets:
+		if %EXTIF goto EXTIN;
+	    }
+
+	    chain EXTIN {
+		# first work off some basic prechecks we have
+		# to do to look at the packets validity:
+		goto IANA_BAN;
+		goto LOCAL_BAN;
+		goto PORTSCAN;
+		
+		# Drop packets stating to come from our own machine,
+		# for they are obviously fake:
+		saddr %EXTIF DROP;
+
+		# Drop miscelaneous bad packets
+		fragment DROP;
+		state INVALID DROP;
+		
+		# main system dependant firewalling rules:
+		proto tcp {
+		    # reject idents with a tcp-reset packet so
+		    # any outgoing connection does not hang for
+		    # the server to time-out on ident/auth:
+		    dport ident REJECT reject-with tcp-reset;
+
+		    # specifically accepted servers on suid ports,
+		    # this scheme protects them from DDos attacks,
+		    # don't use this for busy servers like apache though!
+		    syn dport %TCP_SERV {
+			limit 10/s ACCEPT;
+			limit 5/m LOG log-prefix "SYN flood attack:" LOG;
+			DROP;
+		    }
+
+		    # drop all syns: (incoming connections)
+		    syn {
+		        log-prefix "tcp SYN Dropped:" LOG;
+			DROP;
+		    }
+
+		    # drop any left over packets to suid ports
+		    dport :1023 {
+			log-prefix "TCP packet:" LOG;
+			DROP;
+		    }
+		}
+		proto udp {
+		    # the udp protocol has less stuff to look at, so 
+		    # we deny most of it anyway on low port numbers
+
+		    # this line makes ntpd work:
+		    sport ntp dport ntp ACCEPT;
+
+		    dport :1023 {
+			log-prefix "UDP packet dropped:" LOG;
+			DROP;
+		    }
+		}
+		proto icmp {
+		    # icmp can be abused for several things, but
+		    # most of all, we don't want plain pings to
+		    # pass through:
+		    icmptype ping DROP;
+		}
+	    }
+
+	    chain IANA_BAN {
+		# A list of several internet addresses which are reserved
+		# for internal use only exists, these should be blocked
+		# no matter what. See the file 'iana_reserved.txt'.
+		saddr %IANA_BANS DROP;
+	    }
+
+	    chain LOCAL_BAN {
+		# A comprehensive list of naughty people will start to grow
+		# as you log packets and notice some people show way too
+		# much interest in your machine. See the file 'local_ban.txt'.
+		# you might also add suspicious networks here and local
+		# networks like 10.0.0.0/8 etc...
+		saddr %LOCAL_BANS DROP;
+	    }
+
+	    chain PORTSCAN {
+		# Here we can intercept some type of portscans, with thanks
+		# to Ben for the rules:
+		proto tcp {
+	    	    tcp-flags FIN:SYN:RST:PSH:ACK:URG NONE {
+		        limit 5/min log-prefix "NULL SCAN:" log-level 5
+					log-tcp-options log-ip-options LOG;
+		        DROP;
+	    	    }
+		    tcp-flags FIN:SYN:RST:PSH:ACK:URG FIN:PSH:URG {
+		        limit 5/min log-prefix "NMAP-XMAS Portscan:" log-level 5 LOG;
+		        DROP;
+		    }
+		    tcp-flags SYN:RST SYN:RST {
+		        limit 5/min log-prefix "SYN/RST Portscan:" log-level 5 LOG;
+		        DROP;
+		    }
+		    tcp-flags FIN:SYN FIN:SYN {
+		        limit 5/min log-prefix "SYN/FIN Portscan:" log-level 5 LOG;
+		        DROP;
+		    }
+		}
+	    }
+	}
+
+	table nat {
+	    # the nat table is for port forwarding, masquerading
+	    # and other stuff where the addresses inside the packet	
+	    # are modified
+
+	table mangle {
+	    # the mangle table is for modifying packets, so we can
+	    # set TOS values here, which can improve some packet
+	    # scheduling
+	    
+	}
+
+
+
+	# post-setup
+	#
+	# all chains have been filled so we may now permit network traffic
+	policy ACCEPT {
+	    table filter chain (INPUT FORWARD OUTPUT);
+	    table mangle chain (PREROUTING OUTPUT);
+	    table nat chain (PREROUTING OUTPUT POSTROUTING);
+	}

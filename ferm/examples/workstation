@@ -1,0 +1,32 @@
+# simple workstation example for ferm
+
+option clearall
+option createchains
+
+chain input {
+    if ppp0 # put your outside interface here
+    {
+        proto tcp goto fw_tcp;
+        proto udp goto fw_udp;
+        proto icmp goto fw_icmp;
+    }
+}
+
+chain fw_tcp proto tcp {
+    dport ssh ACCEPT;
+    syn DENY log;
+    dport domain ACCEPT;
+    dport 0:1023 DENY log;
+}
+
+chain fw_udp proto udp {
+    DENY log;
+}
+
+
+chain fw_icmp proto icmp {
+    icmptype (
+        pong destination-unreachable time-exceeded
+    ) ACCEPT;
+    DENY log;
+}
