@@ -1787,24 +1787,22 @@ ferm - a firewall rule parser for linux
 
 =head1 SYNOPSIS
 
-ferm [options] <file>
+B<ferm> I<options> I<inputfiles>
 
- Options:
-   --noexec          Do not execute the rules, just simulate
-   --lines           Show all rules that were created
-   --verbose         Show some more information
-   --debug           Show debug information
-   --version         Show current version number
-   --clearall        Flush and delete all chains before adding rules
-   --flushall        Flush all chains before adding rules
-   --createchains    Create all neccesary chains
-   --flushchains     Flush all used chains
-   --automod         Enable automatic module parameters for iptables
-   --help            Look at this text
-   --use [kernel firewall program]
-                     Either iptables, ipchains or ipfwadm
-   --location /path/to/iptables
-                     Specify the location and name of the kernel program
+=head1 OPTIONS
 
-=head1 DESCRIPTION
-
+ -n, --noexec      Do not execute the rules, just simulate
+ --lines           Show all rules that were created
+ -v, --verbose     Show some more information
+ --debug           Show debug information
+ -V, --version     Show current version number
+ --clearall        Flush and delete all chains before adding rules
+ --flushall        Flush all chains before adding rules
+ --createchains    Create all neccesary chains
+ --flushchains     Flush all used chains
+ --automod         Enable automatic module parameters for iptables
+ -h, --help        Look at this text
+ --use [kernel firewall program]
+                   Either iptables, ipchains or ipfwadm
+ --location /path/to/iptables
+                   Specify the location and name of the kernel program
