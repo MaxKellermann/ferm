@@ -95,6 +95,9 @@ use vars qw(%deprecated_keywords);
                          match => 'module',
                          frag => 'fragment',
                          'out-interface' => 'outerface',
+                         icmptype => 'icmp-type',
+                         tcpflags => 'tcp-flags',
+                         tcpoption => 'tcp-option',
                        );
 
 # Get command line stuff
@@ -968,10 +971,10 @@ sub tables {
     }
 
     # ipt_addrtype parameters
-    shell_append(\$rr, '--src-type', $rule{srctype})
-      if exists $rule{srctype};
-    shell_append(\$rr, '--dst-type', $rule{dsttype})
-      if exists $rule{dsttype};
+    shell_append(\$rr, '--src-type', $rule{'src-type'})
+      if exists $rule{'src-type'};
+    shell_append(\$rr, '--dst-type', $rule{'dst-type'})
+      if exists $rule{'dst-type'};
 
     # ipt_ah parameters
     shell_append(\$rr, '--ahspi', $rule{ahspi})
@@ -1643,8 +1646,8 @@ sub enter {
             # icmp protocol switches
             if (defined $proto and
                 $proto eq 'icmp' and
-                $keyword =~ /^icmp-?type$/) {
-                $current->{'icmp-type'} = getvalues();
+                $keyword eq 'icmp-type') {
+                $current->{$keyword} = getvalues();
                 next;
             }
 
@@ -1655,7 +1658,7 @@ sub enter {
                     $current->{$keyword} = getvalues();
                     next;
                 }
-                if ($keyword =~ /^(?:tcp-?)flags$/) {
+                if ($keyword eq 'tcp-flags') {
                     my @mask = to_array getvalues(undef, undef,
                                                   non_empty => 1);
                     my @match = to_array getvalues(undef, undef,
@@ -1676,12 +1679,8 @@ sub enter {
                     }
                     next;
                 }
-                if ($keyword =~ /^tcp-?option$/) {
-                    $current->{'tcp-option'} = getvalues();
-                    next;
-                }
-                if ($keyword eq 'mss') {
-                    $current->{mss} = getvalues();
+                if ($keyword =~ /^(?:tcp-option|mss)$/) {
+                    $current->{$keyword} = getvalues();
                     next;
                 }
             }
@@ -1699,29 +1698,27 @@ sub enter {
             #
 
             # ipt_addrtype switches
-            /^(?:src|dst)-?type$/ && do {
-                s/-//;
+            /^(?:src|dst)-type$/ && do {
                 $current->{$_} = getvalues();
                 $current->{auto_modules}{addrtype} = 1;
                 next;
             };
 
             # ipt_ah switches
-            /^ah-?spi$/ && do {
-                s/-//;
-                $current->{$_} = getvalues();
+            if ($keyword eq 'ahspi') {
+                $current->{$keyword} = getvalues();
                 $current->{auto_modules}{ah} = 1;
                 next;
-            };
+            }
 
             # ipt_conntrack switches
-            /^ctstate$/ && do {
+            if ($keyword eq 'ctstate') {
                 my @params = to_array getvalues(undef, undef,
                                                 non_empty => 1);
                 $current->{$keyword} = join(',', @params);
                 $current->{auto_modules}{conntrack} = 1;
                 next;
-            };
+            }
 
             /^(?:ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
                 $current->{$keyword} = getvalues();
@@ -1761,17 +1758,18 @@ sub enter {
             }
 
             # ipt_mac switches
-            if (/^mac$|^mac-source$/) {
-                $current->{'mac-source'} = getvalues();
+            if ($keyword eq 'mac-source') {
+                $current->{$keyword} = getvalues();
                 $current->{auto_modules}{mac} = 1;
                 next;
             }
 
             # ipt_mark switches
-            /^mark$/ && do {
-                $current->{'mark'}=getvar();
+            if ($keyword eq 'mark') {
+                $current->{$keyword} = getvar();
                 $current->{auto_modules}{mark} = 1;
-                ; next; };
+                next;
+            }
 
             # ipt_nth switches
             /^every$|^counter$|^start$|^packet$/ && do {
