@@ -738,13 +738,6 @@ sub tables {
     if ( defined $rule{'set-mss'} ) {
         $rr .= "--set-mss " . $rule{'set-mss'} . " " } ;
 
-    if ( defined $rule{'nldrop'} ) {
-        $rr .= "--nldrop "; } ;
-    if ( defined $rule{'nlmark'} ) {
-        $rr .= "--nlmark " . $rule{'nlmark'} . " " } ;
-    if ( defined $rule{'nlsize'} ) {
-        $rr .= "--nlsize " . $rule{'nlsize'} . " " } ;
-
     # ipt_addrtype parameters
     $rr .= "--src-type " . $rule{srctype} . " "
       if exists $rule{srctype};
@@ -1127,16 +1120,6 @@ sub enter {
                 foreach my $module (split /\x2c|:/, getvalues()) {
                     $current->{modules}{$module} = 1;
                 }
-                ; next; };
-            /^string$/ && do {
-                $current->{'string'}=getvalues();
-                # XXX: what's this?
-                ; next; };
-            /^nldrop$/ && do {
-                $current->{'nldrop'}=1;
-                ; next; };
-            /^nlmark$|^nlsize$/ && do {
-                $current->{$keyword}=getvar();
                 ; next; };
 
             # miscelleanous switches
