@@ -1104,6 +1104,14 @@ sub tables {
     shell_append(\$rr, '--average', $rule{average})
       if exists $rule{average};
 
+    # ipt_realm parameters
+    if (exists $rule{realm}) {
+        shell_append(\$rr, '--realm');
+        shell_append(\$rr, '!')
+          if $rule{realm} =~ s/^!\s*//;
+        shell_append(\$rr, $rule{realm});
+    }
+
     # ipt_recent parameters
     foreach (qw(name seconds hitcount)) {
         shell_append(\$rr, "--$_", $rule{$_})
@@ -1926,6 +1934,13 @@ sub enter {
                 $current->{'average'}=getvar();
                 $current->{auto_modules}{random} = 1;
                 ; next; };
+
+            # ipt_realm switches
+            if ($keyword eq 'realm') {
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{realm} = 1;
+                next;
+            }
 
             # ipt_recent switches
             /^(?:name|seconds|hitcount)$/ && do {
