@@ -371,38 +371,44 @@ This option makes B<ferm> show a lot of information about what
 it is doing.
 
 
-=head2 keywords
+=head1 BASIC KEYWORDS
 
-To make life easy, B<ferm> allows you to use shorthands for
-most keywords. A list of shorthand notations is available at the end
-of this section.
 
-What kind of value you provide for a keyword depends on the 
-keyword entirely, e.g. 'protocol' expects 'tcp', 'udp' or 'icmp',
-'log-prefix' expects a value like '"whoops, someone rang the
-doorbell"' and 'destination-port' can accept values like 'http',
-'80' or '0:1023'. Take a look at the kernel backend program
-manual for possible values and how they look like.
-
-Note you may put a value in single quotes or double quotes,
-if this may be required because a value contains spaces:
-
-    log-prefix "Dropped tcp package: "
-
-Please keep in mind that some characters have special meaning,
-so it might be wise to refrain from using any other character
-then letters and digits and spaces unless you need them and
-know what you're doing. Take a look at B<VARIABLES> and
-B<SHELL ESCAPES> for more information about that.
+=head2 Location keywords
 
 =over 8
 
+=item B<table [filter|nat|mangle]>
+
+Specifies which netfilter table this rule will be inserted to:
+"filter" (default), "nat" or "mangle".
+
 =item B<chain [chain-name]>
 
-Specifies a chain that this rule will be inserted to. this
-is a required key for any rule. Chains can be
-built in, like C<input>, C<output> or C<forward>, or user-defined
-chains.
+Specifies the netfilter chain (within the current table) this rule
+will be inserted to. Common predefined chain names are "INPUT",
+"OUTPUT", "FORWARD", "PREROUTING", "POSTROUTING", depending on the
+table. See the netfilter documentation for details.
+
+If you specify a non-existing chain here, ferm will add the rule to a
+custom chain with that name.
+
+=item B<policy [ACCEPT|DROP|..]>
+
+Specifies the default policy for the current chain (built-in
+only). Can be one of the built-in targets (ACCEPT, DROP, REJECT,
+...). A packet that matches no rules in a chain will be treated as
+specified by the policy.
+
+To avoid ambiguity, always specify the policies of all predefined
+chains explicitly.
+
+=back
+
+
+=head2 Basic match keywords
+
+=over 8
 
 =item B<interface [interface-name]>
 
@@ -426,71 +432,11 @@ their respective numbers.
 Matches on packets originating from the specified address (saddr) or
 targeted at the address (daddr).
 
-=item B<sport|dport [port-spec]>
+Examples:
 
-Matches on packets on the specified TCP or UDP port. "sport" matches
-the source port, and dport matches the destination port.
-
-This match can be used only after you specified "proto tcp" or "proto
-udp", because only these two protocols actually have ports.
-
-Here are some examples of valid addresses:
-
-    192.168/8 (identical to the next one:)
-    192.168.0.0/255.255.255.0
-    my.domain.com
-
-And some examples of valid ports/ranges:
-
-    80
-    http
-    ssh:http
-    0:1023        which is equivalent to     :1023
-    1023:65535    which is equivalent to     1023:65535
-
-=item B<icmptype [type]>
-
-To specify an icmp message type. Can be numbers, but refer
-to the manual of the kernel program to retreive a list,
-for iptables use "iptables -p icmp C<-h>". Examples: ping, pong.
-
-=item B<tos [value]>
-
-Matches a packet on the specified TOS-value. See settos for
-values.
-
-=item B<settos [value]>
-
-Set the tcp package Type Of Service bit to this value.
-This will be used by whatever traffic scheduler is willing to,
-mostly your own linux-machine, but maybe more. The original
-tos-bits are blanked and overwritten by this value. Possible
-values are (look in the shorthands for more, and easier
-values) :
-
-02 04 08 10
-
-=item B<setftos [value]>
-
-Set TOS field in packet header to value. This value can be
-in decimal (ex: 32) or in hex (ex: 0x20)
-
-=item B<mark [value]>
-
-matches packets based on their mark-value
-
-=item B<setmark [value]>
-
-Sets the mark-value for a packet, use with the MARK target in iptables
-
-=item B<syn>
-
-Specify that the SYN flag in a tcp package should be matched,
-which are used to build new tcp connections. You can identify
-incoming connections with this, and decide wether you want
-to allow it or not. Packets that do not have this flag are
-probably from an already established connection, so it's
-considered reasonably safe to let these through.
+    saddr 192.168/8; # (identical to the next one:)
+    saddr 192.168.0.0/255.255.255.0;
+    daddr my.domain.com;
 
 =item B<fragment>
 
@@ -504,182 +450,241 @@ your system (the default is usually 1500 bytes).
 Fragments are frequently used in DOS attacks, because there
 is no way of finding out the origin of a fragment packet.
 
-=item B<policy [policy]>
+=item B<sport|dport [port-spec]>
 
-Specifies the default policy for the current chain. Can be
-either of the standard actions (ACCEPT, DENY, REJECT, MASQ
-and REDIRECT). A packet that matches no rules will be treated
-as specified by the policy. You can't specify chain names
-here. Only the predefined (built-in) chains have policies.
+Matches on packets on the specified TCP or UDP port. "sport" matches
+the source port, and dport matches the destination port.
 
-To avoid ambiguity, always specify the policies of all
-predefined chains explicitly.
+This match can be used only after you specified "protocol tcp" or
+"protocol udp", because only these two protocols actually have ports.
 
-=item B<log>
+And some examples of valid ports/ranges:
 
-Log all packets that match this rule in the kernel log. Be
-carefull with log flooding. Note the difference with B<LOG>
-in iptables! See B<LOG> as well. In iptables, this makes a
-copy of the current rule, and inserts it with the LOG target
-instead of any other specified target. 
+    dport 80;
+    dport http;
+    dport ssh:http;
+    dport 0:1023; # equivalent to :1023
+    dport 1023:65535;
 
-See also B<log-[level|prefix|tcp-sequence|tcp-options|ip-options]>
+=item B<icmp-type [type]>
 
-=item B<goto [chain]>
+To specify an icmp message type. Only available after "protocol icmp".
 
-Specify that matching packets should jump to this chain, only user
-defined chains are valid jump targets.
+Can be numbers, but refer to the manual of the kernel program to
+retreive a list, for iptables use "iptables -p icmp C<-h>". Examples:
+ping, pong.
 
-=item B<LOG>
+=item B<syn>
 
-Identical to the 'LOG' target in iptables, logs any packet that
-matches, but doesn't do anything else to it. Only valid for
-iptables, otherwise use 'log'. See B<log> and also
-B<log-[level|prefix|tcp-sequence|tcp-options|ip-options]>.
+Specify that the SYN flag in a tcp package should be matched,
+which are used to build new tcp connections. You can identify
+incoming connections with this, and decide wether you want
+to allow it or not. Packets that do not have this flag are
+probably from an already established connection, so it's
+considered reasonably safe to let these through.
+
+=item B<module [module-name]>
+
+Load an iptables module. Most modules provide more match
+keywords. We'll get to that later.
+
+
+=head2 Basic target keywords
+
+=over 8
+
+=item B<goto [custom-chain-name]>
+
+Jumps to a custom chain. If no rule in the custom chain matched,
+netfilter returns to the next rule in the previous chain.
 
 =item B<ACCEPT>
 
 Accepts matching packets.
 
+=item B<DROP>
+
+Drop matching packets without further notice.
+
 =item B<REJECT>
 
-Rejects matching packets.
+Rejects matching packets, i.e. send an ICMP packet to the sender,
+which is port-unreachable by default. You may specify another ICMP
+type:
 
-=item B<DENY>
+    REJECT reject-with icmp-net-unreachable;
 
-Denies matching packets.
+Type "iptables -j REJECT -h" for details.
 
-=item B<MASQ toports [port|portrange]>
+=item B<RETURN>
+
+Finish the current chain and return to the calling chain (if "goto
+[custom-chain-name]" was used).
+
+
+=head1 ADDITIONAL KEYWORDS
+
+Netfilter is modular. Modules may provide additional targets and match
+keywords. The list of netfilter modules is constantly growing, and
+ferm tries to keep up with supporting them all. This chapter describes
+modules which are currently supported.
+
+
+=head2 Netfilter match modules
+
+=item B<length>
+
+Check the package length.
+
+    mod length length 128; # exactly 128 bytes
+    mod length length 512:768; # range
+
+=item B<limit>
+
+Limits the packet rate.
+
+    mod limit limit 1/second;
+    mod limit limit 15/minute limit-burst 10;
+
+Type "iptables -m limit -h" for details.
+
+=item B<mac>
+
+Match the source MAC address.
+
+    mod mac mac-source 01:23:45:67:89;
+
+=item B<mark>
+
+Matches packets based on their netfilter mark field. This may be a 32
+bit integer between 0 and 4294967295.
+
+    mod mark mark 42;
+
+=item B<owner>
+
+Check information about the packet creator, namely user id, group id,
+process id, session id and command name.
+
+    mod owner uid-owner 0;
+    mod owner gid-owner 1000;
+    mod owner pid-owner 5432;
+    mod owner sid-owner 6543;
+    mod owner cmd-owner "sendmail";
+
+=item B<state>
+
+Checks the connection tracking state.
+
+    mod state state INVALID DROP;
+    mod state state (ESTABLISHED RELATED) ACCEPT;
+
+Type "iptables -m state -h" for details.
+
+=item B<tcp>
+
+Checks TCP specific attributes. This module is automatically loaded
+when you use "protocol tcp".
+
+    proto tcp sport 1234;
+    proto tcp dport 2345;
+    proto tcp tcp-flags SYN,ACK SYN;
+    proto tcp tcp-flags ! SYN,ACK SYN;
+    proto tcp syn;
+    proto tcp tcp-option 2;
+    proto tcp mss 512;
+
+Type "iptables -p tcp -h" for details.
+
+=item B<tos>
+
+Matches a packet on the specified TOS-value.
+
+    mod tos tos Minimize-Cost;
+
+Type "iptables -m tos -h" for details.
+
+=item B<ttl>
+
+Matches the ttl (time to live) field in the IP header.
+
+    mod ttl ttl-eq 12; # ttl equals
+    mod ttl ttl-gt 10; # ttl greater than
+    mod ttl ttl-lt 16; # ttl less than
+
+=head2 Netfilter target modules
+
+The following additional targets are available in ferm, provided that
+you enabled them in your kernel:
+
+=item B<DNAT to [ip-address|ip-range|ip-port-range]>
+
+Change the destination address of the packet.
+
+    DNAT to 10.0.0.4;
+    DNAT to 10.0.0.4:80;
+    DNAT to 10.0.0.4:1024-2048;
+    DNAT to 10.0.1.1-10.0.1.20;
+
+=item B<LOG>
+
+Log all packets that match this rule in the kernel log. Be carefull
+with log flooding. Note that this is a "non-terminating target",
+i.e. rule traversal continues at the next rule.
+
+    LOG log-level warning log-prefix "Look at this: ";
+    LOG log-tcp-sequence log-tcp-options;
+    LOG log-ip-options;
+
+=item B<MARK>
+
+Sets the netfilter mark field for the packet (a 32 bit integer between
+0 and 4294967295):
+
+    MARK set-mark 42;
+
+=item B<MASQUERADE>
 
 Masquerades matching packets. Optionally followed by a port or
 port-range for iptables. Specify as "123", "123-456" or "123:456".
 The port range parameter specifies what local ports masqueraded
-connections should originate from. Note you need to specify the
-'to' word here.
+connections should originate from.
 
-=item B<RETURN>
+    MASQUERADE;
+    MASQUERADE to-ports 1234:2345;
 
-Returns to the parent chain where the current chain was called
-if the packet matches.
+=item B<REDIRECT to-ports [ports]>
 
-=item B<REDIRECT [to|toports] [port|portrange]> 
+Transparent proxying: alter the destination IP of the packet to the
+machine itself.
 
-Allows transparent proxying when rule matches, the port that is
-redirected to must immediately follow this keyword. The target
-may also be an IP-number in case you are using iptables(8), so
-something like "REDIRECT 192.168.0.5:21" is valid there.
+    proto tcp dport http REDIRECT to-ports 3128;
 
-=item B<SNAT|DNAT to [ip-address|ip-range|ip-port-range]>
+=item B<SNAT to [ip-address|ip-range|ip-port-range]>
 
-Allows source/destination address translation, only valid for
-iptables(8), requires an ip-number, range or ip/port value.
+Change the source address of the packet.
 
-=item B<TOS>
+    SNAT to 1.2.3.4;
+    SNAT to 1.2.3.4:20000-30000;
 
-Changes the packets TOS-field according to the set-tos parameter
-specified, only valid for iptables.
+=item B<TOS set-tos [value]>
 
-=item B<FTOS>
+Set the tcp package Type Of Service bit to this value.  This will be
+used by whatever traffic scheduler is willing to, mostly your own
+linux-machine, but maybe more. The original tos-bits are blanked and
+overwritten by this value.
 
-Set TOS field in packet header with setftos parameter.
+    TOS set-tos Maximize-Throughput;
+
+Type "iptables -j TOS -h" for details.
 
 =item B<TTL>
 
-The ttl-target is for changing ttl values
+Modify the TTL header field.
 
-=item B<table [table-name]>
-
-Selects this table for the rule. Valid table names are "filter",
-"nat" and "mangle". If you don't specify any table, the default
-table "filter" is used.
-
-=item B<reject-with [value]>
-
-Rejects a packet with an ICMP value type message.
-
-=item B<limit [value]>
-
-Limits these type of packets to a maximim.
-
-=item B<iplimitabove [value]>
-
-Limits a certain IP list a number of connections.
-
-=item B<iplimitmask [value]>
-
-Specifies the mask to use for iplimitabove.
-
-=item B<psdweightthreshold [value]>
-
-Specifies the port scan weight threshold
-
-=item B<psddelaythreshold [value]>
-
-Specifies the delay weight for port scans
-
-=item B<psdloportsweight [value]>
-
-Specifies the weight for low ports in the port scan detection algorithm
-
-=item B<psdhiportsweight [value]>
-
-Specifies the weight for high ports in the port scan detection algorithm
-
-=item B<ttl [value]>
-
-Matches the ttl for value
-
-=item B<ttl-[eq|lt|gt] [value]>
-
-Matches the ttl value when equal, smaller or larger than value
-
-=item B<ttl-[set|dec|inc] [value]>
-
-Sets, decreases or increases the ttl value
-
-=item B<length [[value]|[value:value]]>
-
-Specify a certain packet length to match, may be a range of lengths
-
-=item B<burst [value]>
-
-Limits bursts of these packets.
-
-=item B<mac [value]>
-
-Matches packets originating from these mac-addresses.
-
-=item B<state [value]>
-
-Matches packets with this state. The value may be specified as a ferm
-array: "(ESTABLISHED RELATED)" or a single value.
-
-=item B<tcp-flags [!] [flagmask] [flagmatch]>
-
-Specify tcp-flags, the B<!> is optional and has to precede the mask,
-mask and match are mandatory. The list of mask or match flags may be
-specified as a ferm array: "(SYN ACK RST)" or a single value.
-
-=item B<tcp-option [value]>
-
-Specify a tcp-option for this rule.
-
-=item B<log-[level|prefix]>
-
-Specifies several the log level and syslog prefix string.
-
-=item B<log-|tcp-sequence|tcp-options|ip-options]>
-
-Specifies several extra tcp/ip options.
-
-=item B<[u|g|p|s]id-owner [value]>
-
-Matches packets originating from this User, Group, Pid or Session ID.
-
-=item B<set [name] [value]>
-
-Set variable "name" to value "value", you can dereference the variables
-by "%name". You may also put variables within B<set> statements.
+    TTL ttl-set 16;
+    TTL ttl-dec 1; # decrease by 1
+    TTL ttl-inc 4; # increase by 4
 
 =back
 
