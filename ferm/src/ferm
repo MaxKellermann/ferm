@@ -554,11 +554,10 @@ sub chains {
         for ( $rule{'chain'} ) {
             /^input$|^forward$|^output$/ && do {
                 if ( ! ($chains{$rule{'chain'}} & 1) ) {
-                    for ( $rule{'policy'} ) {
-                        s/^drop$/DENY/g ; s/^accept$/ACCEPT/g ;
-                        s/^reject$/REJECT/g ; s/^masq$/MASQ/g ;
-                        s/^redirect$/REDIRECT/g ; };
-                    push @rules, "$option{'location'} -P $rule{'chain'} $rule{'policy'}\n";
+                    my $policy = $rule{policy};
+                    $policy = 'DENY'
+                      if $policy eq 'DROP';
+                    push @rules, "$option{'location'} -P $rule{'chain'} $policy\n";
                     $chains{$rule{'chain'}} |= 1 ; };
                 last; };
             mydie (" cannot set the policy for non-built in chains, exiting"); }; };
@@ -701,16 +700,10 @@ sub tables {
         for ( $rule{'chain'} ) {
             /^INPUT$|^FORWARD$|^OUTPUT$|^PREROUTING$|^POSTROUTING$/ && do {
                 if ( ! ($tables{$rule{'table'} . '_' . lc $rule{'chain'}} & 1) ) {
-                    for ( $rule{'policy'} ) {
-                        s/^drop$/DROP/g ;
-                        s/^accept$/ACCEPT/g ;
-                        s/^reject$/REJECT/g ;
-                        s/^masq$/MASQUERADE/g ;
-                        s/^redirect$/REDIRECT/g ;
-                        s/^queue$/QUEUE/g ;
-                        s/^mirror$/MIRROR/g ;
-                        s/^return$/RETURN/g ; };
-                    push @rules, $rrr . "-P $rule{'chain'} $rule{'policy'}\n";
+                    my $policy = $rule{policy};
+                    $policy = 'DROP'
+                      if $policy eq 'REJECT';
+                    push @rules, $rrr . "-P $rule{'chain'} $policy\n";
                     $tables{$rule{'table'}.'_'.(lc $rule{'chain'})} |= 1 ; };
                 last; };
             mydie (" cannot set the policy for non-built in chains, exiting"); }; };
@@ -1044,9 +1037,9 @@ sub fwadm {
     elsif ($rule{'chain'} eq 'output') {$rr = "\-O "; }
     else { mydie("Cannot create new chains if using ipfwadm!");};
 
-    if ($rule{'policy'} eq 'accept') { push @rules, "ipfwadm $rr\-p accept\n";}
-    elsif ($rule{'policy'} eq 'drop') { push @rules, "ipfwadm $rr\-p deny\n";}
-    elsif ($rule{'policy'} eq 'reject') { push @rules, "ipfwadm $rr\-p reject\n";}
+    if ($rule{'policy'} eq 'ACCEPT') { push @rules, "ipfwadm $rr\-p accept\n";}
+    elsif ($rule{'policy'} eq 'DROP') { push @rules, "ipfwadm $rr\-p deny\n";}
+    elsif ($rule{'policy'} eq 'REJECT') { push @rules, "ipfwadm $rr\-p reject\n";}
     elsif (exists $rule{'policy'}) { mydie("Ipfwadm allows only accept, deny and reject policies!");};
 
     # exit if no action is present - in case of policy only
@@ -1443,15 +1436,15 @@ sub enter {
                 ; next; };
 
             # policy keywords
-            /^policy$/ && do {
-                $current->{'policy'}=getvar();
-                for ( $current->{'policy'} ) {
-                    /^ACCEPT$|^accept$|^REJECT$|^reject$|^QUEUE$|^queue$|^RETURN$|^return$|^MIRROR$|^mirror$/ && do {
-                        $current->{'policy'}= lc $current->{'policy'} ; next ; } ;
-                    /^DROP$|^drop$|^DENY$|^deny$/ && do {
-                        $current->{'policy'}='drop'; next ; } ;
-                    error('invalid policy target, exiting');
-                } ; next; };
+            if ($keyword eq 'policy') {
+                my $policy = uc getvar();
+                $policy = 'DROP'
+                  if $policy eq 'DENY';
+                error('invalid policy target, exiting')
+                  unless $policy =~ /^(?:ACCEPT|DROP|REJECT)$/;
+                $current->{policy} = $policy;
+                next;
+            }
 
             # action keywords
             /^log$/i && do {
