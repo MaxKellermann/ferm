@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -p udp -j CONNMARK --set-mark 7
+iptables -t filter -A INPUT -p tcp -j CONNMARK --save-mark
+iptables -t filter -A INPUT -p tcp -j CONNMARK --restore-mark
