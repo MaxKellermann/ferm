@@ -696,16 +696,14 @@ Matches packets originating from these mac-addresses.
 
 =item B<state [value]>
 
-Matches packets with this state. The value may be specified as
-a normal ferm-list: "(ESTABLISHED,RELATED)" but "NEW:RELATED",
-and single values are also allowed.
+Matches packets with this state. The value may be specified as a ferm
+list: "(ESTABLISHED RELATED)" or a single value.
 
 =item B<tcp-flags [!] [flagmask] [flagmatch]>
 
 Specify tcp-flags, the B<!> is optional and has to precede the mask,
-mask and match are mandatory. The list of mask or match flags may
-be specified as a normal ferm-list: "(SYN,ACK,RST)", but "SYN:ACK:RST"
-and single values are also allowed.
+mask and match are mandatory. The list of mask or match flags may be
+specified as a normal ferm-list: "(SYN ACK RST)" or a single value.
 
 =item B<tcp-option [value]>
 
