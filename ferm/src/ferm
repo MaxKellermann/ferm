@@ -33,7 +33,6 @@ $VERSION = '1.1+cvs';
 $DATE = '19 oct 2004';
 
 # global data vars
-my @fw;        # fwset in list of hashes
 my @rules;     # will contain all rules
 my %chains;    # chain box for ipchains
     $chains{'input'} = 0;
@@ -1074,6 +1073,8 @@ sub printrule {
 
 
 sub mkrules {
+    my $fw = shift;
+
     # compile the list hashes into rules
     my @fr;
 
@@ -1084,8 +1085,8 @@ sub mkrules {
         $db = "# Rule unparsed :  ";
     };
 
-    for (my $i = 0; $i <= $#fw; $i++) {
-        while (my ($key, $value) = each %{$fw[$i]}) {
+    for (my $i = 0; $i < @$fw; $i++) {
+        while (my ($key, $value) = each %{$fw->[$i]}) {
             $db .= "${key}[$i]=$value "
               if $debug;
 
@@ -1135,6 +1136,7 @@ sub mkrules {
 
 sub enter {
     my $lev = shift;  # current recursion depth
+    my @fw = @_; # fwset in list of hashes
 
     die unless @fw == $lev;
 
@@ -1148,6 +1150,7 @@ sub enter {
     };
 
     my $current = {};
+    push @fw, $current;
 
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
@@ -1480,8 +1483,6 @@ sub enter {
 
             # effectuation operator
             /(\x3b)/ && do {
-                push @fw, $current;
-
                 # check for action (required)
                 error("no action or policy defined, exiting")
                   unless grep {
@@ -1508,22 +1509,20 @@ sub enter {
                     $tables{'mangle_output'} &= 2;
                 }
 
-                mkrules();
+                mkrules(\@fw);
 
                 # and clean up variables set in this level
-                pop @fw;
-                $current = {};
+                %$current = ();
+
                 ; next ; } ;
 
             # recursing operators
             /\x7b/ && do {
-                push @fw, $current;
-                enter($lev + 1);
+                enter($lev + 1, @fw);
 
                 # after a block, the command is finished, clear this
                 # level
-                pop @fw;
-                $current = {};
+                %$current = ();
 
                 ; next SWITCH; };
             /\x7d/ && do {
