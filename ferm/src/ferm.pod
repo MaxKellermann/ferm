@@ -885,7 +885,7 @@ and steals the hard disk out of your PC. Do not rely on this
 firewall tool for the use of mission critical or confidential
 data. It is not fit for such a purpose!
 
-Instead, use this tool to expand your current use of iptablws(8)
+Instead, use this tool to expand your current use of iptables(8)
 and routing, create a flexible firewall and look out for
 anything suspicious. Be carefull with open ports and servers,
 always get the latest, patched versions. Read more about
@@ -898,7 +898,7 @@ visit www.gnu.org to find more about the license.
 
 The package comes with a directory full of goodies (examples)
 that you can try, adjust for your system or just read if
-you want to understand the syntax and it's possibilities.
+you want to understand the syntax and its possibilities.
 Look in the "examples" directory.
 
 
