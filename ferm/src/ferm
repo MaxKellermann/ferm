@@ -650,10 +650,18 @@ sub tables {
     if (defined $rule{'proto'} ) {
         $rr .= "-p " . $rule{'proto'} . " "; };
 
-    if (defined $rule{'module'} ) {
-        my @modules = split(/:/, $rule{'module'});
-        foreach ( @modules ) {
-            $rr .= "-m " . $_ . " "; };};
+    # modules
+    my %modules = ( ( exists $rule{modules}
+                      ? %{$rule{modules}}
+                      : () ),
+                    ( $option{automod} && exists $rule{auto_modules}
+                      ? %{$rule{auto_modules}}
+                      : () )
+                  );
+
+    foreach my $module (keys %modules) {
+        $rr .= '-m ' . $module . ' ';
+    }
 
     # address and port
     if (defined $rule{'saddr'} ) {
@@ -675,8 +683,6 @@ sub tables {
         } ;
 
     if (defined $rule{'tos'} ) {
-        if ($option{'automod'} ) {
-            $rr .= "-m tos "; };
         $rr .= "--tos ";
         for ( $rule{'tos'} ) {
             /mincost|min-cost|2/ && do { $rr .= "0x02 "};
@@ -688,8 +694,6 @@ sub tables {
         ; } ;
 
     if (defined $rule{'mark'} ) {
-        if ($option{'automod'} ) {
-            $rr .= "-m mark "; };
         $rr .= "--mark " . $rule{'mark'} . " "; } ;
     if (defined $rule{'fragment'} ) {
         if ( $rule{'fragment'} eq 'set' ) {
@@ -705,30 +709,18 @@ sub tables {
     if (defined $rule{'tcpoption'} ) {
         $rr .= "--tcp-option " . $rule{'tcpoption'} . " "; } ;
     if (defined $rule{'macsource'} ) {
-        if ( $option{'automod'} ) {
-             $rr .= "-m mac "; } ;
         $rr .= "--mac-source " . $rule{'macsource'} . " "; } ;
 
-    if (( defined $rule{'limit'} || defined $rule{'limitburst'} )
-            && ($option{'automod'})) {
-        $rr .= "-m limit "; } ;
     if (defined $rule{'limit'} ) {
         $rr .= "--limit " . $rule{'limit'} . " "; } ;
     if (defined $rule{'limitburst'} ) {
         $rr .= "--limit-burst " . $rule{'limitburst'} . " "; } ;
 
-    if (( defined $rule{'iplimitabove'} || defined $rule{'iplimitmask'} )
-            && ($option{'automod'})) {
-        $rr .= "-m iplimit "; } ;
     if (defined $rule{'iplimitabove'} ) {
         $rr .= "--iplimit-above " . $rule{'iplimitabove'} . " "; } ;
     if (defined $rule{'iplimitmask'} ) {
         $rr .= "--iplimit-mask " . $rule{'iplimitmask'} . " "; } ;
 
-    if ((defined $rule{'uidowner'} || defined $rule{'gidowner'} ||
-            defined $rule{'pidowner'} || defined $rule{'sidowner'} )
-            && ($option{'automod'})) {
-        $rr .= "-m owner "; } ;
     if (defined $rule{'uidowner'} ) {
         $rr .= "--uid-owner " . $rule{'uidowner'} . " "; } ;
     if (defined $rule{'gidowner'} ) {
@@ -738,10 +730,6 @@ sub tables {
     if (defined $rule{'sidowner'} ) {
         $rr .= "--sid-owner " . $rule{'sidowner'} . " "; } ;
 
-    if ((defined $rule{'psdweightthreshold'} || defined $rule{'psdhiportsweight'} ||
-            defined $rule{'psdloportsweight'} || defined $rule{'psddelaythreshold'} )
-            && ($option{'automod'})) {
-        $rr .= "-m psd "; } ;
     if (defined $rule{'psdweightthreshold'} ) {
         $rr .= "--psd-weight-threshold " . $rule{'psdweightthreshold'} . " "; } ;
     if (defined $rule{'psddelaythreshold'} ) {
@@ -751,20 +739,12 @@ sub tables {
     if (defined $rule{'psdhiportsweight'} ) {
         $rr .= "psd-hi-ports-weight " . $rule{'psdhiportsweight'} . " "; } ;
 
-    if ((defined $rule{'length'}) && ($option{'automod'})) {
-        $rr .= "-m length "; } ;
     if (defined $rule{'length'} ) {
         $rr .= "--length " . $rule{'length'} . " "; } ;
 
-    if ((defined $rule{'average'}) && ($option{'automod'})) {
-        $rr .= "-m random "; } ;
     if (defined $rule{'random'} ) {
         $rr .= "--average " . $rule{'average'} . " "; } ;
 
-    if ((defined $rule{'every'} || defined $rule{'counter'} ||
-            defined $rule{'start'} || defined $rule{'packet'} )
-            && ($option{'automod'})) {
-        $rr .= "-m nth "; } ;
     if (defined $rule{'every'} ) {
         $rr .= "--every " . $rule{'every'} . " "; } ;
     if (defined $rule{'counter'} ) {
@@ -774,20 +754,12 @@ sub tables {
     if (defined $rule{'packet'} ) {
         $rr .= "--packet " . $rule{'packet'} . " "; } ;
 
-    if ((defined $rule{'pkttype'}) && ($option{'automod'})) {
-        $rr .= "-m pkttype "; } ;
     if (defined $rule{'pkttype'} ) {
         $rr .= "--pkt-type " . $rule{'pkttype'} . " "; } ;
 
     if (defined $rule{'state'} ) {
-        if ($option{'automod'}) {
-            $rr .= "-m state "; };
         $rr .= "--state " . join(',',split(/:/,$rule{'state'})) . " "; } ;
 
-    if ((defined $rule{'ttleq'} || defined $rule{'ttllt'}
-                || defined $rule{'ttlgt'} )
-            && ($option{'automod'})) {
-        $rr .= "-m ttl "; } ;
     if (defined $rule{'ttl'} ) {
         $rr .= "--ttl " . $rule{'ttl'} . " "; } ;
    if (defined $rule{'ttleq'} ) {
@@ -797,16 +769,9 @@ sub tables {
     if (defined $rule{'ttlgt'} ) {
         $rr .= "--ttl-gt " . $rule{'ttlgt'} . " "; } ;
 
-    if ((defined $rule{'string'} )
-            && ($option{'automod'})) {
-        $rr .= "-m ttl "; } ;
     if (defined $rule{'string'} ) {
         $rr .= "--string " . $rule{'string'} . " "; } ;
 
-    if ((defined $rule{'timestart'} || defined $rule{'timestop'}
-                || defined $rule{'days'} )
-            && ($option{'automod'})) {
-        $rr .= "-m time "; } ;
     if (defined $rule{'timestart'} ) {
         $rr .= "--timestart " . $rule{'timestart'} . " "; } ;
     if (defined $rule{'timestop'} ) {
@@ -1107,26 +1072,54 @@ sub mkrules {
             # preparse value stuff: is unsplit value negated???
             my $negated = $value_string =~ /^\x21/;
 
-            # recurse for every value
-            foreach my $value (split ",", $value_string) {
-                # if so, make sure the '!' is put before every value in it
-                if ( $negated ) {
-                    for ($value) {
-                        !/^\x21/ && do { $value = "\x21" . $value; }
+            unless (ref $value_string) {
+                # recurse for every value
+                foreach my $value (split ",", $value_string) {
+                    # if so, make sure the '!' is put before every value in it
+                    if ( $negated ) {
+                        for ($value) {
+                            !/^\x21/ && do { $value = "\x21" . $value; }
+                        }
+                    }
+                    $value =~ s/^!/! /;
+                    # set this one and recurse
+                    $rule->{$key} = $value;
+
+                    if (@_) {
+                        dofr($rule, @_);
+                    } else {
+                        printrule($rule);
                     }
                 }
-                $value =~ s/^!/! /;
-                # set this one and recurse
-                $rule->{$key} = $value;
 
+                delete $rule->{$key};
+            } elsif (ref $value_string eq 'HASH') {
+                # merge hashes
+                my $old = $rule->{$key};
+
+                $rule->{$key} = { ( defined $old
+                                    ? %$old
+                                    : ()
+                                  ),
+                                  %$value_string
+                                };
+
+                # recurse
                 if (@_) {
                     dofr($rule, @_);
                 } else {
                     printrule($rule);
                 }
-            }
 
-            delete $rule->{$key};
+                # restore old value
+                if (defined $old) {
+                    $rule->{$key} = $old;
+                } else {
+                    delete $rule->{$key};
+                }
+            } else {
+                die ref $value_string;
+            }
         }
     }
 
@@ -1226,12 +1219,14 @@ sub enter {
                 ; next; };
             /^tos$/ && do {
                 $current->{'tos'}=getvar();
+                $current->{auto_modules}{tos} = 1;
                 ; next; };
             /^setftos$|^set-ftos$/ && do {
                 $current->{'setftos'}=getvar();
                 ; next; };
             /^mark$/ && do {
                 $current->{'mark'}=getvar();
+                $current->{auto_modules}{mark} = 1;
                 ; next; };
             /^set-mark$|^setmark$/ && do {
                 $current->{'setmark'}=getvar();
@@ -1246,48 +1241,63 @@ sub enter {
                 ; next; };
             /^mac$|^mac-source$|^macsource$/ && do {
                 $current->{'macsource'}=getvalues();
+                $current->{auto_modules}{mac} = 1;
                 ; next; };
             /^limit$/ && do {
                 $current->{'limit'}=getvar();
+                $current->{auto_modules}{limit} = 1;
                 ; next; };
             /^iplimitabove$|^ip-limit-above$/ && do {
                 $current->{'iplimitabove'}=getvar();
+                $current->{auto_modules}{iplimit} = 1;
                 ; next; };
             /^iplimitmask$|^ip-limit-mask$/ && do {
                 $current->{'iplimitmask'}=getvar();
+                $current->{auto_modules}{iplimit} = 1;
                 ; next; };
             /^burst$|^limit-burst$|^limitburst$/ && do {
                 $current->{'limitburst'}=getvar();
+                $current->{auto_modules}{limit} = 1;
                 ; next; };
             /^uid-owner$|^uidowner$|^uid$/ && do {
                 $current->{'uidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
                 ; next; };
             /^gid-owner$|^gidowner$|^gid$/ && do {
                 $current->{'gidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
                 ; next; };
             /^pid-owner$|^pidowner$|^pid$/ && do {
                 $current->{'pidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
                 ; next; };
             /^sid-owner$|^sidowner$|^sid$/ && do {
                 $current->{'sidowner'}=getvalues();
+                $current->{auto_modules}{owner} = 1;
                 ; next; };
             /^psdweightthreshold$|^psd-weight-threshold$/ && do {
                 $current->{'psdweightthreshold'}=getvar();
+                $current->{auto_modules}{psd} = 1;
                 ; next; };
             /^psddelaythreshold$|^psd-delay-threshold$/ && do {
                 $current->{'psddelaythreshold'}=getvar();
+                $current->{auto_modules}{psd} = 1;
                 ; next; };
             /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
                 $current->{'psdloportsweight'}=getvar();
+                $current->{auto_modules}{psd} = 1;
                 ; next; };
             /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
                 $current->{'psdhiportsweight'}=getvar();
+                $current->{auto_modules}{psd} = 1;
                 ; next; };
             /^length$/ && do {
                 $current->{'length'}=getvar();
+                $current->{auto_modules}{length} = 1;
                 ; next; };
             /^state$/ && do {
                 $current->{'state'}=join(':',split(/\x2c/,getvalues()));
+                $current->{auto_modules}{state} = 1;
                 ; next; };
             /^log-level$|^loglev$/ && do {
                 $current->{'loglevel'}=getvar();
@@ -1305,7 +1315,9 @@ sub enter {
                 $current->{'logipoptions'}='1';
                 ; next; };
             /^module$|^mod$|^match$/ && do {
-                $current->{'module'}=join(':',split(/\x2c/,getvalues()));
+                foreach my $module (split /\x2c|:/, getvalues()) {
+                    $current->{modules}{$module} = 1;
+                }
                 ; next; };
             /^table$/ && do {
                 $current->{'table'}=getvalues();
@@ -1315,39 +1327,51 @@ sub enter {
                 ; next; };
             /^ttl$/ && do {
                 $current->{'ttl'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^ttl-set$|^ttlset$/ && do {
                 $current->{'ttlset'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^ttl-inc$|^ttlinc$/ && do {
                 $current->{'ttlinc'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^ttl-dec$|^ttldec$/ && do {
                 $current->{'ttldec'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^ttl-eq$|^ttleq$/ && do {
                 $current->{'ttleq'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^ttl-lt$|^ttllt$/ && do {
                 $current->{'ttllt'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^ttl-gt$|^ttlgt$/ && do {
                 $current->{'ttlgt'}=getvar();
+                $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^every$|^counter$|^start$|^packet$/ && do {
                 $current->{$keyword}=getvar();
+                $current->{auto_modules}{nth} = 1;
                 ; next; };
             /^average$/ && do {
                 $current->{'average'}=getvar();
+                $current->{auto_modules}{random} = 1;
                 ; next; };
             /^pkttype$|^pkt-type$/ && do {
                 $current->{'pkttype'}=getvalues();
+                $current->{auto_modules}{pkttype} = 1;
                 ; next; };
             /^string$/ && do {
                 $current->{'string'}=getvalues();
+                # XXX: what's this? $current->{auto_modules}{ttl} = 1;
                 ; next; };
             /^timestart$|^timestop$|^days$/ && do {
                 $current->{$keyword}=getvar();
+                $current->{auto_modules}{time} = 1;
                 ; next; };
             /^nldrop$/ && do {
                 $current->{'nldrop'}=1;
@@ -1359,16 +1383,19 @@ sub enter {
             # ipt_recent switches
             /^(?:name|seconds|hitcount)$/ && do {
                 $current->{$keyword}=getvar();
+                $current->{auto_modules}{recent} = 1;
                 next;
             };
             /^(?:set|rcheck|update|remove|rttl)$/ && do {
                 $current->{$keyword}=1;
+                $current->{auto_modules}{recent} = 1;
                 next;
             };
 
             # ipt_conntrack switches
             /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
                 $current->{$keyword}=getvar();
+                $current->{auto_modules}{conntrack} = 1;
                 next;
             };
 
