@@ -33,7 +33,7 @@ $VERSION = '1.1+cvs';
 $DATE = '19 oct 2004';
 
 # global data vars
-my @fw = {};   # fwset in list of hashes
+my @fw;        # fwset in list of hashes
 my @rules;     # will contain all rules
 my %chains;    # chain box for ipchains
     $chains{'input'} = 0;
@@ -184,7 +184,7 @@ $option{'flushall'} && flushall();
 # parse all input recursively
 $verbose && print "Parsing files\n";
 if ( $#words > 0 ) {
-    enter(1);};
+    enter(0);};
 
 # and execute all generated rules
 $verbose && print "\nExecuting rules\n";
@@ -1136,8 +1136,7 @@ sub mkrules {
 sub enter {
     my $lev = shift;  # current recursion depth
 
-    push @fw, {};
-    die unless $#fw == $lev;
+    die unless @fw == $lev;
 
     # enter is the core of the firewall setup, it is a
     # simple parser program that recognizes keywords and
@@ -1147,6 +1146,8 @@ sub enter {
     if ($debug) {
         push @rules, "# entered level $lev\n";
     };
+
+    my $current = {};
 
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
@@ -1167,231 +1168,225 @@ sub enter {
               if $keyword eq '!';
         }
 
-        my $current_chain;
-        foreach my $item (@fw) {
-            $current_chain = $item->{chain}
-              if exists $item->{chain};
-        }
-
         # the core: parse all data
         SWITCH: for ($keyword)
         {
             # routing base parameters
             /^chain$/ && do {
-                $fw[$lev]{'chain'}=getvalues();
+                $current->{'chain'} = getvalues();
                 ; next; } ;
             /^interface$|if$/ && do {
-                $fw[$lev]{'interface'}=getvalues();
+                $current->{'interface'}=getvalues();
                 ; next; } ;
             /^outerface$|^out-interface$|^of$/ && do {
-                $fw[$lev]{'outerface'}=getvalues();
+                $current->{'outerface'}=getvalues();
                 ; next; } ;
             /^protocol$|^proto$/ && do {
-                $fw[$lev]{'proto'}=getvalues();
+                $current->{'proto'}=getvalues();
                 ; next; } ;
             /^sport$/ && do {
-                $fw[$lev]{'sport'}=getvalues();
+                $current->{'sport'}=getvalues();
                 ; next; } ;
             /^dport$/ && do {
-                $fw[$lev]{'dport'}=getvalues();
+                $current->{'dport'}=getvalues();
                 ; next; };
             /^port$/ && do {
                 if ($side eq 'source' ) {
-                    $fw[$lev]{'sport'}=getvalues() }
+                    $current->{'sport'}=getvalues() }
                 elsif ($side eq 'destination' ) {
-                    $fw[$lev]{'dport'}=getvalues() }
+                    $current->{'dport'}=getvalues() }
                 else {
                     error("source/destination not declared, exiting");
                     }
                 ; next; } ;
             /^icmptype$|^icmp-type$/ && do {
-                $fw[$lev]{'icmptype'}=getvalues();
+                $current->{'icmptype'}=getvalues();
                 ; next; } ;
             /^saddr$/ && do {
-                $fw[$lev]{'saddr'}=getvalues();
+                $current->{'saddr'}=getvalues();
                 ; next; };
             /^daddr$/ && do {
-                $fw[$lev]{'daddr'}=getvalues();
+                $current->{'daddr'}=getvalues();
                 ; next; };
             /^addr$/ && do {
                 if ($side eq 'source' ) {
-                    $fw[$lev]{'saddr'}=getvalues() }
+                    $current->{'saddr'}=getvalues() }
                 elsif ($side eq 'destination' ) {
-                    $fw[$lev]{'daddr'}=getvalues() }
+                    $current->{'daddr'}=getvalues() }
                 else {
                     error("source/destination not declared, exiting") };
                 ; next; } ;
 
             # extended parameters:
             /^settos$/ && do {
-                $fw[$lev]{'settos'}=getvar();
+                $current->{'settos'}=getvar();
                 ; next; };
             /^tos$/ && do {
-                $fw[$lev]{'tos'}=getvar();
+                $current->{'tos'}=getvar();
                 ; next; };
             /^setftos$|^set-ftos$/ && do {
-                $fw[$lev]{'setftos'}=getvar();
+                $current->{'setftos'}=getvar();
                 ; next; };
             /^mark$/ && do {
-                $fw[$lev]{'mark'}=getvar();
+                $current->{'mark'}=getvar();
                 ; next; };
             /^set-mark$|^setmark$/ && do {
-                $fw[$lev]{'setmark'}=getvar();
+                $current->{'setmark'}=getvar();
                 ; next; };
             /^tcp-flags$|^tcpflags$|^flags$/ && do {
-                $fw[$lev]{'tcpflags'}='1';
-                $fw[$lev]{'flagsmask'}=join(':',split(/\x2c/,getvalues()));
-                $fw[$lev]{'flagsmatch'}=join(':',split(/\x2c/,getvalues()));
+                $current->{'tcpflags'}='1';
+                $current->{'flagsmask'}=join(':',split(/\x2c/,getvalues()));
+                $current->{'flagsmatch'}=join(':',split(/\x2c/,getvalues()));
                 ; next; };
             /^tcp-option$|^tcpoption$/ && do {
-                $fw[$lev]{'tcpoption'}=getvalues();
+                $current->{'tcpoption'}=getvalues();
                 ; next; };
             /^mac$|^mac-source$|^macsource$/ && do {
-                $fw[$lev]{'macsource'}=getvalues();
+                $current->{'macsource'}=getvalues();
                 ; next; };
             /^limit$/ && do {
-                $fw[$lev]{'limit'}=getvar();
+                $current->{'limit'}=getvar();
                 ; next; };
             /^iplimitabove$|^ip-limit-above$/ && do {
-                $fw[$lev]{'iplimitabove'}=getvar();
+                $current->{'iplimitabove'}=getvar();
                 ; next; };
             /^iplimitmask$|^ip-limit-mask$/ && do {
-                $fw[$lev]{'iplimitmask'}=getvar();
+                $current->{'iplimitmask'}=getvar();
                 ; next; };
             /^burst$|^limit-burst$|^limitburst$/ && do {
-                $fw[$lev]{'limitburst'}=getvar();
+                $current->{'limitburst'}=getvar();
                 ; next; };
             /^uid-owner$|^uidowner$|^uid$/ && do {
-                $fw[$lev]{'uidowner'}=getvalues();
+                $current->{'uidowner'}=getvalues();
                 ; next; };
             /^gid-owner$|^gidowner$|^gid$/ && do {
-                $fw[$lev]{'gidowner'}=getvalues();
+                $current->{'gidowner'}=getvalues();
                 ; next; };
             /^pid-owner$|^pidowner$|^pid$/ && do {
-                $fw[$lev]{'pidowner'}=getvalues();
+                $current->{'pidowner'}=getvalues();
                 ; next; };
             /^sid-owner$|^sidowner$|^sid$/ && do {
-                $fw[$lev]{'sidowner'}=getvalues();
+                $current->{'sidowner'}=getvalues();
                 ; next; };
             /^psdweightthreshold$|^psd-weight-threshold$/ && do {
-                $fw[$lev]{'psdweightthreshold'}=getvar();
+                $current->{'psdweightthreshold'}=getvar();
                 ; next; };
             /^psddelaythreshold$|^psd-delay-threshold$/ && do {
-                $fw[$lev]{'psddelaythreshold'}=getvar();
+                $current->{'psddelaythreshold'}=getvar();
                 ; next; };
             /^psdloportsweight$|^psd-lo-ports-weight$/ && do {
-                $fw[$lev]{'psdloportsweight'}=getvar();
+                $current->{'psdloportsweight'}=getvar();
                 ; next; };
             /^psdhiportsweight$|^psd-hi-ports-weight$/ && do {
-                $fw[$lev]{'psdhiportsweight'}=getvar();
+                $current->{'psdhiportsweight'}=getvar();
                 ; next; };
             /^length$/ && do {
-                $fw[$lev]{'length'}=getvar();
+                $current->{'length'}=getvar();
                 ; next; };
             /^state$/ && do {
-                $fw[$lev]{'state'}=join(':',split(/\x2c/,getvalues()));
+                $current->{'state'}=join(':',split(/\x2c/,getvalues()));
                 ; next; };
             /^log-level$|^loglev$/ && do {
-                $fw[$lev]{'loglevel'}=getvar();
+                $current->{'loglevel'}=getvar();
                 ; next; };
             /^log-prefix$|^logprefix$/ && do {
-                $fw[$lev]{'logprefix'}=getvar();
+                $current->{'logprefix'}=getvar();
                 ; next; };
             /^log-tcp-sequence$|^logseq$/ && do {
-                $fw[$lev]{'logsequence'}='1';
+                $current->{'logsequence'}='1';
                 ; next; };
             /^log-tcp-options$|^logtcpopt$/ && do {
-                $fw[$lev]{'logtcpoptions'}='1';
+                $current->{'logtcpoptions'}='1';
                 ; next; };
             /^log-ip-options$|^logipopt$/ && do {
-                $fw[$lev]{'logipoptions'}='1';
+                $current->{'logipoptions'}='1';
                 ; next; };
             /^module$|^mod$|^match$/ && do {
-                $fw[$lev]{'module'}=join(':',split(/\x2c/,getvalues()));
+                $current->{'module'}=join(':',split(/\x2c/,getvalues()));
                 ; next; };
             /^table$/ && do {
-                $fw[$lev]{'table'}=getvalues();
+                $current->{'table'}=getvalues();
                 ; next; };
             /^reject-with$|^rejectwith$/ && do {
-                $fw[$lev]{'rejectwith'}=getvar();
+                $current->{'rejectwith'}=getvar();
                 ; next; };
             /^ttl$/ && do {
-                $fw[$lev]{'ttl'}=getvar();
+                $current->{'ttl'}=getvar();
                 ; next; };
             /^ttl-set$|^ttlset$/ && do {
-                $fw[$lev]{'ttlset'}=getvar();
+                $current->{'ttlset'}=getvar();
                 ; next; };
             /^ttl-inc$|^ttlinc$/ && do {
-                $fw[$lev]{'ttlinc'}=getvar();
+                $current->{'ttlinc'}=getvar();
                 ; next; };
             /^ttl-dec$|^ttldec$/ && do {
-                $fw[$lev]{'ttldec'}=getvar();
+                $current->{'ttldec'}=getvar();
                 ; next; };
             /^ttl-eq$|^ttleq$/ && do {
-                $fw[$lev]{'ttleq'}=getvar();
+                $current->{'ttleq'}=getvar();
                 ; next; };
             /^ttl-lt$|^ttllt$/ && do {
-                $fw[$lev]{'ttllt'}=getvar();
+                $current->{'ttllt'}=getvar();
                 ; next; };
             /^ttl-gt$|^ttlgt$/ && do {
-                $fw[$lev]{'ttlgt'}=getvar();
+                $current->{'ttlgt'}=getvar();
                 ; next; };
             /^every$|^counter$|^start$|^packet$/ && do {
-                $fw[$lev]{$keyword}=getvar();
+                $current->{$keyword}=getvar();
                 ; next; };
             /^average$/ && do {
-                $fw[$lev]{'average'}=getvar();
+                $current->{'average'}=getvar();
                 ; next; };
             /^pkttype$|^pkt-type$/ && do {
-                $fw[$lev]{'pkttype'}=getvalues();
+                $current->{'pkttype'}=getvalues();
                 ; next; };
             /^string$/ && do {
-                $fw[$lev]{'string'}=getvalues();
+                $current->{'string'}=getvalues();
                 ; next; };
             /^timestart$|^timestop$|^days$/ && do {
-                $fw[$lev]{$keyword}=getvar();
+                $current->{$keyword}=getvar();
                 ; next; };
             /^nldrop$/ && do {
-                $fw[$lev]{'nldrop'}=1;
+                $current->{'nldrop'}=1;
                 ; next; };
             /^nlmark$|^nlsize$/ && do {
-                $fw[$lev]{$keyword}=getvar();
+                $current->{$keyword}=getvar();
                 ; next; };
 
             # ipt_recent switches
             /^(?:name|seconds|hitcount)$/ && do {
-                $fw[$lev]{$keyword}=getvar();
+                $current->{$keyword}=getvar();
                 next;
             };
             /^(?:set|rcheck|update|remove|rttl)$/ && do {
-                $fw[$lev]{$keyword}=1;
+                $current->{$keyword}=1;
                 next;
             };
 
             # ipt_conntrack switches
             /^(?:ctstate|ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/ && do {
-                $fw[$lev]{$keyword}=getvar();
+                $current->{$keyword}=getvar();
                 next;
             };
 
             # miscelleanous switches
             /^reverse$|^bidirectional$|^swap$/ && do {
-                $fw[$lev]{'reverse'}='1';
+                $current->{'reverse'}='1';
                 ; next; };
             /^syn$/ && do {
                 # match tcp packages with syn-byte set
                 if ($negated) {
-                    $fw[$lev]{'syn'}='unset';
+                    $current->{'syn'}='unset';
                     undef $negated;
                 } else {
-                    $fw[$lev]{'syn'}='set';}
+                    $current->{'syn'}='set';}
                 ; next; } ;
             /^fragment$|^frag$/ && do {
                 if ($negated) {
-                    $fw[$lev]{'fragment'}='unset';
+                    $current->{'fragment'}='unset';
                     undef $negated;
                 } else {
-                    $fw[$lev]{'fragment'}='set';}
+                    $current->{'fragment'}='set';}
                 ; next; } ;
             /^source$|^src$/ && do {
                 $side='source';
@@ -1400,65 +1395,65 @@ sub enter {
                 $side='destination';
                 ; next; } ;
             /^to$/ && do {
-                $fw[$lev]{'to'}=getvar();
+                $current->{'to'}=getvar();
                 ; next; };
             /^toports$|^to-ports$/ && do {
-                $fw[$lev]{'toports'}=getvar();
+                $current->{'toports'}=getvar();
                 ; next; };
             /^tosrc$|^to-source$/ && do {
-                $fw[$lev]{'tosrc'}=getvar();
+                $current->{'tosrc'}=getvar();
                 ; next; };
             /^todest$|^to-destination$/ && do {
-                $fw[$lev]{'todest'}=getvar();
+                $current->{'todest'}=getvar();
                 ; next; };
             /^ulog-nlgroup$/ && do {
-                $fw[$lev]{'ulog-nlgroup'}=getvar();
+                $current->{'ulog-nlgroup'}=getvar();
                 ; next; };
             /^ulog-prefix$/ && do {
-                $fw[$lev]{'ulog-prefix'}=getvar();
+                $current->{'ulog-prefix'}=getvar();
                 ; next; };
             /^ulog-cprange$/ && do {
-                $fw[$lev]{'ulog-cprange'}=getvar();
+                $current->{'ulog-cprange'}=getvar();
                 ; next; };
             /^ulog-qthreshold$/ && do {
-                $fw[$lev]{'ulog-qthreshold'}=getvar();
+                $current->{'ulog-qthreshold'}=getvar();
                 ; next; };
             /^clamp-mss-to-pmtu$/ && do {
-                $fw[$lev]{'clamp-mss-to-pmtu'}='set';
+                $current->{'clamp-mss-to-pmtu'}='set';
                 ; next; };
             /^set-mss$/ && do {
-                $fw[$lev]{'set-mss'}=getvar();
+                $current->{'set-mss'}=getvar();
                 ; next; };
 
             # jump action
             /^goto$|^jump$/ && do {
-                $fw[$lev]{'action'}=getvar();
+                $current->{'action'}=getvar();
                 ; next; };
 
             # policy keywords
             /^policy$/ && do {
-                $fw[$lev]{'policy'}=getvar();
-                for ( $fw[$lev]{'policy'} ) {
+                $current->{'policy'}=getvar();
+                for ( $current->{'policy'} ) {
                     /^ACCEPT$|^accept$|^REJECT$|^reject$|^QUEUE$|^queue$|^RETURN$|^return$|^MIRROR$|^mirror$/ && do {
-                        $fw[$lev]{'policy'}= lc $fw[$lev]{'policy'} ; next ; } ;
+                        $current->{'policy'}= lc $current->{'policy'} ; next ; } ;
                     /^DROP$|^drop$|^DENY$|^deny$/ && do {
-                        $fw[$lev]{'policy'}='drop'; next ; } ;
+                        $current->{'policy'}='drop'; next ; } ;
                 } ; next; };
 
             # action keywords
             /^log$/i && do {
                 if ($option{frontend} eq 'iptables'
-                    and (not exists $fw[$lev]{action} or
+                    and (not exists $current->{action} or
                          $keyword eq 'LOG')) {
                     # set "log" action
 
                     # for backwards compatibility with ferm 1.1, an
                     # existing action is only overwritten if "LOG" is
                     # written in all uppercase
-                    $fw[$lev]{action} = lc $keyword;
+                    $current->{action} = lc $keyword;
                 } else {
                     # turn the logging switch on
-                    $fw[$lev]{log} = 'set';
+                    $current->{log} = 'set';
                 }
                 next;
             };
@@ -1468,23 +1463,25 @@ sub enter {
 
             /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mark|mirror|
                  netlink|nop|queue|reject|return|tcpmss|tos|ttl|ulog)$/ix && do {
-                if (exists $fw[$lev]{action}) {
-                    if ($fw[$lev]{action} eq 'log') {
+                if (exists $current->{action}) {
+                    if ($current->{action} eq 'log') {
                         # if the action is already set to "log",
                         # change that to a "log" flag for backwards
                         # compatibility
-                        $fw[$lev]{log} = 'set';
+                        $current->{log} = 'set';
                     } else {
                         error("two actions not allowed, exiting");
                     }
                 }
 
-                $fw[$lev]{'action'} = lc $keyword;
+                $current->{'action'} = lc $keyword;
                 next;
             };
 
             # effectuation operator
             /(\x3b)/ && do {
+                push @fw, $current;
+
                 # check for action (required)
                 error("no action or policy defined, exiting")
                   unless grep {
@@ -1492,11 +1489,12 @@ sub enter {
                   } @fw;
                 # check for chain (required)
                 error("no chain defined, exiting")
-                  unless defined $current_chain;
+                  unless grep {
+                      exists $_->{chain}
+                  } @fw;
 
                 # clear any policy-related stuff in this level
-                if ( exists $fw[$#fw]{'policy'} ||
-                        exists $fw[$#fw-1]{'policy'} ) {
+                if (grep { exists $_->{policy} } @fw) {
                     $chains{'input'} &= 2;
                     $chains{'forward'} &= 2;
                     $chains{'output'} &= 2;
@@ -1513,27 +1511,29 @@ sub enter {
                 mkrules();
 
                 # and clean up variables set in this level
-                $fw[$lev] = {};
+                pop @fw;
+                $current = {};
                 ; next ; } ;
 
             # recursing operators
             /\x7b/ && do {
+                push @fw, $current;
                 enter($lev + 1);
 
                 # after a block, the command is finished, clear this
                 # level
-                $fw[$lev] = {};
+                pop @fw;
+                $current = {};
 
                 ; next SWITCH; };
             /\x7d/ && do {
                 # consistency check: check if they hanven't
                 # forgotten the ';' before the last statement
                 error("Missing semicolon before closing section, exiting")
-                  if defined $fw[$lev] and keys %{$fw[$lev]};
+                  if keys %$current;
 
                 # clear any policy-related stuff in this level
-                    if ( exists $fw[$#fw]{'policy'} ||
-                        exists $fw[$#fw-1]{'policy'} ) {
+                if (grep { exists $_->{policy} } @fw) {
                     $chains{'input'} &= 2;
                     $chains{'forward'} &= 2;
                     $chains{'output'} &= 2;
@@ -1547,8 +1547,6 @@ sub enter {
                     $tables{'mangle_output'} &= 2;
                 }
 
-                # and clean up variables set in this level
-                pop @fw;
                 # and exit
                 if ($debug) {
                     push @rules, "# leaving level $lev\n";
