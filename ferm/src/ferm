@@ -759,6 +759,9 @@ sub getvalues {
         error('variable name expected')
           unless $name =~ /^\w+$/;
 
+        error("no such variable: $name")
+          unless exists $defs{$name};
+
         my @tokens = @{$defs{$name}{tokens}};
 
         my $result = getvalues(\&next_array_token, \@tokens);
