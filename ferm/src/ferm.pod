@@ -39,7 +39,7 @@ B<ferm> I<options> I<inputfiles>
 
 B<ferm> compiles ready to go firewall-rules from a structured
 rule-setup. These rules will be executed by the preferred kernel
-interface, such as ipchains(8) and iptables(8).
+interface, such as iptables(8).
 
 Besides just executing all rules in one command, the obvious gain
 is the possibility to provide a structured description of a
@@ -168,12 +168,10 @@ will result in this:
 If you want to put multiple arguments into a variable, you should do
 it like this:
 
-    %IFS = "eth0,eth1,ppp0"
+    %IFS = (eth0 eth1 ppp0)
 
 This way, ferm will recognize it being a list of values, and split it
-whenever needed. If you use spaces, ferm won't recognize it and think
-its just a value with spaces. The comma tells ferm to split it up
-when needed.
+whenever needed.
 
 =item B<()>
 
@@ -197,13 +195,13 @@ Only values can be 'listed', so you cannot do something like this:
 
 but you can do this:
 
-    chain (INPUT OUTPUT FORWARD) proto (icmp,udp,tcp) DENY;
+    chain (INPUT OUTPUT FORWARD) proto (icmp udp tcp) DENY;
 
 (which will result in nine rules!)
 
-Values can be separated either by spaces or commas. The
-array symbol is both left- and right-associative, in contrast
-with the nesting block, which is left-associative only.
+Values are separated by spaces. The array symbol is both left- and
+right-associative, in contrast with the nesting block, which is
+left-associative only.
 
 =item C< # >
 
@@ -290,7 +288,7 @@ be matched. Or even:
 Means you want to match *anything but* packets from the tcp
 protocol.
 
-Read iptables(8) or ipchains(8) to see where the B<!> can be used.
+Read iptables(8) to see where the B<!> can be used.
 
 
 =head2 Option keys
@@ -324,12 +322,12 @@ and accepting all tcp packets.  Ok, let's make it more complicated:
 
 This will insert 4 rules, namely 2 in chain input, and 2 in
 chain output, matching and accepting both udp and tcp packets.
-Normally you would type this for ipchains(8):
+Normally you would type this for iptables(8):
 
-   ipchains -A input -p tcp ACCEPT
-   ipchains -A output -p tcp ACCEPT
-   ipchains -A input -p udp ACCEPT
-   ipchains -A output -p udp ACCEPT
+   iptables -A INPUT -p tcp -j ACCEPT
+   iptables -A OUTPUT -p tcp -j ACCEPT
+   iptables -A INPUT -p udp -j ACCEPT
+   iptables -A OUTPUT -p udp -j ACCEPT
 
 Note how much less typing we need to do? :-)
 
@@ -426,13 +424,12 @@ chains.
 Define the interface name, your outside network card, like eth0,
 or dialup like ppp1, or whatever device you want to match for
 passing packets. It is equivalent to the C<-i> switch in
-ipchains(8) and iptables(8).
+iptables(8).
 
 =item B<outerface [interface-name]>
 
 Same as interface, only for matching the outgoing interface
-for a packet, as in iptables(8). ipchains(8) hasn't got this
-parameter.
+for a packet, as in iptables(8).
 
 =item B<protocol [protocol-name|protocol-number]>
 
@@ -494,7 +491,7 @@ And some examples of valid ports/ranges:
 
 To specify an icmp message type. Can be numbers, but refer
 to the manual of the kernel program to retreive a list,
-for ipchains use "ipchains C<-h> icmp". Examples: ping, pong.
+for iptables use "iptables -p icmp C<-h>". Examples: ping, pong.
 
 =item B<tos [value]>
 
@@ -742,11 +739,10 @@ configuration files even more easy to understand.
 Setting variables is very easy with the B<set> command. Here's some
 examples:
 
-    set EXTERAL_IP "111.22.33.44"
+    set EXTERAL_IP 111.22.33.44
     set INTERNAL_IP '10.0.0.1'
 
-Both these statements set the variable to what is in between the quotes,
-you may afterwards refer to them like this:
+You may afterwards refer to them like this:
 
     chain input daddr ! %EXTERNAL_IP DROP;
 
@@ -758,7 +754,7 @@ statements also work:
 
     set A "1"
     set B %A
-    set %A "2"
+    set %A 2
 
 After these statements, variable %A yields value "1", variable %B holds 
 the value "1", and the variable %1 holds the value "1" also.
@@ -766,7 +762,7 @@ the value "1", and the variable %1 holds the value "1" also.
 More importantly, these variables can be used to store arrays or lists
 of values:
 
-    set DNSSERVERS "111.2.33.1,111.2.33.2"
+    set DNSSERVERS (111.2.33.1 111.2.33.2)
 
 When this variable is inserted into a configuration file, the rule that
 it applies to will automatically be split up into two different firewall
@@ -774,28 +770,9 @@ rules for each IP number given in the list.
 
 Here's some even more complicated stuff that works:
 
-    set INTERNALINTERFACES "eth0,eth1,eth2"
-    set EXTERNALINTERFACES "ppp0,tunl0"
-    set INTERFACES "%INTERNALINTERFACES,%EXTERNALINTERFACES,lo"
-
-B<NOTE>: Beware of mixing '' string values within new string
-values, because the trailing ' might be concatenated with
-another one in the variable that you are including it. Take
-a look at this:
-
-    set IF1 'eth0'
-    set IF2 'eth1'
-    set IFS '%IF1,%IF2'
-
-Variable IFS will now contain the value ''eth0','eth1'' and that is
-probably not what you want. Better do this:
-
-    set OF1 "eth0"
-    set OF2 "eth1"
-    set OFS "%OF1,%OF2"
-
-Which will result in variable OFS holding the value "eth0,eth1",
-which will be split up correctly, namely into "eth0" and "eth1".
+    set INTERNALINTERFACES (eth0 eth1 eth2)
+    set EXTERNALINTERFACES (ppp0 tunl0)
+    set INTERFACES (%INTERNALINTERFACES %EXTERNALINTERFACES lo)
 
 
 =head1 SHELL ESCAPES
@@ -1048,15 +1025,14 @@ in the firewall file options section.
 
 =item B<--noexec>
 
-Do not execute the ipchains(8) or iptables(8) commands, but
-skip instead. This way you can parse your data, use B<--lines>
-to view the output.
+Do not execute the iptables(8) commands, but skip instead. This way
+you can parse your data, use B<--lines> to view the output.
 
 =item B<--lines>
 
 Show the firewall lines that were generated from the rules. They
 will be shown just before they are executed, so if you get error
-messages from ipchains(8) etc., you can see which rule caused
+messages from iptables(8) etc., you can see which rule caused
 the error.
 
 =item B<--verbose>
@@ -1076,12 +1052,6 @@ Show a brief list of available commandline options.
 =item B<--version>
 
 Shows the version number of the program.
-
-=item B<--use [ipchains|iptables|ipfwadm]>
-
-Use this kernel program to implement the rules into the kernel.
-Also available as firewall file option "option [...]". This option
-must be set, either on the commandline or in a ferm config file.
 
 =item B<--location [/path/to/filename]>
 
@@ -1124,19 +1094,12 @@ specified for the chain, but is only referred by with a
 Automatically insert the correct module parameter when using iptables,
 making the B<module> parameter unnecessary
 
-=item B<option [iptables|ipchains|ipfwadm]>
-
-Define which kernel program you have to use to install rules.
-This one is required, since on some systems, they can both
-be present, or you want to use a wrapper for an older version.
-Currently defaults to ipchains.
-
 =back
 
 
 =head1 SEE ALSO
 
-ipchains(8), ipfwadm(8), iptables(8)
+iptables(8)
 
 
 =head1 NOTES
@@ -1147,7 +1110,7 @@ and steals the hard disk out of your PC. Do not rely on this
 firewall tool for the use of mission critical or confidential
 data. It is not fit for such a purpose!
 
-Instead, use this tool to expand your current use of ipchains(8)
+Instead, use this tool to expand your current use of iptablws(8)
 and routing, create a flexible firewall and look out for
 anything suspicious. Be carefull with open ports and servers,
 always get the latest, patched versions. Read more about
@@ -1181,12 +1144,11 @@ your system and kernel version.
 
 =head2 Kernel
 
-The respective required kernel versions for each of the kernel
-firewall programs (ipchains(8), ipfwadm(8) or iptables(8)) is also
-needed. This means you have to have a kernel which can use the
-firewalling thing, something you might have to compile a kernel
-for, or set some switches in /proc. Look at the man pages of
-those kernel programs for more information.
+The respective required kernel versions for the kernel firewall
+programs (iptables(8)) is also needed. This means you have to have a
+kernel which can use the firewalling thing, something you might have
+to compile a kernel for, or set some switches in /proc. Look at the
+man pages of those kernel programs for more information.
 
 
 =head1 RESTRICTIONS
@@ -1195,30 +1157,18 @@ B<ferm> allows almost anything the used firewall program
 allows, so go ahead and specify complex port ranges, icmp
 by number or worse. Just be warned.
 
-Although quite sophisticated, the kernel interface programs
-ipchains(8) and iptables(8) are very limited in some respects.
+Although quite sophisticated, the kernel interface program
+iptables(8) are very limited in some respects.
 B<ferm> is only an interface to improve the handling of
 these programs, and is therefore limited by the possibilities
 of these programs.
 
-Ipfwadm(8) is extremely limited in rule-building, upgrade or
-succomb in it. Nothing B<ferm> can do about it.
-
 
 =head1 BUGS
-
-The ipfwadm(8) interface is really limited due to being unable to
-test it and having no experience with it at all. I'll be
-concentration on iptables(8), which supports much more options
-and will be quite more flexible.
 
 Several nasty cleanups are not done well, which may result
 in surviving data. Tried to remove all of them but suspect
 more of them to occur.
-
-The --log-prefix construct does not allow certain characters to
-be put between "". Make sure you don't use the bracket {} and []
-characters, the ! and , are also not correctly parsed.
 
 
 =head1 COPYRIGHT
