@@ -1090,10 +1090,21 @@ sub enter {
                 }
             }
 
+            # where to put the rule?
+            if ($keyword eq 'table') {
+                error('Table is already specified')
+                  if exists $current->{table};
+                $current->{table} = getvalues();
+                next;
+            }
+            if ($keyword eq 'chain') {
+                error('Chain is already specified')
+                  if exists $current->{chain};
+                $current->{chain} = getvalues();
+                next;
+            }
+
             # routing base parameters
-            /^chain$/ && do {
-                $current->{'chain'} = getvalues();
-                ; next; } ;
             /^interface$|if$/ && do {
                 $current->{'interface'}=getvalues();
                 ; next; } ;
@@ -1116,9 +1127,6 @@ sub enter {
                 foreach my $module (split /\x2c|:/, getvalues()) {
                     $current->{modules}{$module} = 1;
                 }
-                ; next; };
-            /^table$/ && do {
-                $current->{'table'}=getvalues();
                 ; next; };
             /^string$/ && do {
                 $current->{'string'}=getvalues();
