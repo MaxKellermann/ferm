@@ -1011,6 +1011,15 @@ sub tables {
     shell_append(\$rr, '--dscp-class', split(/\0/, $rule{'dscp-class'}))
       if exists $rule{'dscp-class'};
 
+    # ipt_ecn parameters
+    foreach (qw(ecn-tcp-cwr ecn-tcp-ece)) {
+        shell_append(\$rr, "--$_")
+          if exists $rule{$_};
+    }
+
+    shell_append(\$rr, '--ecn-ip-ect', $rule{'ecn-ip-ect'})
+      if exists $rule{'ecn-ip-ect'};
+
     # ipt_iplimit parameters
     if (exists $rule{'iplimit-above'}) {
         shell_append(\$rr, '!')
@@ -1763,6 +1772,19 @@ sub enter {
             if ($keyword eq 'dscp-class') {
                 $current->{$keyword} = getvar() . "\0" . getvar();
                 $current->{auto_modules}{dscp} = 1;
+                next;
+            }
+
+            # ipt_ecn switches
+            if ($keyword =~ /^ecn-tcp-(?:cwr|ece)$/) {
+                $current->{$keyword} = 1;
+                $current->{auto_modules}{ecn} = 1;
+                next;
+            }
+
+            if ($keyword eq 'ecn-ip-ect') {
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{ecn} = 1;
                 next;
             }
 
