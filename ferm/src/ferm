@@ -1004,14 +1004,14 @@ sub tables {
 
     # ipt_tos parameters
     if (exists $rule{tos}) {
-        $rr .= "--tos ";
-        for ($rule{tos}) {
-            /mincost|min-cost|2/ && do { $rr .= "0x02 "};
-            /reliability|reliable|4/ && do { $rr .= "0x04 "};
-            /max-throughput|maxthroughput|8/ && do { $rr .= "0x08 "};
-            /lowdelay|interactive|min-delay|10/ && do { $rr .= "0x10 "};
-            /clear|^0$|^00$|^0x00$/ && do { $rr .= "0x00 "};
-        }
+        # some translations for ferm 1.1 compatibility
+        $rule{tos} =~ s/^min-?cost$/0x02/;
+        $rule{tos} =~ s/^(?:reliability|reliable)$/0x04/;
+        $rule{tos} =~ s/^max-?throughput$/0x08/;
+        $rule{tos} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+        $rule{tos} =~ s/^clear$/0x00/;
+
+        $rr .= "--tos $rule{tos} ";
     }
 
     # ipt_ttl parameters
