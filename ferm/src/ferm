@@ -700,17 +700,15 @@ sub tables {
 
 
     if (defined $rule{'settos'} ) {
-        $rr .= "--set-tos ";
-        for ( $rule{'settos'} ) {
-            /mincost|min-cost|2/ && do { $rr .= "0x02 "};
-            /reliability|reliable|4/ && do { $rr .= "0x04 "};
-            /max-throughput|maxthroughput|8/ && do { $rr .= "0x08 "};
-            /lowdelay|interactive|min-delay|10/ && do { $rr .= "0x10 "};
-            /clear|^0$|^00$|^0x00$/ && do { $rr .= "0x00 "};
-            }
-        ; } ;
-    if (defined $rule{'setftos'} ) {
-        $rr .= "--set-ftos " . $rule{'setftos'} . " "; };
+        # some translations for ferm 1.1 compatibility
+        $rule{settos} =~ s/^min-?cost$/0x02/;
+        $rule{settos} =~ s/^(?:reliability|reliable)$/0x04/;
+        $rule{settos} =~ s/^max-?throughput$/0x08/;
+        $rule{settos} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+        $rule{settos} =~ s/^clear$/0x00/;
+
+        $rr .= "--set-tos $rule{settos} ";
+    }
 
     if (defined $rule{'loglevel'} ) {
         $rr .= "--log-level " . $rule{'loglevel'} . " "; };
@@ -1114,12 +1112,6 @@ sub enter {
                 ; next; };
 
             # extended parameters:
-            /^settos$/ && do {
-                $current->{'settos'}=getvar();
-                ; next; };
-            /^set-?ftos$/ && do {
-                $current->{'setftos'}=getvar();
-                ; next; };
             /^module$|^mod$|^match$/ && do {
                 foreach my $module (split /\x2c|:/, getvalues()) {
                     $current->{modules}{$module} = 1;
@@ -1475,6 +1467,14 @@ sub enter {
                         $current->{$keyword} = 'set';
                         next;
                     }
+                }
+
+                # TOS target switches
+                if ($current->{action} eq 'TOS' and
+                    $keyword =~ /^set-?tos$/) {
+                    $keyword =~ s/-//;
+                    $current->{$keyword} = getvar();
+                    next;
                 }
 
                 # TTL target switches
