@@ -1286,7 +1286,7 @@ sub enter {
             /^(?:src|dst)-?type$/ && do {
                 s/-//;
                 $current->{$_} = getvalues();
-                $current->{modules}{addrtype} = 1;
+                $current->{auto_modules}{addrtype} = 1;
                 next;
             };
 
@@ -1294,7 +1294,7 @@ sub enter {
             /^ah-?spi$/ && do {
                 s/-//;
                 $current->{$_} = getvalues();
-                $current->{modules}{ah} = 1;
+                $current->{auto_modules}{ah} = 1;
                 next;
             };
 
