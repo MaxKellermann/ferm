@@ -225,6 +225,7 @@ sub error {
     }
     my $start = $#lines - 4;
     if ($start < 0) { $start = 0 } ;
+    print "Error in $script->{filename} line $script->{line}:\n";
     for $l ( $start .. $#lines)
         { print $lines[$l]; if ($l != $#lines ) {print "\n"} ; };
     print "<--\n";
@@ -348,6 +349,8 @@ sub prepare_tokens {
             $script = $script->{parent};
             return prepare_tokens();
         }
+
+        $script->{line} ++;
 
         # chop comments:
         $line =~ s/#.*$//g;
