@@ -232,7 +232,7 @@ there is no ';' after the closing curly brace. Translated to iptables:
 =item B<$>
 
 Variable expansion. Replaces '$FOO' by the value of the variable. See
-the section 'VARIABLES' for details.
+the section I<VARIABLES> for details.
 
 =item B<()>
 
@@ -268,6 +268,11 @@ left-associative only.
 
 The comment symbol. Anything that follows this symbol up to
 the end of line is ignored.
+
+=item C<`command`>
+
+Execute the command in a shell, and insert the process output. See the
+section I<BACKTICKS> for details.
 
 =back
 
@@ -880,53 +885,19 @@ Include files are special - variables declared in an included file are
 still available in the calling block. This is useful when you include
 a file which only declares variables.
 
-=head1 SHELL ESCAPES
+=head1 BACKTICKS
 
-Ferm supports shell escaping in two ways. First, you may insert a
-shell escaped string into a B<set> command, second, you may insert
-a shell escaped string into any place of a value.
+With backticks, you may use the output of an external command:
 
-There is a fundamental difference in this. Ferm will handle shell
-escapes itself when they are used in a B<set> construction, so the
-variable then contains the value that was returned from the shell
-escape. You may later refer to this value again without the command
-being executed again.
+    def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
+    chain INPUT proto tcp saddr $DNSSERVERS ACCEPT;
 
-When you use a shell escaped string as a value without it being
-in a B<set> statement, the exact string is just copied in the
-generated rule, and when parsing is finished, ferm will call
-the shell with the entire rule, and thus the shell escaped string.
-Only at this moment, the shell will execute the string and insert
-the value back into the kernel interface program. Thus, ferm will
-never see the real value of that.
+The command is executed with F</bin/sh>, just like backticks in
+perl. ferm does not do any variable expansion here.
 
-Examples:
-
-    set DNSSERVERS `grep nameserver /etc/resolv.conf | awk '{print $2}'`
-    chain INPUT proto tcp saddr %DNSSERVERS ACCEPT;
-
-This way, ferm will interpret the value for DSSERVERS itself, put
-a separating comma between multiple values if needed, and store
-this information in the variable DNSSERVERS. The output will be
-like:
-
-    iptables -t filter -A INPUT -p tcp -s 192.168.0.1 -j ACCEPT
-    iptables -t filter -A INPUT -p tcp -s 192.168.0.2 -j ACCEPT
-
-Otherwise, when you include a shell escape as a regular value
-in between other ferm-statements:
-
-    chain input proto tcp saddr `grep nameserver /etc/resolv.conf | awk '{print $2}'` ACCEPT;
-
-The shell escape is not parsed directly, but passed along with the, e.g.
-B<iptables> command, and subsequently, the shell will insert whatever
-that value may become itself:
-
-    iptables -t filter -A INPUT -p tcp -d `grep nameserver /etc/resolv.conf | awk '{print $2}'` -j ACCEPT
-
-Note that if the shell escape here yields more lines, something could
-go wrong here easily. You are warned! Better not make ferm SUID too
-I guess ;-)
+The output is then tokenized, and saved as a ferm list (array). Lines
+beginning with '#' are ignored; the other lines may contain any number
+of values, separated by whitespace.
 
 =head1 OPTIONS
 
