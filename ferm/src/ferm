@@ -698,7 +698,7 @@ sub getvalues {
             }
         }
 
-        error('empty arrays are not allowed')
+        error('empty array not allowed here')
           unless @wordlist or not $options{non_empty};
 
         return @wordlist == 1
@@ -765,7 +765,7 @@ sub getvalues {
         my @tokens = @{$defs{$name}{tokens}};
 
         my $result = getvalues(\&next_array_token, \@tokens);
-        error("variable $name has tokens left after value")
+        error("spare tokens after value of \$$name")
           if @tokens;
 
         return $result;
@@ -1438,7 +1438,11 @@ sub enter {
                 my $policy = find_option(\@fw, 'policy');
 
                 if ($has_rule and not defined $action) {
+                    # something is wrong when a rule was specifiedd,
+                    # but no action
                     if (defined $policy) {
+                        # ferm 1.1 compatibility: default action is
+                        # policy
                         warning('Using policy as action is deprecated');
                         $current->{action} = $policy;
                     } else {
@@ -1472,7 +1476,7 @@ sub enter {
 
                 # consistency check: check if they havn't forgotten
                 # the ';' before the last statement
-                error("Missing semicolon before closing section")
+                error('Missing semicolon before "}"')
                   if keys %$current;
 
                 # and exit
@@ -1501,7 +1505,7 @@ sub enter {
                 }
 
                 $keyword = next_token;
-                error('Missing ";"')
+                error('Missing ";" - "include FILENAME" must be the last command in a rule')
                   unless defined $keyword and $keyword eq ';';
 
                 next;
@@ -1516,13 +1520,13 @@ sub enter {
                   unless $type eq '&' or $type eq '$';
 
                 my $name = getvar;
-                error('function name expected')
+                error('function/variable name expected')
                   unless $name =~ /^\w+$/;
 
                 if ($type eq '&') {
                     my @params;
                     my $token = require_next_token;
-                    error('parameter list expected')
+                    error('function parameter list expected')
                       unless $token eq '(';
                     while (($token = require_next_token) ne ')') {
                         if (@params) {
@@ -1531,7 +1535,7 @@ sub enter {
                             $token = require_next_token;
                         }
 
-                        error('parameter name expected')
+                        error('function parameter name expected')
                           unless $token =~ /^\w+$/;
                         push @params, $token;
                     }
@@ -1565,7 +1569,7 @@ sub enter {
                       if $keyword eq '}' and @level == 0;
                 }
 
-                error('unexpected end of file within definition')
+                error('unexpected end of file within function/variable declaration')
                   if @level;
 
                 $def{tokens} = \@tokens;
@@ -1583,10 +1587,10 @@ sub enter {
                   unless $name =~ /^\w+$/;
 
                 my $def = $defs{$name};
-                error("no such variable: $name")
+                error("no such variable: \$$name")
                   unless defined $def;
 
-                error("not a variable: $name")
+                error("is a function, not a variable: \&$name")
                   if exists $def->{params};
 
                 unshift @{$script->{tokens}}, @{$def->{tokens}};
@@ -1600,16 +1604,17 @@ sub enter {
                   unless $name =~ /^\w+$/;
 
                 my $def = $defs{$name};
-                error("no such function: $name")
+                error("no such function: \&$name")
                   unless defined $def;
 
-                error("not a function: $name")
+                error("not a function: \$$name")
                   unless exists $def->{params};
 
                 my $params = getvalues();
                 error('function name must be followed by "()"')
                   unless ref $params and @$params == 0;
 
+                # XXX: functions not yet implemented
                 unshift @{$script->{tokens}}, @{$def->{tokens}};
 
                 next;
@@ -1656,7 +1661,7 @@ sub enter {
                 my $chains = find_option(\@fw, 'chain');
 
                 my $policy = uc getvar();
-                error('invalid policy target')
+                error("Invalid policy target: $keyword")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
                 foreach my $table (to_array $tables) {
@@ -1751,7 +1756,7 @@ sub enter {
 
             # jump action
             if (/^(?:goto|jump)$/) {
-                error('There is only one action per rule')
+                error('There can only one action per rule')
                   if exists $current->{action};
                 $current->{action} = getvar();
                 next;
@@ -1765,7 +1770,7 @@ sub enter {
                                 |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
                                 |TARPIT
                               )$/x) {
-                error('There is only one action per rule')
+                error('There can only one action per rule')
                   if exists $current->{action};
                 $current->{action} = $keyword;
                 next;
