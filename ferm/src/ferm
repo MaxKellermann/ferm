@@ -397,31 +397,24 @@ sub getvalues {
     # [keyword]|"("{keyword}")"
     # starts to read at $c++
 
-    my @wordlist;
-    my $firstword = getvar();
+    my $token = getvar();
 
-    return $firstword
-      if $firstword =~ /^[\x22\x27\x60]/;
-
-    if ($firstword eq '(') {
+    if ($token eq '(') {
         # read a list until ")"
-        my $nextword;
-        do {
-            $nextword = getvar();
+        my @wordlist;
 
-            if ( $nextword ne ')' ) {
-                if ( $nextword eq '!' ) {
-                    $nextword .= getvar();
-                };
-                push @wordlist, $nextword;
-            };
-        } until ( $nextword eq ')' );
+        while (($token = getvar()) ne ')') {
+            $token .= getvar()
+              if $token eq '!';
+            push @wordlist, $token;
+        }
+
         return (join(',', @wordlist));
-    } elsif ( $firstword eq '!' ) {
-        return $firstword . getvar();
+    } elsif ($token eq '!') {
+        return $token . getvar();
     } else {
-        return $firstword;
-    };
+        return $token;
+    }
 }
 
 # here are the three currently known fw-set interfaces to the kernel
