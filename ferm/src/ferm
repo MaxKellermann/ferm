@@ -380,6 +380,25 @@ sub prepare_tokens {
             my $name = shift @line;
             my $value = getvalues2(\@line);
             setvar($name, $value);
+        } elsif ($line[0] eq 'include') {
+            # include: include another file
+            shift @line;
+
+            my $filename = shift @line;
+
+            # check if the file exists
+            mydie("No such file in $script->{filename} line $script->{line}: $filename")
+              unless -f $filename;
+
+            # prevent opening the same file twice at a time
+            for (my $s = $script; defined $s; $s = $s->{parent}) {
+                mydie("Circular refence in $script->{filename} line $script->{line}: $filename")
+                  if $s->{filename} eq $filename;
+            }
+
+            # open it, put it on stack
+            open_script($filename);
+            last;
         } else {
             # the next parser stage eats this
             push @$tokens, @line;
