@@ -1,0 +1,4 @@
+table filter chain input mod psd {
+    psd-weight-threshold 21 psd-delay-threshold 300 DROP;
+    psd-lo-ports-weight 3 psd-hi-ports-weight 1 REJECT;
+}
