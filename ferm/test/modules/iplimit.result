@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -m iplimit -j DROP --iplimit-above 20
+iptables -t filter -A INPUT -m iplimit -j ACCEPT ! --iplimit-above 10
+iptables -t filter -A INPUT -m iplimit -j REJECT --iplimit-above 5 --iplimit-mask 255.255.255.0
