@@ -2,11 +2,12 @@
         README for ferm
 
         Auke Kok <sofar@foo-projects.org>
+        Max Kellermann <max@foo-projects.org>
 
 
 Contents:
 
-	- Introduction to ferm
+	- Description
 	- Installing ferm
 	- Uninstalling ferm
 	- Basic use of ferm
@@ -14,23 +15,25 @@ Contents:
 	- Package contents
 
 
-Introduction to ferm
+Description
 
-	Ferm is a tool to maintain and setup complicated firewall
-	rules. It allows to reduce the tedious task of carefully inserting
-	rules and chains by a large factor, thus enabling the firewall
-	administrator to spend more time on developing good rules
-	then the proper implementation of the rule.
+        ferm is a frontend for iptables. It reads the rules from
+        a structured configuration file and calls iptables(8) to
+        insert them into the running kernel.
 
-	Ferm is a simple perl program, so it's lightweight, does
-	not require any compiling or building, and it's construct
-	can be adapted and modified quickly, so new features should
-	be easy to adopt. The fact that it's perl-based makes it
-	more trustworthy as well.
+        ferm's goal is to make firewall rules easy to write and
+        easy to read. It tries to reduce the tedious task of writing
+        down rules, thus enabling the firewall administrator to spend
+        more time on developing good rules than the proper
+        implementation of the rule.
 
-	Ferm supports ipchains firewalls, ipfwadm rules and
-	iptables firewalls. Changing to another system will be
-	very easy, and ferm will help in the process.
+        To achieve this, ferm uses a simple but powerful configuration
+        language, which allows variables, functions, arrays,
+        blocks. It also allows you to include other files, allowing
+        you to create libraries of commonly used structures and
+        functions.
+
+        ferm, pronounced "firm", stands for "For Easy Rule Making".
 
 
 Installing ferm
@@ -152,12 +155,12 @@ Package Contents
 	* README	This file
 	* AUTHORS	List of people who worked on the project
 	* COPYING	Copy of the GPL
-	* CHANGES	A list of changes in the development of ferm
-	* ferm		The program
-	* ferm.pod	The pod (perl doc format) file
-	* ferm.1	The man page
-        * ferm.txt      The man page as plain text
-	* ferm.html	The man page as html file
+	* NEWS          A list of changes in the development of ferm
+	* src/ferm      The program
+	* doc/ferm.pod  The pod (perl doc format) file
+	* doc/ferm.1    The man page
+        * doc/ferm.txt  The man page as plain text
+	* doc/ferm.html	The man page as html file
 	* examples/*	Some examples
 	* Makefile	Installation Makefile
 

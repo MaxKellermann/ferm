@@ -33,25 +33,23 @@ B<ferm> - a firewall rule parser for linux
 
 =head1 SYNOPSIS
 
-B<ferm> I<options> I<inputfiles>
+B<ferm> I<options> I<inputfile>
 
 =head1 DESCRIPTION
 
-B<ferm> compiles ready to go firewall-rules from a structured
-rule-setup. These rules will be executed by the preferred kernel
-interface, such as iptables(8).
+B<ferm> is a frontend for B<iptables>. It reads the rules from a
+structured configuration file and calls iptables(8) to insert them
+into the running kernel.
 
-Besides just executing all rules in one command, the obvious gain
-is the possibility to provide a structured description of a
-firewall. No need anymore for tedious typing all firewalls into
-custom scripts, you can now write logically and coherent rules
-using a C-style nesting structure, and let B<ferm> create all
-rules for you.
+B<ferm>'s goal is to make firewall rules easy to write and easy to
+read. It tries to reduce the tedious task of writing down rules, thus
+enabling the firewall administrator to spend more time on developing
+good rules than the proper implementation of the rule.
 
-B<ferm> will also aid in modularizing firewalls, because it
-creates the possibility to split up the firewall into several
-different files, which can be reloaded at will, so you can
-dynamically adjust your rules.
+To achieve this, B<ferm> uses a simple but powerful configuration
+language, which allows variables, functions, arrays, blocks. It also
+allows you to include other files, allowing you to create libraries of
+commonly used structures and functions.
 
 B<ferm>, pronounced "firm", stands for "For Easy Rule Making".
 
