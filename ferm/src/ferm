@@ -50,7 +50,6 @@ my %tables;    # chain box for iptables
     $tables{'mangle_prerouting'} = 0;
     $tables{'mangle_output'} = 0;
                # 0=made;1=policy set;2=flushed;3=all
-my $lev=0;     # current recursion depth
 my @words;     # contains all keywords to describe firewall
 my $c=0;       # the current word counter
 my $side='';   # source/destination pointer
@@ -184,7 +183,7 @@ $option{'flushall'} && flushall();
 # parse all input recursively
 $verbose && print "Parsing files\n";
 if ( $#words > 0 ) {
-    enter();};
+    enter(1);};
 
 # and execute all generated rules
 $verbose && print "\nExecuting rules\n";
@@ -1097,11 +1096,12 @@ sub mkrules {
 
 
 sub enter {
+    my $lev = shift;  # current recursion depth
+
     # enter is the core of the firewall setup, it is a
     # simple parser program that recognizes keywords and
     # retreives parameters to set up the kernel routing
     # chains
-    $lev++;
 
     if ($debug) {
         push @rules, "# entered level $lev\n";
@@ -1463,7 +1463,7 @@ sub enter {
 
             # recursing operators
             /\x7b/ && do {
-                enter();
+                enter($lev + 1);
                 ; next SWITCH; };
             /\x7d/ && do {
                 # consistency check: check if they hanven't
@@ -1488,11 +1488,11 @@ sub enter {
                 }
 
                 # and clean up variables set in this level
-                undef $fw[$lev--];
+                undef $fw[$lev];
                 $#fw--;
                 # clean the previous level as well, as otherwise
                 # defines would survive for a very long time!
-                undef $fw[$lev];
+                undef $fw[$lev - 1];
                 # and exit
                 if ($debug) {
                     push @rules, "# leaving level $lev\n";
