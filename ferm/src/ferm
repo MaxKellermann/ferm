@@ -956,7 +956,7 @@ sub tables {
     }
 
     # ipt_owner parameters
-    foreach (qw(uid gid pid sid)) {
+    foreach (qw(uid gid pid sid cmd)) {
         $rr .= "--${_}-owner $rule{${_} . 'owner'} "
           if exists $rule{${_} . 'owner'};
     }
