@@ -1020,6 +1020,10 @@ sub tables {
     shell_append(\$rr, '--ecn-ip-ect', $rule{'ecn-ip-ect'})
       if exists $rule{'ecn-ip-ect'};
 
+    # ipt_helper parameters
+    shell_append(\$rr, '--helper', $rule{helper})
+      if exists $rule{helper};
+
     # ipt_iplimit parameters
     if (exists $rule{'iplimit-above'}) {
         shell_append(\$rr, '!')
@@ -1785,6 +1789,13 @@ sub enter {
             if ($keyword eq 'ecn-ip-ect') {
                 $current->{$keyword} = getvalues();
                 $current->{auto_modules}{ecn} = 1;
+                next;
+            }
+
+            # ipt_helper switches
+            if ($keyword eq 'helper') {
+                $current->{$keyword} = getvalues();
+                $current->{auto_modules}{helper} = 1;
                 next;
             }
 
