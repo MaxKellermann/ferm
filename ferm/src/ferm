@@ -821,7 +821,7 @@ sub tables {
     for ( $rule{'action'} ) {
         /^masq$/ && do { $rr .= "MASQUERADE " ;  last; };
         /^nop$/ && last;
-        /^accept$|^balance$|^dnat$|^drop$|^ftos$|^log$|^mark$|^mirror$|^netlink$|^queue$|^redirect$|^reject$|^return$|^snat$|^tcpmss$|^tos$|^ttl$|^ulog$|^$/ && do {
+        /^(?:accept|balance|dnat|drop|ftos|log|mark|mirror|netlink|queue|redirect|reject|return|snat|tcpmss|tos|ttl|ulog|connmark|netmap)$/ && do {
              $rr .= (uc $rule{'action'}) . " " ; last; };
         $rr .= $rule{'action'} . " ";
     };
@@ -1331,9 +1331,6 @@ sub enter {
                 } else {
                     $current->{'fragment'}='set';}
                 ; next; } ;
-            /^to$/ && do {
-                $current->{'to'}=getvar();
-                ; next; };
 
             # jump action
             /^goto$|^jump$/ && do {
@@ -1375,7 +1372,7 @@ sub enter {
 
             ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
                    netlink|nop|queue|reject|return|tcpmss|ttl|ulog)$/ix or
-              /^(?:TOS|MARK|CONNMARK)$/ ) && do {
+              /^(?:TOS|MARK|CONNMARK|NETMAP)$/ ) && do {
                 if (exists $current->{action}) {
                     if ($current->{action} eq 'log') {
                         # if the action is already set to "log",
@@ -1589,6 +1586,13 @@ sub enter {
                      $current->{action} eq 'redirect') and
                     $keyword =~ /^to-?ports$/) {
                     $current->{toports} = getvar();
+                    next;
+                }
+
+                # NETMAP target switches
+                if ($current->{action} eq 'netmap' and
+                    $keyword eq 'to') {
+                    $current->{to} = getvar();
                     next;
                 }
 
