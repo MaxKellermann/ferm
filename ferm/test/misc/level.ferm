@@ -1,0 +1,5 @@
+# check if keywords from an action of a parent level are recognized
+
+chain input {
+    LOG { log-level warn; }
+}
