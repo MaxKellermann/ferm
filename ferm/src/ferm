@@ -1160,8 +1160,6 @@ sub enter {
             }
 
             # action keywords
-            s/^deny$/drop/i;
-            s/^proxy$/redirect/i;
             s/^masquerade$/masq/i;
 
             ( /^(?:dnat|snat|redirect|drop|masq|accept|balance|ftos|mirror|
