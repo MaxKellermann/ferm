@@ -744,6 +744,11 @@ sub tables {
         $rr .= "--to " . $rule{'to'} . " "; };
     if (defined $rule{'toports'}) {
         $rr .= "--to-ports " . $rule{'toports'} . " "; };
+    if (exists $rule{tosrc}) {
+        foreach (split /,/, $rule{tosrc}) {
+            shell_append(\$rr, '--to-source', $_);
+        }
+    }
     if (defined $rule{'tosrc'}) {
         $rr .= "--to-source " . $rule{'tosrc'} . " "; };
     if (defined $rule{'todest'}) {
@@ -1502,7 +1507,7 @@ sub enter {
                 # SNAT target switches
                 if ($current->{action} eq 'SNAT' and
                     $keyword =~ /^(?:to-source|tosrc)$/) {
-                    $current->{tosrc} = getvar();
+                    $current->{tosrc} = join(',', to_array getvalues());
                     next;
                 }
 
