@@ -49,7 +49,6 @@ my %tables;    # chain box for iptables
     $tables{'mangle_prerouting'} = 0;
     $tables{'mangle_output'} = 0;
                # 0=made;1=policy set;2=flushed;3=all
-my $c=0;       # the current word counter
 my $side='';   # source/destination pointer
 my %option;    # some configuration options
 my %vars;      # holds variable data
