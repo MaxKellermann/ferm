@@ -1422,21 +1422,17 @@ sub enter {
                 my $action = find_option(\@fw, 'action');
                 my $policy = find_option(\@fw, 'policy');
 
-                if ($has_rule) {
-                    unless (defined $action) {
-                        if (defined $policy) {
-                            warning('Using policy as action is deprecated');
-                            $current->{action} = $policy;
-                        } else {
-                            error('No action defined');
-                        }
+                if ($has_rule and not defined $action) {
+                    if (defined $policy) {
+                        warning('Using policy as action is deprecated');
+                        $current->{action} = $policy;
+                    } else {
+                        error('No action defined');
                     }
-                } else {
-                    error('No policy defined')
-                      unless defined $policy;
                 }
 
-                mkrules(\@fw);
+                mkrules(\@fw)
+                  if $has_rule or defined $policy;
 
                 # and clean up variables set in this level
                 %$current = ();
