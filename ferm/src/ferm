@@ -833,13 +833,13 @@ sub tables {
     # more common options (mostly NAT)
     shell_append(\$rr, '--to', $rule{to})
       if defined $rule{to};
-    shell_append(\$rr, '--to-ports', $rule{toports})
-      if defined $rule{toports};
-    shell_append(\$rr, '--to-destination', $rule{todest})
-      if defined $rule{todest};
+    shell_append(\$rr, '--to-ports', $rule{'to-ports'})
+      if defined $rule{'to-ports'};
+    shell_append(\$rr, '--to-destination', $rule{'to-destination'})
+      if defined $rule{'to-destination'};
 
-    if (exists $rule{tosrc}) {
-        foreach (split /,/, $rule{tosrc}) {
+    if (exists $rule{'to-source'}) {
+        foreach (split /,/, $rule{'to-source'}) {
             shell_append(\$rr, '--to-source', $_);
         }
     }
@@ -860,42 +860,43 @@ sub tables {
     shell_append(\$rr, '--mss', $rule{mss})
       if exists $rule{mss};
 
-    shell_append(\$rr, '--tcp-flags', $rule{flagsmask}, $rule{flagsmatch})
-      if exists $rule{tcpflags};
+    shell_append(\$rr, '--tcp-flags',
+                 $rule{'tcp-flags.mask'}, $rule{'tcp-flags.match'})
+      if exists $rule{'tcp-flags'};
 
-    shell_append(\$rr, '--tcp-option', $rule{tcpoption})
-      if exists $rule{tcpoption};
+    shell_append(\$rr, '--tcp-option', $rule{'tcp-option'})
+      if exists $rule{'tcp-option'};
 
     shell_append(\$rr, '-j', $rule{action})
       unless $rule{'action'} eq 'NOP';
 
     # proto icmp
-    shell_append(\$rr, '--icmp-type', $rule{icmptype})
-      if defined $rule{icmptype};
+    shell_append(\$rr, '--icmp-type', $rule{'icmp-type'})
+      if defined $rule{'icmp-type'};
 
     # target LOG
-    shell_append(\$rr, '--log-level', $rule{loglevel})
-      if defined $rule{loglevel};
-    shell_append(\$rr, '--log-prefix', $rule{'logprefix'})
-      if exists $rule{'logprefix'};
+    shell_append(\$rr, '--log-level', $rule{'log-level'})
+      if defined $rule{'log-level'};
+    shell_append(\$rr, '--log-prefix', $rule{'log-prefix'})
+      if exists $rule{'log-prefix'};
     shell_append(\$rr, '--log-tcp-sequence')
-      if defined $rule{logsequence};
+      if defined $rule{'log-tcp-sequence'};
     shell_append(\$rr, '--log-tcp-options')
-      if defined $rule{logtcpoptions};
+      if defined $rule{'log-tcp-options'};
     shell_append(\$rr, '--log-ip-options')
-      if defined $rule{logipoptions};
+      if defined $rule{'log-ip-options'};
 
     # taget MARK, CONNMARK
-    shell_append(\$rr, '--set-mark', $rule{setmark})
-      if exists $rule{setmark};
+    shell_append(\$rr, '--set-mark', $rule{'set-mark'})
+      if exists $rule{'set-mark'};
     shell_append(\$rr, '--save-mark')
       if defined $rule{'save-mark'};
     shell_append(\$rr, '--restore-mark')
       if defined $rule{'restore-mark'};
 
     # target REJECT
-    shell_append(\$rr, '--reject-with', $rule{rejectwith})
-      if defined $rule{rejectwith};
+    shell_append(\$rr, '--reject-with', $rule{'reject-with'})
+      if defined $rule{'reject-with'};
 
     # target TCPMSS
     shell_append(\$rr, '--set-mss', $rule{'set-mss'})
@@ -904,15 +905,15 @@ sub tables {
       if defined $rule{'clamp-mss-to-pmtu'};
 
     # target TOS
-    if (defined $rule{'settos'} ) {
+    if (defined $rule{'set-tos'} ) {
         # some translations for ferm 1.1 compatibility
-        $rule{settos} =~ s/^min-?cost$/0x02/;
-        $rule{settos} =~ s/^(?:reliability|reliable)$/0x04/;
-        $rule{settos} =~ s/^max-?throughput$/0x08/;
-        $rule{settos} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-        $rule{settos} =~ s/^clear$/0x00/;
+        $rule{'set-tos'} =~ s/^min-?cost$/0x02/;
+        $rule{'set-tos'} =~ s/^(?:reliability|reliable)$/0x04/;
+        $rule{'set-tos'} =~ s/^max-?throughput$/0x08/;
+        $rule{'set-tos'} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+        $rule{'set-tos'} =~ s/^clear$/0x00/;
 
-        shell_append(\$rr, '--set-tos', $rule{settos});
+        shell_append(\$rr, '--set-tos', $rule{'set-tos'});
     }
 
     # target TTL
@@ -966,8 +967,8 @@ sub tables {
       if exists $rule{limitburst};
 
     # ipt_mac parameters
-    shell_append(\$rr, '--mac-source', $rule{macsource})
-      if exists $rule{macsource};
+    shell_append(\$rr, '--mac-source', $rule{'mac-source'})
+      if exists $rule{'mac-source'};
 
     # ipt_mark, ipt_connmark
     shell_append(\$rr, '--mark', $rule{mark})
@@ -1595,7 +1596,7 @@ sub enter {
             if (defined $proto and
                 $proto eq 'icmp' and
                 $keyword =~ /^icmp-?type$/) {
-                $current->{icmptype} = getvalues();
+                $current->{'icmp-type'} = getvalues();
                 next;
             }
 
@@ -1612,9 +1613,9 @@ sub enter {
                     my @match = to_array getvalues(undef, undef,
                                                    non_empty => 1);
 
-                    $current->{tcpflags} = 1;
-                    $current->{flagsmask} = join(',', @mask);
-                    $current->{flagsmatch} = join(',', @match);
+                    $current->{'tcp-flags'} = 1;
+                    $current->{'tcp-flags.mask'} = join(',', @mask);
+                    $current->{'tcp-flags.match'} = join(',', @match);
                     next;
                 }
                 if ($keyword eq 'syn') {
@@ -1628,7 +1629,7 @@ sub enter {
                     next;
                 }
                 if ($keyword =~ /^tcp-?option$/) {
-                    $current->{tcpoption} = getvalues();
+                    $current->{'tcp-option'} = getvalues();
                     next;
                 }
                 if ($keyword eq 'mss') {
@@ -1712,7 +1713,7 @@ sub enter {
 
             # ipt_mac switches
             /^mac$|^mac-source$|^macsource$/ && do {
-                $current->{'macsource'}=getvalues();
+                $current->{'mac-source'} = getvalues();
                 $current->{auto_modules}{mac} = 1;
                 ; next; };
 
@@ -1814,7 +1815,7 @@ sub enter {
                 # CONNMARK target switches
                 if ($action eq 'CONNMARK') {
                     if ($keyword eq 'set-mark') {
-                        $current->{setmark} = getvar();
+                        $current->{'set-mark'} = getvar();
                         next;
                     } elsif ($keyword =~ /^(?:save|restore)-mark$/) {
                         $current->{$keyword} = 1;
@@ -1825,30 +1826,30 @@ sub enter {
                 # DNAT target switches
                 if ($action eq 'DNAT' and
                     $keyword =~ /^(?:to-destination|todest|to)$/) {
-                    $current->{todest} = getvar();
+                    $current->{'to-destination'} = getvar();
                     next;
                 }
 
                 # LOG target switches
                 if ($action eq 'LOG') {
                     if ($keyword =~ /^(?:log-level|loglev)$/) {
-                        $current->{loglevel} = getvar();
+                        $current->{'log-level'} = getvar();
                         next;
                     }
                     if ($keyword =~ /^log-?prefix$/) {
-                        $current->{logprefix} = getvar();
+                        $current->{'log-prefix'} = getvar();
                         next;
                     }
                     if ($keyword =~ /^(?:log-tcp-sequence|logseq)$/) {
-                        $current->{logsequence} = 1;
+                        $current->{'log-tcp-sequence'} = 1;
                         next;
                     }
                     if ($keyword =~ /^(?:log-tcp-options|logtcpopt)$/) {
-                        $current->{logtcpoptions} = 1;
+                        $current->{'log-tcp-options'} = 1;
                         next;
                     }
                     if ($keyword =~ /^(?:log-ip-options|logipopt)$/) {
-                        $current->{logipoptions} = 1;
+                        $current->{'log-ip-options'} = 1;
                         next;
                     }
                 }
@@ -1856,7 +1857,7 @@ sub enter {
                 # MARK/CONNMARK target switches
                 if ($action eq 'MARK' and
                     $keyword =~ /^set-?mark$/) {
-                    $current->{setmark} = getvar();
+                    $current->{'set-mark'} = getvar();
                     next;
                 }
 
@@ -1864,7 +1865,7 @@ sub enter {
                 if (($action eq 'MASQUERADE' or
                      $action eq 'REDIRECT') and
                     $keyword =~ /^to-?ports$/) {
-                    $current->{toports} = getvar();
+                    $current->{'to-ports'} = getvar();
                     next;
                 }
 
@@ -1878,7 +1879,7 @@ sub enter {
                 # REJECT target switches
                 if ($action eq 'REJECT' and
                     $keyword =~ /^reject-?with$/) {
-                    $current->{rejectwith} = getvar();
+                    $current->{'reject-with'} = getvar();
                     next;
                 }
 
@@ -1899,7 +1900,7 @@ sub enter {
                     $keyword =~ /^(?:to-source|tosrc|to)$/) {
                     my @params = to_array getvalues(undef, undef,
                                                     non_empty => 1);
-                    $current->{tosrc} = join(',', @params);
+                    $current->{'to-source'} = join(',', @params);
                     next;
                 }
 
@@ -1919,8 +1920,7 @@ sub enter {
                 # TOS target switches
                 if ($action eq 'TOS' and
                     $keyword =~ /^set-?tos$/) {
-                    $keyword =~ s/-//;
-                    $current->{$keyword} = getvar();
+                    $current->{'set-tos'} = getvar();
                     next;
                 }
 
