@@ -69,10 +69,10 @@ use subs qw(open_script);
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
                             'no_auto_abbrev');
 
-    GetOptions('noexec|l' => \$opt_noexec,
-               lines => \$opt_lines,
+    GetOptions('noexec|n' => \$opt_noexec,
+               'lines|l' => \$opt_lines,
                'verbose|v' => \$verbose,
-               debug => \$debug,
+               'debug|d' => \$debug,
                'location=s' => \$opt_location,
                clearall => \$opt_clearall,
                flushall => \$opt_flushall,
@@ -1805,9 +1805,9 @@ B<ferm> I<options> I<inputfiles>
 =head1 OPTIONS
 
  -n, --noexec      Do not execute the rules, just simulate
- --lines           Show all rules that were created
+ -l, --lines       Show all rules that were created
  -v, --verbose     Show some more information
- --debug           Show debug information
+ -d, --debug       Show debug information
  -V, --version     Show current version number
  --clearall        Flush and delete all chains before adding rules
  --flushall        Flush all chains before adding rules
