@@ -537,6 +537,22 @@ sub collect_filenames {
     return @ret;
 }
 
+sub peek_token {
+    # get a token
+    prepare_tokens();
+
+    return
+      unless defined $script;
+
+    my $tokens = $script->{tokens};
+    die unless ref $tokens eq 'ARRAY';
+
+    return
+      unless @$tokens;
+
+    return $tokens->[0];
+}
+
 sub next_token {
     # get a token
     prepare_tokens();
@@ -1664,9 +1680,39 @@ sub enter {
                 error('function name must be followed by "()"')
                   unless defined $token and $token eq '(';
 
-                $token = next_token();
-                error('")" expected (parameters are not yet supported)')
-                  unless defined $token and $token eq ')';
+                my $paramdef = $function->{params};
+                die unless defined $paramdef;
+                my @params;
+
+                $token = peek_token();
+                if ($token eq ')') {
+                    # eat the ')'
+                    require_next_token
+                } else {
+                    # parse parameter list
+
+                    while (1) {
+                        if (@params > 0) {
+                            $token = require_next_token();
+                            last
+                              if $token eq ')';
+
+                            error('"," expected')
+                              unless $token eq ',';
+                        }
+
+                        push @params, getvalues();
+                    }
+                }
+
+                error("Wrong number of parameters for function '\&$name': "
+                      . @$paramdef . " expected, " . @params . " given")
+                  unless @params == @$paramdef;
+
+                my %vars;
+                for (my $i = 0; $i < @params; $i++) {
+                    $vars{$paramdef->[$i]} = $params[$i];
+                }
 
                 if ($function->{block}) {
                     # block {} always ends the current rule, so if the
@@ -1677,8 +1723,19 @@ sub enter {
                       unless defined $token and $token eq ';';
                 }
 
-                # XXX: functions not yet implemented
-                unshift @{$script->{tokens}}, @{$function->{tokens}};
+                my @tokens = @{$function->{tokens}};
+                for (my $i = 0; $i < @tokens; $i++) {
+                    if ($tokens[$i] eq '$' and $i + 1 < @tokens and
+                        exists $vars{$tokens[$i + 1]}) {
+                        my @value = to_array($vars{$tokens[$i + 1]});
+                        @value = ('(', @value, ')')
+                          unless @tokens == 1;
+                        splice(@tokens, $i, 2, @value);
+                        $i += @value - 2;
+                    }
+                }
+
+                unshift @{$script->{tokens}}, @tokens;
 
                 next;
             }
