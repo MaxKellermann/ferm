@@ -1180,6 +1180,20 @@ sub enter {
         # the core: parse all data
         SWITCH: for ($keyword)
         {
+            # where to put the rule?
+            if ($keyword eq 'table') {
+                error('Table is already specified')
+                  if exists $current->{table};
+                $current->{table} = getvalues();
+                next;
+            }
+            if ($keyword eq 'chain') {
+                error('Chain is already specified')
+                  if exists $current->{chain};
+                $current->{chain} = getvalues();
+                next;
+            }
+
             # choose a side
             if ($keyword =~ /^(?:source|src)$/) {
                 $current->{side} = 'source';
@@ -1199,20 +1213,6 @@ sub enter {
                 } elsif ($current->{side} eq 'destination') {
                     $keyword = 'd' . $keyword;
                 }
-            }
-
-            # where to put the rule?
-            if ($keyword eq 'table') {
-                error('Table is already specified')
-                  if exists $current->{table};
-                $current->{table} = getvalues();
-                next;
-            }
-            if ($keyword eq 'chain') {
-                error('Chain is already specified')
-                  if exists $current->{chain};
-                $current->{chain} = getvalues();
-                next;
             }
 
             # routing base parameters
