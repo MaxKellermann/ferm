@@ -163,7 +163,8 @@ sub printversion {
 
 
 sub mydie {
-    print STDERR @_; print "\n";
+    print STDERR @_;
+    print STDERR "\n";
     exit 1;
 }
 
@@ -204,7 +205,7 @@ sub error {
     if ($start < 0) { $start = 0 } ;
     print STDERR "Error in $script->{filename} line $script->{line}:\n";
     for $l ( $start .. $#lines)
-        { print STDERR $lines[$l]; if ($l != $#lines ) {print "\n"} ; };
+        { print STDERR $lines[$l]; if ($l != $#lines ) {print STDERR "\n"} ; };
     print STDERR "<--\n";
     mydie(@_);
 }
