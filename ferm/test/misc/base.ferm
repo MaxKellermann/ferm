@@ -1,0 +1,6 @@
+# test base iptables parameters
+table filter chain INPUT {
+    interface eth0 saddr 192.168.0.0/24 ACCEPT;
+    outerface ppp0 proto esp daddr 195.0.0.0/8 DROP;
+    fragment LOG;
+}
