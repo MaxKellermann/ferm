@@ -510,6 +510,9 @@ sub getvalues {
             }
         }
 
+        error('empty lists are not allowed')
+          unless @wordlist;
+
         return @wordlist == 1
           ? $wordlist[0]
             : \@wordlist;
