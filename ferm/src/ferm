@@ -32,10 +32,9 @@ use IO::File;
 use Getopt::Long;
 use Pod::Usage;
 
-use vars qw($VERSION $DATE);
+use vars qw($VERSION);
 
-$VERSION = '1.1+cvs';
-$DATE = '27 feb 2005';
+$VERSION = '1.1+cvs' . ('$Date$' =~ m,(\d{4})/(\d\d)/(\d\d), ? $1.$2.$3 : '');
 
 ## interface variables
 # %option = command line and other options
@@ -262,7 +261,7 @@ exit 0;
 # funcs
 
 sub printversion {
-    print "ferm $VERSION, $DATE\n";
+    print "ferm $VERSION\n";
     print "Copyright (C) 2001-2005 Auke Kok, Max Kellermann\n";
     print "This program is free software released under GPLv2.\n";
     print "See the included COPYING file for license details.\n";
