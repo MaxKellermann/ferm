@@ -1819,12 +1819,12 @@ sub enter {
           if $negated;
     }
 
-    error('Missing "}" at EOF')
+    error('Missing "}" at end of file')
       if $lev > $base_level;
 
     # consistency check: check if they havn't forgotten
     # the ';' before the last statement
-    error("Missing semicolon before closing section")
+    error("Missing semicolon before end of file")
       if keys %$current;
 }
 
