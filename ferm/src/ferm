@@ -321,7 +321,8 @@ sub prepare_tokens {
             # set: set a variable
             shift @line;
             my $name = getvar(\&next_array_token, \@line);
-            my $value = getvalues(\&next_array_token, \@line);
+            my $value = getvalues(\&next_array_token, \@line,
+                                 empty_allowed => 1);
 
             if (@line and $line[0] eq ',') {
                 warning('Arrays without parantheses are deprecated');
@@ -540,7 +541,7 @@ sub getvalues {
         }
 
         error('empty arrays are not allowed')
-          unless @wordlist;
+          unless @wordlist or $options{empty_allowed};
 
         return @wordlist == 1
           ? $wordlist[0]
