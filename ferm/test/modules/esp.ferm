@@ -1,0 +1,5 @@
+table filter chain INPUT mod esp {
+    espspi 0x100 ACCEPT;
+    espspi !0x101 DROP;
+    espspi (0x102 0x105 0x200:0x2ff) REJECT;
+}

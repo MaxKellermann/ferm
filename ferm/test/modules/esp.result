@@ -1,0 +1,5 @@
+iptables -t filter -A INPUT -m esp -j ACCEPT --espspi 0x100
+iptables -t filter -A INPUT -m esp -j DROP --espspi ! 0x101
+iptables -t filter -A INPUT -m esp -j REJECT --espspi 0x102
+iptables -t filter -A INPUT -m esp -j REJECT --espspi 0x105
+iptables -t filter -A INPUT -m esp -j REJECT --espspi 0x200:0x2ff
