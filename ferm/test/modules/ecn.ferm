@@ -1,4 +1,4 @@
-chain INPUT {
+chain INPUT mod ecn {
     ecn-tcp-cwr ACCEPT;
     ecn-tcp-cwr ecn-tcp-ece DROP;
     ecn-ip-ect 0 ACCEPT;
