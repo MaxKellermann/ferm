@@ -1,0 +1,4 @@
+iptables -t filter -A INPUT -j LOG --log-prefix 'in filter '
+iptables -t filter -A INPUT -j LOG --log-prefix 'in INPUT '
+iptables -t filter -A INPUT -j LOG --log-prefix 'in filter/INPUT '
+
