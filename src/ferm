@@ -50,9 +50,11 @@ use vars qw(%option $verbose $debug);
 use vars qw($script %oldvars @rules @stack);
 
 ## netfilter variables
-# %chains = ferm state information about the chains
 # %domains = state information about all domains ("ip" and "ip6")
-use vars qw(%chains %domains);
+# - enabled: is this domain enabled? (i.e. one or more rules present)
+# - location: frontend executable (iptables, ip6tables)
+# - chains{$table}{$chain}: ferm state information about the chains
+use vars qw(%domains);
 
 ## functions
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
@@ -944,6 +946,12 @@ sub tables {
     my $rule = shift;
     my %rule = %$rule;
 
+    my $domain = $domains{$rule{domain}};
+    die unless $domain and $domain->{location};
+    my $chain = $domain->{chains}{$rule{table}}{$rule{chain}};
+    $chain = $domain->{chains}{$rule{table}}{$rule{chain}} = {}
+      unless defined $chain;
+
     unless ($domains{$rule{domain}}{reset}) {
         reset_domain($rule{domain});
         $domains{$rule{domain}}{reset} = 1;
@@ -954,36 +962,36 @@ sub tables {
     my $rrr = "";
 
     # pre-setup rrr for creation of chains
-    $rrr .= "$domains{$rule{domain}}{location} -t " . $rule{'table'} . " ";
+    $rrr .= "$domain->{location} -t " . $rule{'table'} . " ";
 
     # should we set a policy?
-    if (exists $chains{$rule{table}}{$rule{chain}}{set_policy}) {
-        my $policy = $chains{$rule{table}}{$rule{chain}}{policy};
+    if (exists $chain->{set_policy}) {
+        my $policy = $chain->{policy};
 
         push @rules, $rrr . "-P $rule{chain} $policy\n";
 
-        delete $chains{$rule{table}}{$rule{chain}}{set_policy};
+        delete $chain->{set_policy};
     }
 
     # mark this chain as "non-empty" because we will add stuff to
     # it now; this flag is later used to check if a custom chain
     # referenced by "goto" was actually defined
-    $chains{$rule{table}}{$rule{chain}}{non_empty} = 1;
+    $chain->{non_empty} = 1;
 
     # check if the chain is already defined
-    unless (exists $chains{$rule{table}}{$rule{chain}}{was_created} or
+    unless (exists $chain->{was_created} or
             is_netfilter_builtin_chain($rule{table}, $rule{chain})) {
         push @rules, $rrr . "-N $rule{chain}\n";
-        $chains{$rule{table}}{$rule{chain}}{was_created} = 1;
+        $chain->{was_created} = 1;
     }
 
     # check for unknown jump target
     if (defined $rule{action} and
         not is_netfilter_builtin_target($rule{action}) and
         $rule{action} ne 'NOP' and
-        not exists $chains{$rule{table}}{$rule{action}}{was_created}) {
+        not exists $domain->{chains}{$rule{table}}{$rule{action}}{was_created}) {
         push @rules, $rrr . "-N $rule{action}\n";
-        $chains{$rule{table}}{$rule{action}}{was_created} = 1;
+        $domain->{chains}{$rule{table}}{$rule{action}}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
@@ -1839,6 +1847,7 @@ sub enter {
 
             # policy for built-in chain
             if ($keyword eq 'policy') {
+                my $domains = find_option(\@fw, 'domain');
                 my $tables = find_option(\@fw, 'table');
                 my $chains = find_option(\@fw, 'chain');
 
@@ -1846,17 +1855,19 @@ sub enter {
                 error("Invalid policy target: $keyword")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
-                foreach my $table (to_array $tables) {
-                    foreach my $chain (to_array $chains) {
-                        error("cannot set the policy for non-builtin chain '$chain'")
-                          unless grep { $_ eq $chain }
-                            qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
+                foreach my $domain (to_array $domains) {
+                    foreach my $table (to_array $tables) {
+                        foreach my $chain (to_array $chains) {
+                            error("cannot set the policy for non-builtin chain '$chain'")
+                              unless grep { $_ eq $chain }
+                                qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
 
-                        if (exists $chains{$table}{$chain}{policy}) {
-                            warning('policy for this chain is specified for the second time');
-                        } else {
-                            $chains{$table}{$chain}{policy} = $policy;
-                            $chains{$table}{$chain}{set_policy} = 1;
+                            if (exists $domains{$domain}{chains}{$table}{$chain}{policy}) {
+                                warning('policy for this chain is specified for the second time');
+                            } else {
+                                $domains{$domain}{chains}{$table}{$chain}{policy} = $policy;
+                                $domains{$domain}{chains}{$table}{$chain}{set_policy} = 1;
+                            }
                         }
                     }
                 }
@@ -2385,10 +2396,12 @@ sub enter {
 }
 
 sub check {
-    while (my ($table_name, $chains) = each %chains) {
-        while (my ($chain_name, $chain) = each %$chains) {
-            warning("chain $chain_name (table $table_name) was created, but not used")
-              if $chain->{was_created} and not $chain->{non_empty};
+    while (my ($domain_name, $domain) = each %domains) {
+        while (my ($table_name, $chains) = each %{$domain->{chains}}) {
+            while (my ($chain_name, $chain) = each %$chains) {
+                warning("chain $chain_name (domain $domain_name, table $table_name) was created, but not used")
+                  if $chain->{was_created} and not $chain->{non_empty};
+            }
         }
     }
 }
