@@ -5,6 +5,7 @@ include $(TOPDIR)/config.mk
 FERM_SCRIPTS = positive/flush positive/multimod positive/policyorder
 FERM_SCRIPTS += positive/bug positive/iptables-targets positive/masqto positive/mod params/owner positive/state positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
 FERM_SCRIPTS += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard protocols/*.ferm) $(wildcard misc/*.ferm)
+FERM_SCRIPTS += $(wildcard ipv6/*.ferm)
 
 all:
 

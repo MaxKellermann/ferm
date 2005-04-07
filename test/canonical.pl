@@ -28,8 +28,10 @@ while (<>) {
     # execute backticks
     s/`(.*?)`/`$1`/egs;
 
-    if (s/^iptables //) {
+    if (s/^(ip6?)tables //) {
         my $item;
+
+        $item->{domain} = $1;
 
         # get table
         my $table;

@@ -366,6 +366,11 @@ it is doing.
 
 =over 8
 
+=item B<domain [ip|ip6]>
+
+Set the domain. "ip" is default and means "IPv4" (iptables). "ip6" is
+for IPv6 support, using "ip6tables".
+
 =item B<table [filter|nat|mangle]>
 
 Specifies which netfilter table this rule will be inserted to:
@@ -897,6 +902,10 @@ Some variables are set internally by ferm. Ferm scripts can use them
 just like any other variable.
 
 =over 8
+
+=item B<$DOMAIN>
+
+The current domain. "ip" or "ip6".
 
 =item B<$TABLE>
 

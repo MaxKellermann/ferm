@@ -50,9 +50,9 @@ use vars qw(%option $verbose $debug);
 use vars qw($script %oldvars @rules @stack);
 
 ## netfilter variables
-# @ip_tables_names = a list of supported table names (filter, nat, mangle)
 # %chains = ferm state information about the chains
-use vars qw(@ip_tables_names %chains);
+# %domains = state information about all domains ("ip" and "ip6")
+use vars qw(%chains %domains);
 
 ## functions
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
@@ -228,8 +228,8 @@ use vars qw(%deprecated_keywords %automod);
       if defined $opt_createchains;
 
     if (defined $opt_location) {
-        $option{'location'} = $opt_location;
-        if ( ! -X $option{'location'}) {
+        $domains{ip}{location} = $opt_location;
+        if ( ! -X $domains{ip}{location}) {
             mydie("Specified location is not executable or does not exist");
         }
     }
@@ -247,33 +247,15 @@ open_script($ARGV[0]);
 read_header;
 
 # option checks
-if (defined $option{location}) {
+if (defined $domains{ip}{location}) {
     mydie("Specified location is not executable or does not exist")
-      unless -X $option{'location'};
+      unless -X $domains{ip}{location};
 } else {
     # set a default location
-    $option{location} = 'iptables';
+    $domains{ip}{location} = 'iptables';
 }
 
-# first reset the firewall
-foreach my $table (@ip_tables_names) {
-    my @chains;
-
-    if ($table eq 'filter') {
-        @chains = qw(INPUT FORWARD OUTPUT);
-    } elsif ($table eq 'nat') {
-        @chains = qw(PREROUTING POSTROUTING OUTPUT);
-    } elsif ($table eq 'mangle') {
-        @chains = qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
-    }
-
-    foreach my $chain (@chains) {
-        push @rules, "$option{location} -t $table -P $chain ACCEPT\n";
-    }
-
-    push @rules, "$option{location} -t $table -F\n";
-    push @rules, "$option{location} -t $table -X\n";
-}
+$domains{ip6}{location} = 'ip6tables';
 
 # parse all input recursively
 $verbose && print "Parsing files\n";
@@ -362,18 +344,22 @@ sub warning {
 sub initialize_netfilter {
     local *FILE;
 
-    undef @ip_tables_names;
-    if (not $option{test} and open FILE, '</proc/net/ip_tables_names') {
-        while (<FILE>) {
-            push @ip_tables_names, $1
-              if /(\w+)/;
+    foreach my $domain (qw(ip ip6)) {
+        my @tables;
+        if (not $option{test} and open FILE, "</proc/net/${domain}_tables_names") {
+            while (<FILE>) {
+                push @tables, $1
+                  if /(\w+)/;
+            }
+
+            close FILE;
         }
 
-        close FILE;
-    }
+        @tables = qw(filter nat mangle)
+          unless @tables;
 
-    @ip_tables_names = qw(filter nat mangle)
-      unless @ip_tables_names;
+        $domains{$domain}{tables_names} = \@tables;
+    }
 }
 
 sub tokenize_string {
@@ -930,16 +916,45 @@ sub extract_negation {
         : $_;
 }
 
+sub reset_domain {
+    my $domain = shift;
+
+    foreach my $table (@{$domains{$domain}{tables_names}}) {
+        my @chains;
+
+        if ($table eq 'filter') {
+            @chains = qw(INPUT FORWARD OUTPUT);
+        } elsif ($table eq 'nat') {
+            @chains = qw(PREROUTING POSTROUTING OUTPUT);
+        } elsif ($table eq 'mangle') {
+            @chains = qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
+        }
+
+        foreach my $chain (@chains) {
+            push @rules, "$domains{$domain}{location} -t $table -P $chain ACCEPT\n";
+        }
+
+        push @rules, "$domains{$domain}{location} -t $table -F\n";
+        push @rules, "$domains{$domain}{location} -t $table -X\n";
+    }
+
+}
+
 sub tables {
     my $rule = shift;
     my %rule = %$rule;
+
+    unless ($domains{$rule{domain}}{reset}) {
+        reset_domain($rule{domain});
+        $domains{$rule{domain}}{reset} = 1;
+    }
 
     # iptables, for 2.3/2.4 kernels
     my $rr = "";
     my $rrr = "";
 
     # pre-setup rrr for creation of chains
-    $rrr .= "$option{'location'} -t " . $rule{'table'} . " ";
+    $rrr .= "$domains{$rule{domain}}{location} -t " . $rule{'table'} . " ";
 
     # should we set a policy?
     if (exists $chains{$rule{table}}{$rule{chain}}{set_policy}) {
@@ -975,7 +990,7 @@ sub tables {
     return
       unless $rule{has_rule};
 
-    shell_append(\$rr, $option{location});
+    shell_append(\$rr, $domains{$rule{domain}}{location});
 
     shell_append(\$rr, '-t', $rule{table})
       if defined $rule{'table'};
@@ -1769,14 +1784,31 @@ sub enter {
             }
 
             # where to put the rule?
+            if ($keyword eq 'domain') {
+                error('Domain is already specified')
+                  if exists $current->{domain};
+                $current->{domain} = $stack[0]{auto}{DOMAIN} = getvalues();
+
+                foreach my $domain (to_array $current->{domain}) {
+                    error("Domain '$domain' is not supported")
+                      unless exists $domains{$domain}{location};
+                }
+
+                next;
+            }
+
             if ($keyword eq 'table') {
                 error('Table is already specified')
                   if exists $current->{table};
                 $current->{table} = $stack[0]{auto}{TABLE} = getvalues();
 
+                my $domain = find_option(\@fw, 'domain');
+                $current->{domain} = $domain = 'ip'
+                  unless defined $domain;
+
                 foreach my $table (to_array $current->{table}) {
                     error("Table '$table' does not exist")
-                      unless grep { $_ eq $table } @ip_tables_names;
+                      unless grep { $_ eq $table } @{$domains{$domain}{tables_names}};
                 }
 
                 next;
@@ -1794,6 +1826,8 @@ sub enter {
                       and warning('Please write built-in chain names in upper case');
                 }
 
+                $current->{domain} = 'ip'
+                  unless defined find_option(\@fw, 'domain');
                 $current->{table} = 'filter'
                   unless defined find_option(\@fw, 'table');
 
