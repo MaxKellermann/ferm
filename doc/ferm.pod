@@ -481,6 +481,8 @@ considered reasonably safe to let these through.
 Load an iptables module. Most modules provide more match
 keywords. We'll get to that later.
 
+=back
+
 
 =head2 Basic target keywords
 
@@ -515,6 +517,8 @@ Type "iptables -j REJECT -h" for details.
 Finish the current chain and return to the calling chain (if "goto
 [custom-chain-name]" was used).
 
+=back
+
 
 =head1 ADDITIONAL KEYWORDS
 
@@ -525,6 +529,8 @@ modules which are currently supported.
 
 
 =head2 Netfilter match modules
+
+=over 8
 
 =item B<addrtype>
 
@@ -772,11 +778,15 @@ Matches the ttl (time to live) field in the IP header.
 Matches packets which seem malformed or unusual. This match has no
 further parameters.
 
+=back
+
 
 =head2 Netfilter target modules
 
 The following additional targets are available in ferm, provided that
 you enabled them in your kernel:
+
+=over 8
 
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
 
