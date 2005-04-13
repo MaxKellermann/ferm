@@ -733,6 +733,7 @@ sub getvalues {
 
         for (;;) {
             $token = getvalues($code, $param,
+                               parenthesis_allowed => 1,
                                comma_allowed => 1);
 
             unless (ref $token) {
@@ -842,7 +843,7 @@ sub getvalues {
         return old_variable_value($name);
     } elsif ($token eq '&') {
         error("function calls are not allowed as keyword parameter");
-    } elsif ($token eq ')') {
+    } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
         error('Syntax error');
     } else {
         return resolve_old_variable_refs($token);
