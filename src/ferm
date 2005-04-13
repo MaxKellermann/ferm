@@ -2018,9 +2018,10 @@ sub enter {
             }
 
             # udp protocol switches
-            if (defined $proto and
-                grep { $_ eq 'udp' } to_array $proto and
-                $keyword =~ /^[sd]port$/) {
+            if ($keyword =~ /^[sd]port$/) {
+                error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
+                  unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array $proto;
+
                 $current->{$keyword} = getvalues();
                 next;
             }
@@ -2153,9 +2154,9 @@ sub enter {
 
             # ipt_multiport switches
             if (exists $modules{multiport} and
-                $keyword =~ /^(?:(?:source-|destination-|)ports)$/ and
-                defined $proto and
-                grep { /^(?:tcp|udp)$/ } to_array $proto) {
+                $keyword =~ /^(?:(?:source-|destination-|)ports)$/) {
+                error('To use multiport options, you have to specify "proto tcp" or "proto udp" first')
+                  unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array $proto;
 
                 # multiport only allows 15 ports at a time. For this
                 # reason, we do a little magic here: split the ports
