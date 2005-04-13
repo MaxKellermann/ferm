@@ -1,0 +1,7 @@
+def $protocol1 = ! tcp;
+def $protocol2 = udp;
+
+chain INPUT {
+    proto $protocol1 DROP;
+    proto !$protocol2 ACCEPT;
+}

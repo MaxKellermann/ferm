@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -p ! tcp -j DROP 
+iptables -t filter -A INPUT -p ! udp -j ACCEPT 
