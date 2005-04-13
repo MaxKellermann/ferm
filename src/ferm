@@ -2399,7 +2399,7 @@ sub check {
     while (my ($domain_name, $domain) = each %domains) {
         while (my ($table_name, $chains) = each %{$domain->{chains}}) {
             while (my ($chain_name, $chain) = each %$chains) {
-                warning("chain $chain_name (domain $domain_name, table $table_name) was created, but not used")
+                warning("chain $chain_name (domain $domain_name, table $table_name) was referenced, but not declared")
                   if $chain->{was_created} and not $chain->{non_empty};
             }
         }
