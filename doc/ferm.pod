@@ -980,6 +980,26 @@ directory are included, sorted alphabetically:
 
     include 'ferm.d/';
 
+
+=head1 RECIPES
+
+The F<./examples/> directory contains numerous ferm configuration
+which can be used to begin a new firewall. This sections contains more
+samples, recipes and tricks.
+
+=head2 Easy port forwarding
+
+Ferm function make routine tasks quick and easy:
+
+    def &FORWARD_TCP($proto, $port, $dest) = {
+        table filter chain FORWARD interface $DEV_WORLD outerface $DEV_DMZ daddr $dest proto $proto dport $port ACCEPT;
+        table nat chain PREROUTING interface $DEV_WORLD daddr $HOST_STATIC proto $proto dport $port DNAT to $dest;
+    }
+
+    &FORWARD_TCP(tcp, http, 192.168.1.2);
+    &FORWARD_TCP(tcp, smtp, 192.168.1.3);
+    &FORWARD_TCP((tcp udp), domain, 192.168.1.4);
+
 =head1 OPTIONS
 
 Options can be specified with the "option" keyword, which
@@ -1061,14 +1081,6 @@ always get the latest, patched versions. Read more about
 firewalls before experimenting, you are warned! You might
 also read the COPYING file provided with the package or
 visit www.gnu.org to find more about the license.
-
-
-=head1 EXAMPLES
-
-The package comes with a directory full of goodies (examples)
-that you can try, adjust for your system or just read if
-you want to understand the syntax and its possibilities.
-Look in the "examples" directory.
 
 
 =head1 REQUIREMENTS
