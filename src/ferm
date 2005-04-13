@@ -2462,7 +2462,7 @@ sub execute {
                 print STDERR "failed to execute: $!\n";
                 exit 1;
             } elsif ($? & 0x7f) {
-                printf "child died with signal %d\n", $? & 0x7f;
+                printf STDERR "child died with signal %d\n", $? & 0x7f;
                 $status = 1;
             } else {
                 print STDERR "(rule declared in $script->{filename}:$script->{line})\n"
