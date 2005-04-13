@@ -842,6 +842,8 @@ sub getvalues {
         return old_variable_value($name);
     } elsif ($token eq '&') {
         error("function calls are not allowed as keyword parameter");
+    } elsif ($token eq ')') {
+        error('Syntax error');
     } else {
         return resolve_old_variable_refs($token);
     }
