@@ -1,0 +1,3 @@
+chain INPUT {
+    LOG log-prefix 'This is a very very long log prefix.';
+}

@@ -2283,8 +2283,17 @@ sub enter {
 
                 # LOG target switches
                 if ($action eq 'LOG') {
-                    if ($keyword =~ /^log-(?:level|prefix)$/) {
+                    if ($keyword eq 'log-level') {
                         $current->{$keyword} = getvar();
+                        next;
+                    }
+                    if ($keyword eq 'log-prefix') {
+                        my $prefix = getvar();
+
+                        warning('log-prefix is too long; truncating to 29 characters')
+                          if $prefix =~ s,^(.{29}).+$,$1,;
+
+                        $current->{$keyword} = $prefix;
                         next;
                     }
                     if ($keyword =~ /^log-(?:tcp-sequence|tcp-options|ip-options)$/) {
