@@ -1,0 +1,102 @@
+#!/usr/bin/ferm
+#
+# Ferm example script
+#
+# Firewall configuration for a router with a static IP and a demilitarized
+# zone on the third device.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+def $DEV_PRIVATE = eth0;
+def $DEV_WORLD = eth1;
+def $DEV_DMZ = eth2;
+
+def $NET_PRIVATE = 192.168.0.0/24;
+def $NET_DMZ = 192.168.1.0/24;
+
+# internal IPs of the admins
+def $HOST_ADMIN = (192.168.0.4 192.168.0.10);
+
+# our static IP address
+def $HOST_STATIC = 193.43.91.203;
+
+# convenience function which creates both the nat/DNAT and the filter/FORWARD
+# rule
+def &FORWARD_TCP($proto, $port, $dest) = {
+    table filter chain FORWARD interface $DEV_WORLD outerface $DEV_DMZ daddr $dest proto $proto dport $port ACCEPT;
+    table nat chain PREROUTING interface $DEV_WORLD daddr $HOST_STATIC proto $proto dport $port DNAT to $dest;
+}
+
+table filter {
+    chain INPUT policy DROP {
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # allow local connections
+        interface lo ACCEPT;
+
+        # respond to ping, but limit that
+        proto icmp {
+            icmp-type echo-request mod limit limit 10/s ACCEPT;
+            DROP;
+        }
+
+        # for IPsec
+        interface $DEV_WORLD {
+            proto udp dport 500 ACCEPT;
+            proto (esp ah) ACCEPT;
+        }
+
+        # allow SSH connections from the administrator's workstation
+        interface $DEV_PRIVATE saddr $HOST_ADMIN proto tcp dport ssh ACCEPT;
+
+        # we provide DNS for the internal net
+        interface ($DEV_PRIVATE $DEV_DMZ) {
+            proto (udp tcp) dport domain ACCEPT;
+        }
+
+        # some IRC servers want that
+        interface $DEV_WORLD {
+            proto tcp dport auth ACCEPT;
+            proto tcp dport (8080 3128) REJECT;
+        }
+
+        # the rest is dropped by the above policy (except additional
+        # FORWARD rules added by the function &FORWARD_TCP)
+    }
+
+    # outgoing connections are not limited
+    chain OUTPUT policy ACCEPT;
+
+    chain FORWARD policy DROP {
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # the internal net may go everywhere
+        interface $DEV_PRIVATE ACCEPT;
+
+        # the DMZ may only access the internet
+        interface $DEV_DMZ {
+            outerface $DEV_WORLD;
+            # report failure gracefully
+            REJECT reject-with icmp-net-prohibited;
+        }
+
+        # the rest is dropped by the above policy
+    }
+}
+
+table nat {
+    chain POSTROUTING {
+        # masquerade private IP addresses
+        saddr ($NET_PRIVATE $NET_DMZ) outerface $DEV_WORLD SNAT to $HOST_STATIC;
+    }
+}
+
+# forward connections to servers located in the DMZ
+&FORWARD_TCP(tcp, http, 192.168.1.2);
+&FORWARD_TCP(tcp, smtp, 192.168.1.3);
+&FORWARD_TCP((tcp udp), domain, 192.168.1.4);

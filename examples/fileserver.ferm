@@ -1,0 +1,45 @@
+#!/usr/bin/ferm
+#
+# Ferm example script
+#
+# Firewall configuration for a file server (NFSv4 and SMB).
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+table filter {
+    chain INPUT policy DROP {
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # allow local connections
+        interface lo ACCEPT;
+
+        # respond to ping, but limit that
+        proto icmp {
+            icmp-type echo-request mod limit limit 10/s ACCEPT;
+            DROP;
+        }
+
+        # remote administration
+        proto tcp dport ssh ACCEPT;
+
+        # samba
+        proto tcp dport (139 445) ACCEPT; #smbd
+        proto udp dport (137:138) ACCEPT; #nmbd
+
+        # NFSv4
+        proto tcp dport sunrpc ACCEPT;
+        proto (tcp udp) dport 2049 ACCEPT;
+
+        # reject the rest gracefully
+        REJECT;
+    }
+
+    # outgoing connections are not limited
+    chain OUTPUT policy ACCEPT;
+
+    # this is not a router
+    chain FORWARD policy DROP;
+}

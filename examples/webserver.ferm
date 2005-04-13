@@ -1,0 +1,41 @@
+#!/usr/bin/ferm
+#
+# Ferm example script
+#
+# Firewall configuration for a web and SMTP server.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+def $NET_TRUSTED = 195.135.144.144/28;
+
+table filter {
+    chain INPUT policy DROP {
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # allow local connections
+        interface lo ACCEPT;
+
+        # respond to ping, but limit that
+        proto icmp {
+            icmp-type echo-request mod limit limit 10/s ACCEPT;
+            DROP;
+        }
+
+        # remote administration from the company network
+        saddr $NET_TRUSTED proto tcp dport ssh ACCEPT;
+
+        # our services to the world
+        proto tcp dport (http https smtp) ACCEPT;
+
+        # the rest is dropped by the above policy
+    }
+
+    # outgoing connections are not limited
+    chain OUTPUT policy ACCEPT;
+
+    # this is not a router
+    chain FORWARD policy DROP;
+}

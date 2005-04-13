@@ -1,0 +1,76 @@
+#!/usr/bin/ferm
+#
+# Ferm example script
+#
+# Firewall configuration for a router with a dynamic IP.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+def $DEV_PRIVATE = (eth0 eth1);
+def $DEV_WORLD = ppp0;
+
+def $NET_PRIVATE = 192.168.0.0/16;
+
+table filter {
+    chain INPUT policy DROP {
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # allow local connections
+        interface lo ACCEPT;
+
+        # respond to ping, but limit that
+        proto icmp {
+            icmp-type echo-request mod limit limit 10/s ACCEPT;
+            DROP;
+        }
+
+        # for IPsec
+        interface $DEV_WORLD {
+            proto udp dport 500 ACCEPT;
+            proto (esp ah) ACCEPT;
+        }
+
+        # allow SSH connections from the private network and from some
+        # well-known internet hosts
+        saddr ($NET_PRIVATE 81.209.165.42) proto tcp dport ssh ACCEPT;
+
+        # we provide DNS and SMTP services for the internal net
+        interface $DEV_PRIVATE saddr $NET_PRIVATE {
+            proto (udp tcp) dport domain ACCEPT;
+            proto tcp dport smtp ACCEPT;
+        }
+
+        # some IRC servers want that
+        interface $DEV_WORLD {
+            proto tcp dport auth ACCEPT;
+            proto tcp dport (8080 3128) REJECT;
+        }
+
+        # the rest is dropped by the above policy
+    }
+
+    # outgoing connections are not limited
+    chain OUTPUT policy ACCEPT;
+
+    chain FORWARD policy DROP {
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # connections from the internal net to the internet or to other
+        # internal nets are allowed
+        interface $DEV_PRIVATE ACCEPT;
+
+        # the rest is dropped by the above policy
+    }
+}
+
+table nat {
+    chain POSTROUTING {
+        # masquerade private IP addresses
+        saddr $NET_PRIVATE outerface $DEV_WORLD MASQUERADE;
+    }
+}
