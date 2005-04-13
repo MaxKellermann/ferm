@@ -2157,6 +2157,11 @@ sub enter {
                 defined $proto and
                 grep { /^(?:tcp|udp)$/ } to_array $proto) {
 
+                # multiport only allows 15 ports at a time. For this
+                # reason, we do a little magic here: split the ports
+                # into portions of 15, and handle these portions as
+                # array elements
+
                 my @ports = to_array getvalues();
                 my @params;
 
