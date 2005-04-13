@@ -1331,7 +1331,9 @@ sub tables {
 
     # this line is done
     $rr .= "\n";
-    push @rules, $rr;
+    push @rules, { rule => $rr,
+                   script => $rule{script},
+                 };
 };
 
 sub printrule {
@@ -1524,6 +1526,10 @@ sub enter {
                         error('No action defined');
                     }
                 }
+
+                $current->{script} = { filename => $script->{filename},
+                                       line => $script->{line},
+                                     };
 
                 mkrules(\@fw)
                   if $has_rule or defined $policy;
@@ -2437,6 +2443,13 @@ sub execute {
     my $status;
 
     foreach (@rules) {
+        my $script;
+
+        if (ref) {
+            $script = $_->{script};
+            $_ = $_->{rule};
+        }
+
         s/^\s+//s;
         print
           if $option{lines} || $debug;
@@ -2452,6 +2465,8 @@ sub execute {
                 printf "child died with signal %d\n", $? & 0x7f;
                 $status = 1;
             } else {
+                print STDERR "(rule declared in $script->{filename}:$script->{line})\n"
+                  if defined $script;
                 $status = $? >> 8;
             }
         }
@@ -2472,6 +2487,9 @@ sub rules_to_save {
     my %policies;
     my %rules;
     foreach my $rule (@$rules) {
+        $rule = $rule->{rule}
+          if ref $rule;
+
         $rule =~ s/^\S+\s+//;
         my $table = $rule =~ s/-t\s+(\w+)\s*//
           ? $1 : 'filter';

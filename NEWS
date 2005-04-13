@@ -6,7 +6,7 @@
     Auke Kok <sofar@foo-projects.org>
     Max Kellermann <max@foo-projects.org>
 
-v1.1+cvs - 5 Apr 2005
+v1.1+cvs - 13 Apr 2005
   - perl strict mode
   - removed support for ipfwadm and ipchains
   - get a list of netfilter table names from /proc/net/ip_tables_names
@@ -53,6 +53,7 @@ v1.1+cvs - 5 Apr 2005
   - variables expansion happens within double quotes
   - implemented automatic variables: $TABLE, $CHAIN
   - IPv6/ip6tables support
+  - print line number when iptables reports an error
 
 
 v1.1 - 5 May 2003
