@@ -2156,7 +2156,16 @@ sub enter {
                 $keyword =~ /^(?:(?:source-|destination-|)ports)$/ and
                 defined $proto and
                 grep { /^(?:tcp|udp)$/ } to_array $proto) {
-                $current->{$keyword} = join(',', to_array getvalues());
+
+                my @ports = to_array getvalues();
+                my @params;
+
+                while (@ports) {
+                    push @params, join(',', splice(@ports, 0, 15));
+                }
+
+                $current->{$keyword} = \@params;
+
                 next;
             }
 
