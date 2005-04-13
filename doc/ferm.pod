@@ -956,6 +956,28 @@ The output is then tokenized, and saved as a ferm list (array). Lines
 beginning with '#' are ignored; the other lines may contain any number
 of values, separated by whitespace.
 
+=head1 INCLUDES
+
+The B<include> keyword allows you to include external files:
+
+    include 'vars.ferm';
+
+The file name is relative to the calling file, e.g. when including
+from F</etc/ferm/ferm.conf>, the above statement includes
+F</etc/ferm/vars.ferm>. Variables and functions declared in an
+included file are still available in the calling file.
+
+B<include> works within a block:
+
+    chain INPUT {
+        include 'input.ferm';
+    }
+
+If you specify a directory (with a trailing '/'), all files in this
+directory are included, sorted alphabetically:
+
+    include 'ferm.d/';
+
 =head1 OPTIONS
 
 Options can be specified with the "option" keyword, which
