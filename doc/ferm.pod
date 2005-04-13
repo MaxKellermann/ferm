@@ -849,7 +849,9 @@ Modify the TTL header field.
 
 =back
 
-=head1 VARIABLES
+=head1 ADVANCED FEATURES
+
+=head2 Variables
 
 In complex firewall files, it is helpful to use variables, e.g. to
 give a network interface a meaningful name.
@@ -896,7 +898,7 @@ Include files are special - variables declared in an included file are
 still available in the calling block. This is useful when you include
 a file which only declares variables.
 
-=head1 AUTOMATIC VARIABLES
+=head2 Automatic variables
 
 Some variables are set internally by ferm. Ferm scripts can use them
 just like any other variable.
@@ -917,7 +919,7 @@ The current netfilter chain.
 
 =back
 
-=head1 FUNCTIONS
+=head2 Functions
 
 Functions are similar to variables, except that they may have
 parameters, and they provide ferm commands, not values.
@@ -942,7 +944,7 @@ the call. To circumvent this, you can reorder the keywords:
     def &IPSEC() = { proto (esp ah); proto udp dport 500; }
     ACCEPT &IPSEC();
 
-=head1 BACKTICKS
+=head2 Backticks
 
 With backticks, you may use the output of an external command:
 
@@ -956,7 +958,7 @@ The output is then tokenized, and saved as a ferm list (array). Lines
 beginning with '#' are ignored; the other lines may contain any number
 of values, separated by whitespace.
 
-=head1 INCLUDES
+=head2 Includes
 
 The B<include> keyword allows you to include external files:
 
