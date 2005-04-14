@@ -1,0 +1,1 @@
+chain INPUT interface ppp+ DROP;
