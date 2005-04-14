@@ -1015,15 +1015,15 @@ sub tables {
     }
 
     # general iptables options
-    shell_append(\$rr, '-i', extract_negation $rule{interface})
-      if defined $rule{'interface'};
-    shell_append(\$rr, '-o', extract_negation $rule{outerface})
-      if defined $rule{'outerface'};
-
     shell_append(\$rr, '-s', extract_negation $rule{saddr})
       if defined $rule{saddr};
     shell_append(\$rr, '-d', extract_negation $rule{daddr})
       if defined $rule{daddr};
+
+    shell_append(\$rr, '-i', extract_negation $rule{interface})
+      if defined $rule{'interface'};
+    shell_append(\$rr, '-o', extract_negation $rule{outerface})
+      if defined $rule{'outerface'};
 
     shell_append(\$rr, '-p', extract_negation $rule{proto})
       if defined $rule{proto};
@@ -1034,14 +1034,6 @@ sub tables {
 
         shell_append(\$rr, '-f')
     }
-
-    #
-    # protocol options
-    #
-
-    # proto icmp
-    shell_append(\$rr, '--icmp-type', extract_negation $rule{'icmp-type'})
-      if defined $rule{'icmp-type'};
 
     #
     # match module options
