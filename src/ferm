@@ -343,18 +343,40 @@ sub warning {
       . (shift) . "\n";
 }
 
-sub initialize_netfilter {
-    local *FILE;
+sub read_file_words {
+    my $filename = shift;
 
+    local *FILE;
+    open FILE, $filename
+      or return;
+
+    my @words;
+
+    while (<FILE>) {
+        push @words, $1
+          if /(\w+)/;
+    }
+
+    return \@words;
+}
+
+sub initialize_netfilter {
     foreach my $domain (qw(ip ip6)) {
         my @tables;
-        if (not $option{test} and open FILE, "</proc/net/${domain}_tables_names") {
-            while (<FILE>) {
-                push @tables, $1
-                  if /(\w+)/;
-            }
 
-            close FILE;
+        unless ($option{test}) {
+            # read tables_matches
+            $domains{$domain}{tables_matches}
+              = read_file_words("/proc/net/${domain}_tables_matches");
+
+            # read tables_targets
+            $domains{$domain}{tables_targets}
+              = read_file_words("/proc/net/${domain}_tables_targets");
+
+            # read tables_names
+            my $tables = read_file_words("/proc/net/${domain}_tables_names");
+            @tables = @$tables
+              if defined $tables;
         }
 
         @tables = qw(filter nat mangle)
