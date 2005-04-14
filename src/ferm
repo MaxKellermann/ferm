@@ -370,7 +370,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-\w\/\.:]+)/g) {
+    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+)/g) {
         push @ret, $word;
     }
 
