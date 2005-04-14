@@ -1020,13 +1020,13 @@ sub tables {
     shell_append(\$rr, '-o', extract_negation $rule{outerface})
       if defined $rule{'outerface'};
 
-    shell_append(\$rr, '-p', extract_negation $rule{proto})
-      if defined $rule{proto};
-
     shell_append(\$rr, '-s', extract_negation $rule{saddr})
       if defined $rule{saddr};
     shell_append(\$rr, '-d', extract_negation $rule{daddr})
       if defined $rule{daddr};
+
+    shell_append(\$rr, '-p', extract_negation $rule{proto})
+      if defined $rule{proto};
 
     if (defined $rule{'fragment'}) {
         shell_append(\$rr, '!')
@@ -1267,10 +1267,10 @@ sub tables {
     }
 
     # target LOG
-    shell_append(\$rr, '--log-level', $rule{'log-level'})
-      if defined $rule{'log-level'};
     shell_append(\$rr, '--log-prefix', $rule{'log-prefix'})
       if exists $rule{'log-prefix'};
+    shell_append(\$rr, '--log-level', $rule{'log-level'})
+      if defined $rule{'log-level'};
     shell_append(\$rr, '--log-tcp-sequence')
       if defined $rule{'log-tcp-sequence'};
     shell_append(\$rr, '--log-tcp-options')
