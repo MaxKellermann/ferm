@@ -1039,29 +1039,6 @@ sub tables {
     # protocol options
     #
 
-    # proto tcp [udp]
-    shell_append(\$rr, '--sport', extract_negation $rule{sport})
-      if defined $rule{sport};
-    shell_append(\$rr, '--dport', extract_negation $rule{dport})
-      if defined $rule{dport};
-
-    if (defined $rule{'syn'}) {
-        shell_append(\$rr, '!')
-          unless $rule{syn} eq 'set';
-
-        shell_append(\$rr, '--syn')
-    }
-
-    shell_append(\$rr, '--mss', $rule{mss})
-      if exists $rule{mss};
-
-    shell_append(\$rr, '--tcp-flags',
-                 $rule{'tcp-flags.mask'}, $rule{'tcp-flags.match'})
-      if exists $rule{'tcp-flags'};
-
-    shell_append(\$rr, '--tcp-option', extract_negation $rule{'tcp-option'})
-      if exists $rule{'tcp-option'};
-
     # proto icmp
     shell_append(\$rr, '--icmp-type', extract_negation $rule{'icmp-type'})
       if defined $rule{'icmp-type'};
@@ -1115,6 +1092,15 @@ sub tables {
     # ipt_helper parameters
     shell_append(\$rr, '--helper', $rule{helper})
       if exists $rule{helper};
+
+    # ipt_icmp
+    if (defined $rule{proto} and $rule{proto} eq 'icmp' and
+        exists $rule{'icmp-type'}) {
+        shell_append(\$rr, '-m', 'icmp');
+
+        shell_append(\$rr, '--icmp-type', extract_negation $rule{'icmp-type'})
+          if defined $rule{'icmp-type'};
+    }
 
     # ipt_iplimit parameters
     if (exists $rule{'iplimit-above'}) {
@@ -1218,6 +1204,34 @@ sub tables {
     shell_append(\$rr, '--state', $rule{state})
       if exists $rule{state};
 
+    # ipt_tcp
+    if (defined $rule{proto} and $rule{proto} eq 'tcp' and
+        grep { exists $rule{$_} } qw(sport dport syn mss tcp-flags tcp-option)) {
+        shell_append(\$rr, '-m', 'tcp');
+
+        shell_append(\$rr, '--sport', extract_negation $rule{sport})
+          if defined $rule{sport};
+        shell_append(\$rr, '--dport', extract_negation $rule{dport})
+          if defined $rule{dport};
+
+        if (defined $rule{'syn'}) {
+            shell_append(\$rr, '!')
+              unless $rule{syn} eq 'set';
+
+            shell_append(\$rr, '--syn')
+        }
+
+        shell_append(\$rr, '--mss', $rule{mss})
+          if exists $rule{mss};
+
+        shell_append(\$rr, '--tcp-flags',
+                     $rule{'tcp-flags.mask'}, $rule{'tcp-flags.match'})
+          if exists $rule{'tcp-flags'};
+
+        shell_append(\$rr, '--tcp-option', extract_negation $rule{'tcp-option'})
+          if exists $rule{'tcp-option'};
+    }
+
     # ipt_time parameters
     shell_append(\$rr, '--days', $rule{days})
       if exists $rule{days};
@@ -1243,6 +1257,17 @@ sub tables {
     foreach (qw(ttl-eq ttl-lt ttl-gt)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
+    }
+
+    # ipt_udp parameters
+    if (defined $rule{proto} and $rule{proto} eq 'udp' and
+        grep { exists $rule{$_} } qw(sport dport)) {
+        shell_append(\$rr, '-m', 'udp');
+
+        shell_append(\$rr, '--sport', extract_negation $rule{sport})
+          if defined $rule{sport};
+        shell_append(\$rr, '--dport', extract_negation $rule{dport})
+          if defined $rule{dport};
     }
 
     #

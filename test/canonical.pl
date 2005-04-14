@@ -72,7 +72,7 @@ while (<>) {
         # module list
         my %modules;
         s/-m (\w+)/$modules{$1} = 1; ''/eg;
-        $item->{modules} = [ keys %modules ];
+        $item->{modules} = [ grep { not /^(?:tcp|udp|icmp)$/ } keys %modules ];
 
         # short to long
         s/-j\b/--jump/g;
