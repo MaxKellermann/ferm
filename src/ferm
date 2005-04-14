@@ -241,7 +241,7 @@ $verbose && printversion();
 
 &initialize_netfilter;
 
-mydie("Specify only one ferm script")
+pod2usage(-exitstatus => 1)
   unless @ARGV == 1;
 
 push @stack, {};
