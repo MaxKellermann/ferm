@@ -386,6 +386,17 @@ sub initialize_netfilter {
     }
 }
 
+sub netfilter_match_available {
+    my ($domain, $match) = @_;
+
+    die unless exists $domains{$domain};
+
+    return 1 if $option{test};
+    return 1 unless defined $domains{$domain}{tables_matches};
+
+    return grep { $_ eq $match } @{$domains{$domain}{tables_matches}};
+}
+
 sub tokenize_string {
     # split the an input string into words
     my ($string) = @_;
@@ -1973,7 +1984,14 @@ sub enter {
 
             # extended parameters:
             if (/^mod(?:ule)?$/) {
-                foreach my $module(to_array getvalues) {
+                my $domains = find_option(\@fw, 'domain');
+
+                foreach my $module (to_array getvalues) {
+                    foreach my $domain (to_array $domains) {
+                        error("Module '$module' unavailable in domain '$domain'")
+                          unless netfilter_match_available($domain, $module);
+                    }
+
                     $current->{modules}{$module} = 1;
                     $modules{$module} = 1;
                 }
