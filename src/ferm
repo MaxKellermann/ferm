@@ -397,6 +397,17 @@ sub netfilter_match_available {
     return grep { $_ eq $match } @{$domains{$domain}{tables_matches}};
 }
 
+sub netfilter_target_available {
+    my ($domain, $match) = @_;
+
+    die unless exists $domains{$domain};
+
+    return 1 if $option{test};
+    return 1 unless defined $domains{$domain}{tables_targets};
+
+    return grep { $_ eq $match } @{$domains{$domain}{tables_targets}};
+}
+
 sub tokenize_string {
     # split the an input string into words
     my ($string) = @_;
@@ -906,6 +917,13 @@ sub to_array {
     } else {
         die;
     }
+}
+
+sub is_netfilter_core_target {
+    my $target = shift;
+    die unless defined $target and length $target;
+
+    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE)$/;
 }
 
 sub is_netfilter_builtin_target {
@@ -2022,8 +2040,14 @@ sub enter {
             };
 
             # action keywords
-            if ($keyword =~ /^(?:ACCEPT|DROP|RETURN|QUEUE|NOP
-                                |BALANCE|DNAT|MASQUERADE|MIRROR|REDIRECT|REJECT
+            if (is_netfilter_core_target($keyword) or $keyword eq 'NOP') {
+                error('There can only one action per rule')
+                  if exists $current->{action};
+                $current->{action} = $keyword;
+                next;
+            }
+
+            if ($keyword =~ /^(?:BALANCE|DNAT|MASQUERADE|MIRROR|REDIRECT|REJECT
                                 |SNAT|TCPMSS|TTL|ULOG
                                 |CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
                                 |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
@@ -2031,6 +2055,13 @@ sub enter {
                               )$/x) {
                 error('There can only one action per rule')
                   if exists $current->{action};
+
+                my $domains = find_option(\@fw, 'domain');
+                foreach my $domain (to_array $domains) {
+                    error("Target '$keyword' unavailable in domain '$domain'")
+                      unless netfilter_target_available($domain, $keyword);
+                }
+
                 $current->{action} = $keyword;
                 next;
             }
