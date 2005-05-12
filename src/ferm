@@ -926,13 +926,11 @@ sub is_netfilter_core_target {
     return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE)$/;
 }
 
-sub is_netfilter_builtin_target {
+sub is_netfilter_module_target {
     my $target = shift;
-
     die unless defined $target and length $target;
 
-    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE
-                         |BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
+    return $target =~ /(?:BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
                          |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
                          |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
                          |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
@@ -1041,7 +1039,8 @@ sub tables {
 
     # check for unknown jump target
     if (defined $rule{action} and
-        not is_netfilter_builtin_target($rule{action}) and
+        not is_netfilter_core_target($rule{action}) and
+        not is_netfilter_module_target($rule{action}) and
         $rule{action} ne 'NOP' and
         not exists $domain->{chains}{$rule{table}}{$rule{action}}{was_created}) {
         push @rules, $rrr . "-N $rule{action}\n";
@@ -2047,12 +2046,7 @@ sub enter {
                 next;
             }
 
-            if ($keyword =~ /^(?:BALANCE|DNAT|MASQUERADE|MIRROR|REDIRECT|REJECT
-                                |SNAT|TCPMSS|TTL|ULOG
-                                |CLASSIFY|CLUSTERIP|CONNMARK|DSCP|ECN
-                                |LOG|MARK|NETMAP|ROUTE|TOS|TRACE
-                                |TARPIT
-                              )$/x) {
+            if (is_netfilter_module_target($keyword)) {
                 error('There can only one action per rule')
                   if exists $current->{action};
 
