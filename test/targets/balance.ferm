@@ -1,0 +1,3 @@
+table nat chain prerouting {
+    interface ppp0 proto tcp dport 80 BALANCE to 192.168.1.10-19;
+}

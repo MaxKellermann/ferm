@@ -2378,6 +2378,13 @@ sub enter {
             #
 
             if (defined $action) {
+                # BALANCE target switches
+                if ($action eq 'BALANCE' and
+                    $keyword =~ /^(?:to-destination|to)$/) {
+                    $current->{'to-destination'} = getvar();
+                    next;
+                }
+
                 # CONNMARK target switches
                 if ($action eq 'CONNMARK') {
                     if ($keyword eq 'set-mark') {
