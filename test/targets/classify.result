@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -i ppp0 -p tcp -m tcp --dport 22 -j CLASSIFY --set-class 2:10 

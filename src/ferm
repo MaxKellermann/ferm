@@ -1323,7 +1323,11 @@ sub tables {
 
     # target module options
 
-    if ($action eq 'DNAT' or $action eq 'BALANCE') {
+    if ($action eq 'CLASSIFY') {
+        # target CLASSIFY
+        shell_append(\$rr, '--set-class', $rule{'set-class'})
+          if defined $rule{'set-class'};
+    } elsif ($action eq 'DNAT' or $action eq 'BALANCE') {
         # target DNAT, BALANCE
         shell_append(\$rr, '--to-destination', $rule{'to-destination'})
           if defined $rule{'to-destination'};
@@ -2378,6 +2382,12 @@ sub enter {
             #
 
             if (defined $action) {
+                # CLASSIFY target switches
+                if ($action eq 'CLASSIFY' and $keyword eq 'set-class') {
+                    $current->{'set-class'} = getvar();
+                    next;
+                }
+
                 # BALANCE target switches
                 if ($action eq 'BALANCE' and
                     $keyword =~ /^(?:to-destination|to)$/) {
