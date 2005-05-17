@@ -1321,21 +1321,13 @@ sub tables {
     shell_append(\$rr, '-j', $action)
       unless $action eq 'NOP';
 
-    # common target options (mostly NAT)
-    shell_append(\$rr, '--to', $rule{to})
-      if defined $rule{to};
-    shell_append(\$rr, '--to-ports', $rule{'to-ports'})
-      if defined $rule{'to-ports'};
-    shell_append(\$rr, '--to-destination', $rule{'to-destination'})
-      if defined $rule{'to-destination'};
+    # target module options
 
-    if (exists $rule{'to-source'}) {
-        foreach (split /,/, $rule{'to-source'}) {
-            shell_append(\$rr, '--to-source', $_);
-        }
-    }
-
-    if ($action eq 'LOG') {
+    if ($action eq 'DNAT' or $action eq 'BALANCE') {
+        # target DNAT, BALANCE
+        shell_append(\$rr, '--to-destination', $rule{'to-destination'})
+          if defined $rule{'to-destination'};
+    } elsif ($action eq 'LOG') {
         # target LOG
         shell_append(\$rr, '--log-prefix', $rule{'log-prefix'})
           if exists $rule{'log-prefix'};
@@ -1355,6 +1347,14 @@ sub tables {
           if defined $rule{'save-mark'};
         shell_append(\$rr, '--restore-mark')
           if defined $rule{'restore-mark'};
+    } if ($action eq 'MASQUERADE' or $action eq 'REDIRECT') {
+        # target MASQUERADE, REDIRECT
+        shell_append(\$rr, '--to-ports', $rule{'to-ports'})
+          if defined $rule{'to-ports'};
+    } if ($action eq 'NETMAP') {
+        # target NETMAP
+        shell_append(\$rr, '--to', $rule{to})
+          if defined $rule{to};
     } elsif ($action eq 'REJECT') {
         # target REJECT
         shell_append(\$rr, '--reject-with', $rule{'reject-with'})
@@ -1368,6 +1368,11 @@ sub tables {
 
         shell_append(\$rr, '--continue')
           if exists $rule{continue};
+    } if ($action eq 'SNAT') {
+        # target SNAT
+        foreach (split /,/, $rule{'to-source'}) {
+            shell_append(\$rr, '--to-source', $_);
+        }
     } elsif ($action eq 'TCPMSS') {
         # target TCPMSS
         shell_append(\$rr, '--set-mss', $rule{'set-mss'})
