@@ -1345,7 +1345,7 @@ sub tables {
     shell_append(\$rr, '--log-ip-options')
       if defined $rule{'log-ip-options'};
 
-    # taget MARK, CONNMARK
+    # target MARK, CONNMARK
     shell_append(\$rr, '--set-mark', $rule{'set-mark'})
       if exists $rule{'set-mark'};
     shell_append(\$rr, '--save-mark')
