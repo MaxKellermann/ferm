@@ -1459,6 +1459,11 @@ sub mkrules {
 
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
+    for (my $i = 0; $i < @$fw; $i++) {
+        while (my ($key, $value) = each %{$fw->[$i]}) {
+            push @fr, { $key => $value };
+        }
+    }
 
     sub dofr {
         my $rule = shift;
