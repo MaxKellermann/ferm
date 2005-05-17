@@ -1043,12 +1043,6 @@ the error.
 
 Shows some more details of the stages of execution of the program.
 
-=item B<--debug>
-
-Shows even more details of what ferm is doing while parsing
-the rules. The debug info is put between the output for
-clearity and commented.
-
 =item B<--help>
 
 Show a brief list of available commandline options.

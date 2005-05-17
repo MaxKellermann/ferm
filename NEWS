@@ -50,6 +50,7 @@ v1.1+cvs - 13 Apr 2005
   - warn about unused custom chains
   - ignore empty rules
   - options --clearall, --createchains are implied and deprecated
+  - option --debug is deprecated
   - reset all policies to ACCEPT
   - variables expansion happens within double quotes
   - implemented automatic variables: $TABLE, $CHAIN

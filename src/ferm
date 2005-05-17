@@ -39,8 +39,7 @@ $VERSION = '1.1+svn' . ('$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '');
 ## interface variables
 # %option = command line and other options
 # $verbose = true in verbose mode
-# $debug = true in debug mode
-use vars qw(%option $verbose $debug);
+use vars qw(%option $verbose);
 
 ## parser variables
 # $script: current script file
@@ -163,7 +162,9 @@ use vars qw(%deprecated_keywords %automod);
 
 # Get command line stuff
 {
-    my ($opt_noexec, $opt_lines, $opt_location, $opt_clearall, $opt_flushall,
+    my ($opt_noexec, $opt_lines,
+        $opt_debug,
+        $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
         $opt_version, $opt_use, $opt_test, $opt_fast, $opt_domain);
 
@@ -173,7 +174,7 @@ use vars qw(%deprecated_keywords %automod);
     GetOptions('noexec|n' => \$opt_noexec,
                'lines|l' => \$opt_lines,
                'verbose|v' => \$verbose,
-               'debug|d' => \$debug,
+               'debug|d' => \$opt_debug,
                'location=s' => \$opt_location,
                clearall => \$opt_clearall,
                flushall => \$opt_flushall,
@@ -230,6 +231,8 @@ use vars qw(%deprecated_keywords %automod);
     print STDERR "Warning: ignoring the obsolete --use/-s option\n"
       if defined $opt_use;
 
+    print STDERR "Warning: ignoring the obsolete --debug option\n"
+      if defined $opt_debug;
     print STDERR "Warning: ignoring the obsolete --clearall option\n"
       if defined $opt_clearall;
     print STDERR "Warning: ignoring the obsolete --flushall option\n"
@@ -1429,16 +1432,6 @@ sub tables {
 sub printrule {
     my $rule = shift;
 
-    # debug: print whatever is in memory
-    if ($debug) {
-        my $db;
-        $db = "# Rule parsed   : ";
-        while (my ($key, $value) = each %$rule) {
-            $db .= $key . "=" . $value . " ";
-        };
-        push @rules, $db . "\n";
-    };
-
     # prints all rules in a hash
     tables($rule);
 }
@@ -1466,23 +1459,6 @@ sub mkrules {
 
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
-    my $db;
-    if ($debug) {
-        $db = "# Rule unparsed :  ";
-    };
-
-    for (my $i = 0; $i < @$fw; $i++) {
-        while (my ($key, $value) = each %{$fw->[$i]}) {
-            $db .= "${key}[$i]=$value "
-              if $debug;
-
-            push @fr, { $key => $value };
-        }
-    }
-
-    if ($debug) {
-        push @rules, "$db\n ";
-    };
 
     sub dofr {
         my $rule = shift;
@@ -1568,10 +1544,6 @@ sub enter {
     # simple parser program that recognizes keywords and
     # retreives parameters to set up the kernel routing
     # chains
-
-    if ($debug) {
-        push @rules, "# entered level $lev\n";
-    };
 
     my $base_level = $script->{base_level} || 0;
     die if $base_level > $lev;
@@ -1675,10 +1647,6 @@ sub enter {
                   if keys %$current;
 
                 # and exit
-                if ($debug) {
-                    push @rules, "# leaving level $lev\n";
-                };
-
                 return;
             }
 
@@ -2565,7 +2533,7 @@ sub execute {
 
         s/^\s+//s;
         print
-          if $option{lines} || $debug;
+          if $option{lines};
         next if $option{noexec};
         next if /^#/;
 
@@ -2691,7 +2659,6 @@ B<ferm> I<options> I<inputfiles>
  --test            Test mode; ignore host specific configuration.
                    This implies --noexec and --lines.
  -v, --verbose     Show some more information
- -d, --debug       Show debug information
  -V, --version     Show current version number
  -h, --help        Look at this text
  --use [kernel firewall program]
