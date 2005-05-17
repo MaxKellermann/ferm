@@ -35,7 +35,7 @@ build/ferm-$(VERSION).tar.gz: all
 	install -m 755 src/ferm $(DISTDIR)/src
 	install -m 644 doc/Makefile doc/ferm.pod doc/ferm.txt doc/ferm.html doc/ferm.1 $(DISTDIR)/doc
 	install -m 644 config.mk Makefile AUTHORS COPYING NEWS README TODO $(DISTDIR)
-	install -m 644 examples/complex-server examples/iptables examples/realistic examples/workstation examples/iptables-newbie examples/tjzeeman $(DISTDIR)/examples
+	install -m 644 $(wildcard examples/*.ferm) $(DISTDIR)/examples
 	cd build && tar czf ferm-$(VERSION).tar.gz ferm-$(VERSION)
 
 dist: build/ferm-$(VERSION).tar.gz
