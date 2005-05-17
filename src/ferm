@@ -165,7 +165,7 @@ use vars qw(%deprecated_keywords %automod);
 {
     my ($opt_noexec, $opt_lines, $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
-        $opt_version, $opt_use, $opt_test, $opt_fast);
+        $opt_version, $opt_use, $opt_test, $opt_fast, $opt_domain);
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
                             'no_auto_abbrev');
@@ -185,6 +185,7 @@ use vars qw(%deprecated_keywords %automod);
                'use=s' => \$opt_use,
                test => \$opt_test,
                fast => \$opt_fast,
+               'domain=s' => \$opt_domain,
               );
 
     pod2usage(-exitstatus => 0)
@@ -212,6 +213,15 @@ use vars qw(%deprecated_keywords %automod);
         }
 
         $option{fast} = 1;
+    }
+
+    if (defined $opt_domain) {
+        unless ($opt_domain =~ /^ip6?$/) {
+            print STDERR "Invalid domain '$opt_domain'\n";
+            exit 1;
+        }
+
+        $option{domain} = $opt_domain;
     }
 
     print STDERR "Warning: --automod is deprecated\n"
@@ -1439,6 +1449,20 @@ sub mkrules {
 
     # compile the list hashes into rules
     my @fr;
+
+    if (exists $option{domain}) {
+        my @domains = to_array $fw->[0]{domain};
+
+        if (grep { $_ eq $option{domain} } @domains) {
+            # copy @$fw and limit to the selected domain
+            $fw = [ @$fw ];
+            $fw->[0] = {%{$fw->[0]}};
+            $fw->[0]{domain} = $option{domain};
+        } else {
+            # wrong domain - skip
+            return;
+        }
+    }
 
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
@@ -2675,5 +2699,6 @@ B<ferm> I<options> I<inputfiles>
  --location /path/to/iptables
                    Specify the location and name of the kernel program
  --fast            Generate an iptables-save file, used by iptables-restore
+ --domain {ip|ip6} Handle only the specified domain
 
 =cut
