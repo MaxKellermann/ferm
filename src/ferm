@@ -960,11 +960,23 @@ sub is_netfilter_builtin_chain {
 
 sub shell_escape {
     my $token = shift;
-    return $token
-      if $token =~ /^\`.*\`$/;
-    $token =~ s/'/\\'/g;
-    $token = '\'' . $token . '\''
-      if $token =~ /[\s\"\\;]/s;
+
+    if ($option{fast}) {
+        # iptables-save/iptables-restore are quite buggy concerning
+        # escaping and special characters... we're trying our best
+        # here
+
+        $token =~ s,",',g;
+        $token = '"' . $token . '"'
+          if $token =~ /[\s\'\\;]/s;
+    } else {
+        return $token
+          if $token =~ /^\`.*\`$/;
+        $token =~ s/'/\\'/g;
+        $token = '\'' . $token . '\''
+          if $token =~ /[\s\"\\;]/s;
+    }
+
     return $token;
 }
 
