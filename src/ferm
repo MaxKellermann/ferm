@@ -1438,10 +1438,8 @@ sub printrule {
 
 
 sub mkrules {
-    my $fw = shift;
-
     # compile the list hashes into rules
-    my @fr;
+    my $fw = shift;
 
     if (exists $option{domain}) {
         my @domains = to_array $fw->[0]{domain};
@@ -1459,6 +1457,8 @@ sub mkrules {
 
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
+    my @fr;
+
     foreach my $current (@$fw) {
         while (my ($key, $value) = each %$current) {
             push @fr, [ $key, $value ];
