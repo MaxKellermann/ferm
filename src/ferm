@@ -1461,7 +1461,7 @@ sub mkrules {
     # per level, so we can recurse...
     foreach my $current (@$fw) {
         while (my ($key, $value) = each %$current) {
-            push @fr, { $key => $value };
+            push @fr, [ $key, $value ];
         }
     }
 
@@ -1469,61 +1469,60 @@ sub mkrules {
         my $rule = shift;
         my $current = shift;
 
-        # loop over all keys in this level (only 1)
-        while (my ($key, $value_string) = each %$current) {
-            unless (ref $value_string) {
+        my ($key, $value_string) = @$current;
+
+        unless (ref $value_string) {
                 # set this one and recurse
-                $rule->{$key} = $value_string;
+            $rule->{$key} = $value_string;
 
-                if (@_) {
-                    dofr($rule, @_);
-                } else {
-                    printrule($rule);
-                }
-
-                delete $rule->{$key};
-            } elsif (ref $value_string eq 'ARRAY') {
-                # recurse for every value
-                foreach my $value (@$value_string) {
-                    $value =~ s/^!/! /;
-                    # set this one and recurse
-                    $rule->{$key} = $value;
-
-                    if (@_) {
-                        dofr($rule, @_);
-                    } else {
-                        printrule($rule);
-                    }
-                }
-
-                delete $rule->{$key};
-            } elsif (ref $value_string eq 'HASH') {
-                # merge hashes
-                my $old = $rule->{$key};
-
-                $rule->{$key} = { ( defined $old
-                                    ? %$old
-                                    : ()
-                                  ),
-                                  %$value_string
-                                };
-
-                # recurse
-                if (@_) {
-                    dofr($rule, @_);
-                } else {
-                    printrule($rule);
-                }
-
-                # restore old value
-                if (defined $old) {
-                    $rule->{$key} = $old;
-                } else {
-                    delete $rule->{$key};
-                }
+            if (@_) {
+                dofr($rule, @_);
             } else {
-                die ref $value_string;
+                printrule($rule);
             }
+
+            delete $rule->{$key};
+        } elsif (ref $value_string eq 'ARRAY') {
+            # recurse for every value
+            foreach my $value (@$value_string) {
+                $value =~ s/^!/! /;
+                # set this one and recurse
+                $rule->{$key} = $value;
+
+                if (@_) {
+                    dofr($rule, @_);
+                } else {
+                    printrule($rule);
+                }
+            }
+
+            delete $rule->{$key};
+        } elsif (ref $value_string eq 'HASH') {
+            # merge hashes
+            my $old = $rule->{$key};
+
+            $rule->{$key} = { ( defined $old
+                                ? %$old
+                                : ()
+                              ),
+                              %$value_string
+                            };
+
+            # recurse
+            if (@_) {
+                dofr($rule, @_);
+            } else {
+                printrule($rule);
+            }
+
+            # restore old value
+            if (defined $old) {
+                $rule->{$key} = $old;
+            } else {
+                delete $rule->{$key};
+            }
+        } else {
+            die ref $value_string;
         }
     }
 
