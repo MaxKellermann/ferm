@@ -1459,8 +1459,8 @@ sub mkrules {
 
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
-    for (my $i = 0; $i < @$fw; $i++) {
-        while (my ($key, $value) = each %{$fw->[$i]}) {
+    foreach my $current (@$fw) {
+        while (my ($key, $value) = each %$current) {
             push @fr, { $key => $value };
         }
     }
