@@ -1,0 +1,3 @@
+# test whether mixing TCP and UDP works when specifying the protocol
+# specific parameter 'dport'
+chain INPUT proto (tcp udp) dport http ACCEPT;
