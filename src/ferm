@@ -1169,6 +1169,16 @@ sub tables {
           if defined $rule{'icmp-type'};
     }
 
+    # ipt_icmpv6
+    if (defined $rule{proto} and
+        ($rule{proto} eq 'icmpv6' or $rule{proto} eq 'ipv6-icmp') and
+        exists $rule{'icmpv6-type'}) {
+        shell_append(\$rr, '-m', 'icmpv6');
+
+        shell_append(\$rr, '--icmpv6-type',
+                     extract_negation $rule{'icmpv6-type'});
+    }
+
     # ipt_iplimit parameters
     if (exists $rule{'iplimit-above'}) {
         shell_append(\$rr, '!')
@@ -2091,6 +2101,14 @@ sub enter {
             if (defined $proto and
                 $proto eq 'icmp' and
                 $keyword eq 'icmp-type') {
+                $current->{$keyword} = getvalues();
+                next;
+            }
+
+            # icmpv6
+            if (defined $proto and
+                ($proto eq 'icmpv6' or $proto eq 'ipv6-icmp') and
+                $keyword eq 'icmpv6-type') {
                 $current->{$keyword} = getvalues();
                 next;
             }

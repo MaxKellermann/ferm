@@ -1,0 +1,4 @@
+domain ip6 chain INPUT {
+    proto icmpv6 icmpv6-type router-solicitation ACCEPT;
+    proto ipv6-icmp icmpv6-type neighbour-advertisement DROP;
+}

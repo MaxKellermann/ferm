@@ -1,0 +1,2 @@
+ip6tables -t filter -A INPUT -p icmpv6 -m icmpv6 --icmpv6-type router-solicitation -j ACCEPT 
+ip6tables -t filter -A INPUT -p ipv6-icmp -m icmpv6 --icmpv6-type neighbour-advertisement -j DROP 
