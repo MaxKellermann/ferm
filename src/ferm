@@ -2649,8 +2649,6 @@ sub execute {
 sub rules_to_save {
     my $rules = shift;
 
-    my @chains = qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
-
     # parse the current ruleset, ignore -X and -F, handle policies and
     # custom chains
     my %policies;
@@ -2686,18 +2684,15 @@ sub rules_to_save {
 
         # create chains / set policy
         if (defined $policies) {
-            foreach my $chain (@chains) {
-                my $policy = $policies->{$chain};
-                $result .= ":$chain $policy\ [0:0]\n"
-                  if defined $policy;
+            while (my ($chain, $policy) = each %$policies) {
+                $result .= ":$chain $policy\ [0:0]\n";
             }
         }
 
         # dump rules
         if (defined $r) {
-            foreach my $chain (@chains) {
-                next unless exists $r->{$chain};
-                foreach (@{$r->{$chain}}) {
+            while (my ($chain, $rs) = each %$r) {
+                foreach (@$rs) {
                     $result .= $_;
                 }
             }
