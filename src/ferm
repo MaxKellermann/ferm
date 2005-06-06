@@ -2015,7 +2015,7 @@ sub enter {
                     push @fw2, $fw2;
                 }
 
-                $fw2[-1]->{chain} = $subchain;
+                $fw2[-1]->{chain} = $fw2[-1]->{auto}{CHAIN} = $subchain;
 
                 # enter the block
                 enter($lev + 1, @fw2);
