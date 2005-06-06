@@ -1,0 +1,4 @@
+chain INPUT proto tcp {
+    dport http TCPMSS set-mss 2;
+    TCPMSS clamp-mss-to-pmtu;
+}
