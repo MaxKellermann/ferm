@@ -38,8 +38,7 @@ $VERSION = '1.1+svn' . ('$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '');
 
 ## interface variables
 # %option = command line and other options
-# $verbose = true in verbose mode
-use vars qw(%option $verbose);
+use vars qw(%option);
 
 ## parser variables
 # $script: current script file
@@ -163,7 +162,7 @@ use vars qw(%deprecated_keywords %automod);
 # Get command line stuff
 {
     my ($opt_noexec, $opt_lines,
-        $opt_debug,
+        $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
         $opt_version, $opt_use, $opt_test, $opt_fast, $opt_domain);
@@ -173,7 +172,7 @@ use vars qw(%deprecated_keywords %automod);
 
     GetOptions('noexec|n' => \$opt_noexec,
                'lines|l' => \$opt_lines,
-               'verbose|v' => \$verbose,
+               'verbose|v' => \$opt_verbose,
                'debug|d' => \$opt_debug,
                'location=s' => \$opt_location,
                clearall => \$opt_clearall,
@@ -233,6 +232,8 @@ use vars qw(%deprecated_keywords %automod);
 
     print STDERR "Warning: ignoring the obsolete --debug option\n"
       if defined $opt_debug;
+    print STDERR "Warning: ignoring the obsolete --verbose option\n"
+      if defined $opt_verbose;
     print STDERR "Warning: ignoring the obsolete --clearall option\n"
       if defined $opt_clearall;
     print STDERR "Warning: ignoring the obsolete --flushall option\n"
@@ -249,8 +250,6 @@ use vars qw(%deprecated_keywords %automod);
         }
     }
 }
-
-$verbose && printversion();
 
 &initialize_netfilter;
 
@@ -273,21 +272,18 @@ if (defined $domains{ip}{location}) {
 $domains{ip6}{location} = 'ip6tables';
 
 # parse all input recursively
-$verbose && print "Parsing files\n";
 enter(0);
 
 # check consistency
 check();
 
 # and execute all generated rules
-$verbose && print "\nExecuting rules\n";
 if ($option{fast}) {
     execute_fast(rules_to_save(\@rules));
 } else {
     execute();
 }
 
-$verbose && print "Done, exiting\n";
 exit 0;
 
 # end of program execution!
@@ -1581,15 +1577,12 @@ sub enter {
 
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
-        $verbose && print ".";
-
         # check if the current rule should be negated
         my $negated = $keyword eq '!';
         if ($negated) {
             # negation. get the next word which contains the 'real'
             # rule
             $keyword = getvar();
-            $verbose && print ".";
 
             error('unexpected end of file after negation')
               unless defined $keyword;
@@ -2647,9 +2640,6 @@ sub execute {
                 $status = $? >> 8;
             }
         }
-
-        print "."
-          if $verbose and not $option{lines};
     }
 
     exit $status
@@ -2754,7 +2744,6 @@ B<ferm> I<options> I<inputfiles>
  -l, --lines       Show all rules that were created
  --test            Test mode; ignore host specific configuration.
                    This implies --noexec and --lines.
- -v, --verbose     Show some more information
  -V, --version     Show current version number
  -h, --help        Look at this text
  --use [kernel firewall program]

@@ -1073,10 +1073,6 @@ will be shown just before they are executed, so if you get error
 messages from iptables(8) etc., you can see which rule caused
 the error.
 
-=item B<--verbose>
-
-Shows some more details of the stages of execution of the program.
-
 =item B<--help>
 
 Show a brief list of available commandline options.
