@@ -16,7 +16,7 @@ chain INPUT {
   reject;
   return;
   snat;
-  tcpmss;
+  proto tcp tcpmss;
   TOS;
   TTL;
   ulog;

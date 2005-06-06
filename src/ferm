@@ -2139,6 +2139,16 @@ sub enter {
                       unless netfilter_target_available($domain, $keyword);
                 }
 
+                if ($keyword eq 'TCPMSS') {
+                    my $protos = find_option(\@fw, 'proto');
+                    error('No protocol specified before TCPMSS')
+                      unless defined $protos;
+                    foreach my $proto (to_array $protos) {
+                        error('TCPMSS not available for protocol "$proto"')
+                          unless $proto eq 'tcp';
+                    }
+                }
+
                 $current->{action} = $keyword;
                 next;
             }
