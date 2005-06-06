@@ -396,6 +396,40 @@ specified by the policy.
 To avoid ambiguity, always specify the policies of all predefined
 chains explicitly.
 
+=item B<subchain { ... }>
+
+Works like the normal block operators (i.e. without the I<subchain>
+keyword), except that B<ferm> moves rules within the curly braces into
+a new custom chain. The name for this chain is chosen automatically by
+ferm.
+
+In many cases, this is faster than just a block, because the kernel
+may skip a huge block of rules when a precondition is false. Imagine
+the following example:
+
+ table filter chain INPUT {
+     saddr (1.2.3.4 2.3.4.5 3.4.5.6 4.5.6.7 5.6.7.8) {
+         proto tcp dport (http https ssh) ACCEPT;
+         proto udp dport domain ACCEPT;
+     }
+ }
+
+This generates 20 rules. When a packet arrives which does not pass the
+B<saddr> match, it nonetheless checks all 20 rules. With B<subchain>,
+this check is done once, resulting in faster network filtering and
+less CPU load:
+
+ table filter chain INPUT {
+     saddr (1.2.3.4 2.3.4.5 3.4.5.6 4.5.6.7 5.6.7.8) subchain {
+         proto tcp dport (http https ssh) ACCEPT;
+         proto udp dport domain ACCEPT;
+     }
+ }
+
+You can achieve the same by explicitly declaring a custom chain, but
+you may feel that using B<subchain> requires less typing.
+
+
 =back
 
 

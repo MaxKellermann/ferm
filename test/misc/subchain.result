@@ -1,0 +1,24 @@
+iptables -t filter -N ferm_auto_1
+iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport http -j ACCEPT 
+iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport https -j ACCEPT 
+iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport 445 -j TARPIT 
+iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport 137:139 -j TARPIT 
+iptables -t filter -A ferm_auto_1 -p tcp -j DROP 
+iptables -t filter -A INPUT -p tcp -j ferm_auto_1 
+iptables -t filter -N ferm_auto_3
+iptables -t filter -A ferm_auto_3 -p tcp -m tcp --dport ssh -j ACCEPT 
+iptables -t filter -A ferm_auto_3 -p tcp -j REJECT 
+iptables -t filter -N ferm_auto_2
+iptables -t filter -A ferm_auto_2 -p tcp -j ferm_auto_3 
+iptables -t filter -A INPUT -s 1.2.3.4 -i eth1 -j ferm_auto_2 
+iptables -t filter -A INPUT -s 1.2.3.5 -i eth1 -j ferm_auto_2 
+iptables -t filter -A INPUT -s 2.3.4.5 -i eth1 -j ferm_auto_2 
+iptables -t nat -N ferm_auto_4
+iptables -t nat -A ferm_auto_4 -s 192.168.1.0/24 -j MASQUERADE 
+iptables -t nat -A POSTROUTING -o ppp0 -j ferm_auto_4 
+iptables -t filter -N ferm_auto_5
+iptables -t filter -A ferm_auto_5 -p udp -m udp --dport domain -j ACCEPT 
+iptables -t filter -A INPUT -p udp -j ferm_auto_5 
+ip6tables -t filter -N ferm_auto_5
+ip6tables -t filter -A ferm_auto_5 -p udp -m udp --dport domain -j ACCEPT 
+ip6tables -t filter -A INPUT -p udp -j ferm_auto_5 

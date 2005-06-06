@@ -1,0 +1,22 @@
+# test semi-automatic subchains
+table filter chain INPUT {
+    proto tcp subchain {
+        dport (http https) ACCEPT;
+        dport (445 137:139) TARPIT;
+        DROP;
+    }
+    interface eth1 saddr (1.2.3.4 1.2.3.5 2.3.4.5) subchain {
+        proto tcp subchain {
+            dport ssh ACCEPT;
+            REJECT;
+        }
+    }
+}
+table nat chain POSTROUTING {
+    outerface ppp0 subchain {
+        saddr 192.168.1.0/24 MASQUERADE;
+    }
+}
+domain (ip ip6) table filter chain INPUT proto udp subchain {
+    dport domain ACCEPT;
+}

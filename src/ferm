@@ -46,7 +46,7 @@ use vars qw(%option $verbose);
 # %oldvars = ferm 1.1 compatibility variables, name => value
 # %vars = ferm variables, name => value
 # @rules = the rules which are being created
-use vars qw($script %oldvars @rules @stack);
+use vars qw($script %oldvars @rules @stack $auto_chain);
 
 ## netfilter variables
 # %domains = state information about all domains ("ip" and "ip6")
@@ -1980,6 +1980,56 @@ sub enter {
                 }
 
                 $current->{policy} = $policy;
+                next;
+            }
+
+            # create a subchain
+            if ($keyword eq 'subchain') {
+                error('No rule specified before "subchain"')
+                  unless find_option(\@fw, 'has_rule');
+
+                my $subchain = 'ferm_auto_' . ++$auto_chain;
+                $keyword = next_token();
+
+                error('"{" expected after "sub"')
+                  unless $keyword eq '{';
+
+                # create a deep copy of @fw, only containing values
+                # which must be in the subchain
+                my @fw2;
+                foreach my $fw (@fw) {
+                    my $fw2 = {};
+                    foreach my $key (qw(domain table proto modules)) {
+                        my $value = $fw->{$key};
+                        next unless defined $value;
+                        $value = ref $value
+                          ? ( ref $value eq 'HASH'
+                              ? {%$value}
+                              : [@$value]
+                            )
+                            : $value;
+                        $fw2->{$key} = $value;
+                    }
+                    push @fw2, $fw2;
+                }
+
+                $fw2[-1]->{chain} = $subchain;
+
+                # enter the block
+                enter($lev + 1, @fw2);
+
+                # now handle the parent - it's a jump to the sub chain
+                $current->{action} = $subchain;
+
+                $current->{script} = { filename => $script->{filename},
+                                       line => $script->{line},
+                                     };
+
+                mkrules(\@fw);
+
+                # and clean up variables set in this level
+                %$current = ();
+
                 next;
             }
 
