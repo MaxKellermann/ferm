@@ -2365,8 +2365,7 @@ sub enter {
 
                 my $policy = uc getvar();
                 error("Invalid policy target: $keyword")
-                  unless is_netfilter_core_target($policy) or
-                    is_netfilter_module_target($policy);
+                  unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
                 foreach my $domain (to_array $domains) {
                     foreach my $table (to_array $tables) {
@@ -2386,7 +2385,6 @@ sub enter {
                 }
 
                 $current->{policy} = $policy;
-                $current->{target} = $policy;
                 next;
             }
 
@@ -2487,7 +2485,7 @@ sub enter {
                   if exists $current->{action};
                 error("'$keyword' not allowed in a policy declaration")
                   if find_option(\@fw, 'policy_only');
-                $current->{action} = $current->{target} = getvar();
+                $current->{action} = getvar();
                 next;
             };
 
@@ -2497,7 +2495,7 @@ sub enter {
                   if exists $current->{action};
                 error("'$keyword' not allowed in a policy declaration")
                   if find_option(\@fw, 'policy_only');
-                $current->{action} = $current->{target} = $keyword;
+                $current->{action} = $keyword;
                 next;
             }
 
@@ -2523,7 +2521,7 @@ sub enter {
                     }
                 }
 
-                $current->{action} = $current->{target} = $keyword;
+                $current->{action} = $keyword;
                 next;
             }
 
@@ -2622,12 +2620,9 @@ sub enter {
             # target specific options
             #
 
-            my $target = find_option(\@fw, 'target');
+            my $target = find_option(\@fw, 'action');
             if (defined $target and
                 parse_target_options($current, $target, $keyword)) {
-                my $action = find_option(\@fw, 'action');
-                $current->{policy_only} = 1
-                  unless defined $action;
                 next;
             }
 
