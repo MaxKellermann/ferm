@@ -1854,34 +1854,34 @@ sub parse_target_options {
         # CLASSIFY target switches
         if ($keyword eq 'set-class') {
             $current->{'set-class'} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'BALANCE') {
         # BALANCE target switches
         if ($keyword =~ /^(?:to-destination|to)$/) {
             $current->{'to-destination'} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'CONNMARK') {
         # CONNMARK target switches
         if ($keyword eq 'set-mark') {
             $current->{'set-mark'} = getvar();
-            next;
+            return 1;
         } elsif ($keyword =~ /^(?:save|restore)-mark$/) {
             $current->{$keyword} = 1;
-            next;
+            return 1;
         }
     } elsif ($target eq 'DNAT') {
         # DNAT target switches
         if ($keyword =~ /^(?:to-destination|to)$/) {
             $current->{'to-destination'} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'LOG') {
         # LOG target switches
         if ($keyword eq 'log-level') {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         } elsif ($keyword eq 'log-prefix') {
             my $prefix = getvar();
 
@@ -1889,44 +1889,44 @@ sub parse_target_options {
               if $prefix =~ s,^(.{29}).+$,$1,;
 
             $current->{$keyword} = $prefix;
-            next;
+            return 1;
         } elsif ($keyword =~ /^log-(?:tcp-sequence|tcp-options|ip-options)$/) {
             $current->{$keyword} = 1;
-            next;
+            return 1;
         }
     } elsif ($target eq 'MARK') {
         # MARK target switches
         if ($keyword eq 'set-mark') {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'MASQUERADE' or
              $target eq 'REDIRECT') {
         # MASQUERADE/REDIRECT target switches
         if ($keyword eq 'to-ports') {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'NETMAP') {
         # NETMAP target switches
         if ($keyword eq 'to') {
             $current->{to} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'REJECT') {
         # REJECT target switches
         if ($keyword eq 'reject-with') {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'ROUTE') {
         # ROUTE target switches
         if ($keyword =~ /^(?:oif|iif|gw)$/) {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         } elsif ($keyword =~ /^(?:continue)$/) {
             $current->{$keyword} = 1;
-            next;
+            return 1;
         }
     } elsif ($target eq 'SNAT') {
         # SNAT target switches
@@ -1934,36 +1934,38 @@ sub parse_target_options {
             my @params = to_array getvalues(undef, undef,
                                             non_empty => 1);
             $current->{'to-source'} = join(',', @params);
-            next;
+            return 1;
         }
     } elsif ($target eq 'TCPMSS') {
         # TCPMSS target switches
         if ($keyword eq 'set-mss') {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         } elsif ($keyword eq 'clamp-mss-to-pmtu') {
             $current->{$keyword} = 'set';
-            next;
+            return 1;
         }
     } elsif ($target eq 'TOS') {
         # TOS target switches
         if ($keyword eq 'set-tos') {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'TTL') {
         # TTL target switches
         if ($keyword =~ /^ttl-(?:set|dec|inc)$/) {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         }
     } elsif ($target eq 'ULOG') {
         # ULOG target switches
         if ($keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
             $current->{$keyword} = getvar();
-            next;
+            return 1;
         }
     }
+
+    return;
 }
 
 sub enter {
