@@ -2365,7 +2365,8 @@ sub enter {
 
                 my $policy = uc getvar();
                 error("Invalid policy target: $keyword")
-                  unless $policy =~ /^(?:ACCEPT|DROP)$/;
+                  unless is_netfilter_core_target($policy) or
+                    is_netfilter_module_target($policy);
 
                 foreach my $domain (to_array $domains) {
                     foreach my $table (to_array $tables) {
@@ -2385,6 +2386,7 @@ sub enter {
                 }
 
                 $current->{policy} = $policy;
+                $current->{target} = $policy;
                 next;
             }
 
@@ -2483,6 +2485,8 @@ sub enter {
             if (/^(?:goto|jump)$/) {
                 error('There can only one action per rule')
                   if exists $current->{action};
+                error("'$keyword' not allowed in a policy declaration")
+                  if find_option(\@fw, 'policy_only');
                 $current->{action} = $current->{target} = getvar();
                 next;
             };
@@ -2491,6 +2495,8 @@ sub enter {
             if (is_netfilter_core_target($keyword) or $keyword eq 'NOP') {
                 error('There can only one action per rule')
                   if exists $current->{action};
+                error("'$keyword' not allowed in a policy declaration")
+                  if find_option(\@fw, 'policy_only');
                 $current->{action} = $current->{target} = $keyword;
                 next;
             }
@@ -2498,6 +2504,8 @@ sub enter {
             if (is_netfilter_module_target($keyword)) {
                 error('There can only one action per rule')
                   if exists $current->{action};
+                error("'$keyword' not allowed in a policy declaration")
+                  if find_option(\@fw, 'policy_only');
 
                 my $domains = find_option(\@fw, 'domain');
                 foreach my $domain (to_array $domains) {
@@ -2615,9 +2623,12 @@ sub enter {
             #
 
             my $target = find_option(\@fw, 'target');
-            if (defined $target) {
-                parse_target_options($current, $target, $keyword)
-                  and next;
+            if (defined $target and
+                parse_target_options($current, $target, $keyword)) {
+                my $action = find_option(\@fw, 'action');
+                $current->{policy_only} = 1
+                  unless defined $action;
+                next;
             }
 
             # default
