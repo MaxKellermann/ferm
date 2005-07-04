@@ -1603,6 +1603,125 @@ sub parse_builtin_matches {
     return;
 }
 
+sub parse_target_options {
+    my ($current, $target, $keyword) = @_;
+
+    if ($target eq 'CLASSIFY') {
+        # CLASSIFY target switches
+        if ($keyword eq 'set-class') {
+            $current->{'set-class'} = getvar();
+            next;
+        }
+    } elsif ($target eq 'BALANCE') {
+        # BALANCE target switches
+        if ($keyword =~ /^(?:to-destination|to)$/) {
+            $current->{'to-destination'} = getvar();
+            next;
+        }
+    } elsif ($target eq 'CONNMARK') {
+        # CONNMARK target switches
+        if ($keyword eq 'set-mark') {
+            $current->{'set-mark'} = getvar();
+            next;
+        } elsif ($keyword =~ /^(?:save|restore)-mark$/) {
+            $current->{$keyword} = 1;
+            next;
+        }
+    } elsif ($target eq 'DNAT') {
+        # DNAT target switches
+        if ($keyword =~ /^(?:to-destination|to)$/) {
+            $current->{'to-destination'} = getvar();
+            next;
+        }
+    } elsif ($target eq 'LOG') {
+        # LOG target switches
+        if ($keyword eq 'log-level') {
+            $current->{$keyword} = getvar();
+            next;
+        } elsif ($keyword eq 'log-prefix') {
+            my $prefix = getvar();
+
+            warning('log-prefix is too long; truncating to 29 characters')
+              if $prefix =~ s,^(.{29}).+$,$1,;
+
+            $current->{$keyword} = $prefix;
+            next;
+        } elsif ($keyword =~ /^log-(?:tcp-sequence|tcp-options|ip-options)$/) {
+            $current->{$keyword} = 1;
+            next;
+        }
+    } elsif ($target eq 'MARK') {
+        # MARK target switches
+        if ($keyword eq 'set-mark') {
+            $current->{$keyword} = getvar();
+            next;
+        }
+    } elsif ($target eq 'MASQUERADE' or
+             $target eq 'REDIRECT') {
+        # MASQUERADE/REDIRECT target switches
+        if ($keyword eq 'to-ports') {
+            $current->{$keyword} = getvar();
+            next;
+        }
+    } elsif ($target eq 'NETMAP') {
+        # NETMAP target switches
+        if ($keyword eq 'to') {
+            $current->{to} = getvar();
+            next;
+        }
+    } elsif ($target eq 'REJECT') {
+        # REJECT target switches
+        if ($keyword eq 'reject-with') {
+            $current->{$keyword} = getvar();
+            next;
+        }
+    } elsif ($target eq 'ROUTE') {
+        # ROUTE target switches
+        if ($keyword =~ /^(?:oif|iif|gw)$/) {
+            $current->{$keyword} = getvar();
+            next;
+        } elsif ($keyword =~ /^(?:continue)$/) {
+            $current->{$keyword} = 1;
+            next;
+        }
+    } elsif ($target eq 'SNAT') {
+        # SNAT target switches
+        if ($keyword =~ /^(?:to-source|to)$/) {
+            my @params = to_array getvalues(undef, undef,
+                                            non_empty => 1);
+            $current->{'to-source'} = join(',', @params);
+            next;
+        }
+    } elsif ($target eq 'TCPMSS') {
+        # TCPMSS target switches
+        if ($keyword eq 'set-mss') {
+            $current->{$keyword} = getvar();
+            next;
+        } elsif ($keyword eq 'clamp-mss-to-pmtu') {
+            $current->{$keyword} = 'set';
+            next;
+        }
+    } elsif ($target eq 'TOS') {
+        # TOS target switches
+        if ($keyword eq 'set-tos') {
+            $current->{$keyword} = getvar();
+            next;
+        }
+    } elsif ($target eq 'TTL') {
+        # TTL target switches
+        if ($keyword =~ /^ttl-(?:set|dec|inc)$/) {
+            $current->{$keyword} = getvar();
+            next;
+        }
+    } elsif ($target eq 'ULOG') {
+        # ULOG target switches
+        if ($keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
+            $current->{$keyword} = getvar();
+            next;
+        }
+    }
+}
+
 sub enter {
     my $lev = shift;  # current recursion depth
     my @fw = @_; # fwset in list of hashes
@@ -2482,121 +2601,9 @@ sub enter {
             #
 
             my $target = find_option(\@fw, 'target');
-            unless (defined $target) {
-                # no checks in this case
-            } elsif ($target eq 'CLASSIFY') {
-                # CLASSIFY target switches
-                if ($keyword eq 'set-class') {
-                    $current->{'set-class'} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'BALANCE') {
-                # BALANCE target switches
-                if ($keyword =~ /^(?:to-destination|to)$/) {
-                    $current->{'to-destination'} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'CONNMARK') {
-                # CONNMARK target switches
-                if ($keyword eq 'set-mark') {
-                    $current->{'set-mark'} = getvar();
-                    next;
-                } elsif ($keyword =~ /^(?:save|restore)-mark$/) {
-                    $current->{$keyword} = 1;
-                    next;
-                }
-            } elsif ($target eq 'DNAT') {
-                # DNAT target switches
-                if ($keyword =~ /^(?:to-destination|to)$/) {
-                    $current->{'to-destination'} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'LOG') {
-                # LOG target switches
-                if ($keyword eq 'log-level') {
-                    $current->{$keyword} = getvar();
-                    next;
-                } elsif ($keyword eq 'log-prefix') {
-                    my $prefix = getvar();
-
-                    warning('log-prefix is too long; truncating to 29 characters')
-                      if $prefix =~ s,^(.{29}).+$,$1,;
-
-                    $current->{$keyword} = $prefix;
-                    next;
-                } elsif ($keyword =~ /^log-(?:tcp-sequence|tcp-options|ip-options)$/) {
-                    $current->{$keyword} = 1;
-                    next;
-                }
-            } elsif ($target eq 'MARK') {
-                # MARK target switches
-                if ($keyword eq 'set-mark') {
-                    $current->{$keyword} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'MASQUERADE' or
-                     $target eq 'REDIRECT') {
-                # MASQUERADE/REDIRECT target switches
-                if ($keyword eq 'to-ports') {
-                    $current->{$keyword} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'NETMAP') {
-                # NETMAP target switches
-                if ($keyword eq 'to') {
-                    $current->{to} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'REJECT') {
-                # REJECT target switches
-                if ($keyword eq 'reject-with') {
-                    $current->{$keyword} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'ROUTE') {
-                # ROUTE target switches
-                if ($keyword =~ /^(?:oif|iif|gw)$/) {
-                    $current->{$keyword} = getvar();
-                    next;
-                } elsif ($keyword =~ /^(?:continue)$/) {
-                    $current->{$keyword} = 1;
-                    next;
-                }
-            } elsif ($target eq 'SNAT') {
-                # SNAT target switches
-                if ($keyword =~ /^(?:to-source|to)$/) {
-                    my @params = to_array getvalues(undef, undef,
-                                                    non_empty => 1);
-                    $current->{'to-source'} = join(',', @params);
-                    next;
-                }
-            } elsif ($target eq 'TCPMSS') {
-                # TCPMSS target switches
-                if ($keyword eq 'set-mss') {
-                    $current->{$keyword} = getvar();
-                    next;
-                } elsif ($keyword eq 'clamp-mss-to-pmtu') {
-                    $current->{$keyword} = 'set';
-                    next;
-                }
-            } elsif ($target eq 'TOS') {
-                # TOS target switches
-                if ($keyword eq 'set-tos') {
-                    $current->{$keyword} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'TTL') {
-                # TTL target switches
-                if ($keyword =~ /^ttl-(?:set|dec|inc)$/) {
-                    $current->{$keyword} = getvar();
-                    next;
-                }
-            } elsif ($target eq 'ULOG') {
-                # ULOG target switches
-                if ($keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
-                    $current->{$keyword} = getvar();
-                    next;
-                }
+            if (defined $target) {
+                parse_target_options($current, $target, $keyword)
+                  and next;
             }
 
             # default
