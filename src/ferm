@@ -1556,6 +1556,69 @@ sub find_option {
     return $item->{$key};
 }
 
+sub parse_builtin_matches {
+    my ($fw, $current, $keyword, $modules, $negated_ref) = @_;
+
+    if ($keyword eq 'addr') {
+        error("source/destination not declared")
+          unless exists $current->{side};
+        warning("'$keyword' is deprecated, please use 's$keyword' or 'd$keyword'");
+        if ($current->{side} eq 'source') {
+            $keyword = 's' . $keyword;
+        } elsif ($current->{side} eq 'destination') {
+            $keyword = 'd' . $keyword;
+        }
+    }
+
+    # routing base parameters
+    if ($keyword =~ /^(?:interface|if)$/) {
+        $current->{interface} = getvalues();
+        return 1;
+    }
+    if ($keyword =~ /^(?:outerface|of)$/) {
+        $current->{outerface} = getvalues();
+        return 1;
+    }
+    if ($keyword =~ /^proto(?:col)?$/) {
+        $current->{proto} = getvalues();
+        return 1;
+    }
+
+    if ($keyword =~ /^[sd]addr$/) {
+        $current->{$keyword} = getvalues();
+        return 1;
+    }
+
+    # extended parameters:
+    if ($keyword =~ /^mod(?:ule)?$/) {
+        my $domains = find_option($fw, 'domain');
+
+        foreach my $module (to_array getvalues) {
+            foreach my $domain (to_array $domains) {
+                error("Module '$module' unavailable in domain '$domain'")
+                  unless netfilter_match_available($domain, $module);
+            }
+
+            $current->{modules}{$module} = 1;
+            $modules->{$module} = 1;
+        }
+        return 1;
+    }
+
+    # miscelleanous switches
+    if ($keyword eq 'fragment') {
+        if ($$negated_ref) {
+            $current->{$keyword} = 'unset';
+            undef $$negated_ref;
+        } else {
+            $current->{$keyword} = 'set';
+        }
+        return 1;
+    }
+
+    return;
+}
+
 sub enter {
     my $lev = shift;  # current recursion depth
     my @fw = @_; # fwset in list of hashes
@@ -2043,62 +2106,9 @@ sub enter {
                 next;
             }
 
-            if ($keyword =~ /^(?:port|addr)$/) {
-                error("source/destination not declared")
-                  unless exists $current->{side};
-                warning("'$keyword' is deprecated, please use 's$keyword' or 'd$keyword'");
-                if ($current->{side} eq 'source') {
-                    $keyword = 's' . $keyword;
-                } elsif ($current->{side} eq 'destination') {
-                    $keyword = 'd' . $keyword;
-                }
-            }
-
-            # routing base parameters
-            if (/^(?:interface|if)$/) {
-                $current->{interface} = getvalues();
-                next;
-            }
-            if (/^(?:outerface|of)$/) {
-                $current->{outerface} = getvalues();
-                next;
-            }
-            if (/^proto(?:col)?$/) {
-                $current->{proto} = getvalues();
-                next;
-            }
-
-            if (/^[sd]addr$/) {
-                $current->{$keyword} = getvalues();
-                next;
-            }
-
-            # extended parameters:
-            if (/^mod(?:ule)?$/) {
-                my $domains = find_option(\@fw, 'domain');
-
-                foreach my $module (to_array getvalues) {
-                    foreach my $domain (to_array $domains) {
-                        error("Module '$module' unavailable in domain '$domain'")
-                          unless netfilter_match_available($domain, $module);
-                    }
-
-                    $current->{modules}{$module} = 1;
-                    $modules{$module} = 1;
-                }
-                next;
-            }
-
-            # miscelleanous switches
-            if ($keyword eq 'fragment') {
-                if ($negated) {
-                    $current->{$keyword} = 'unset';
-                    undef $negated;
-                } else {
-                    $current->{$keyword} = 'set';
-                }
-                next;
-            }
+            parse_builtin_matches(\@fw, $current, $keyword,
+                                  \%modules, \$negated)
+              and next;
 
             ###
             # actions
@@ -2201,6 +2211,17 @@ sub enter {
             }
 
             # udp protocol switches
+            if ($keyword eq 'port') {
+                error("source/destination not declared")
+                  unless exists $current->{side};
+                warning("'$keyword' is deprecated, please use 's$keyword' or 'd$keyword'");
+                if ($current->{side} eq 'source') {
+                    $keyword = 's' . $keyword;
+                } elsif ($current->{side} eq 'destination') {
+                    $keyword = 'd' . $keyword;
+                }
+            }
+
             if ($keyword =~ /^[sd]port$/) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array $proto;
