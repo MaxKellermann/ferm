@@ -1557,7 +1557,7 @@ sub find_option {
 }
 
 sub parse_builtin_matches {
-    my ($fw, $current, $keyword, $modules, $negated_ref) = @_;
+    my ($current, $keyword, $negated_ref) = @_;
 
     if ($keyword eq 'addr') {
         error("source/destination not declared")
@@ -1586,22 +1586,6 @@ sub parse_builtin_matches {
 
     if ($keyword =~ /^[sd]addr$/) {
         $current->{$keyword} = getvalues();
-        return 1;
-    }
-
-    # extended parameters:
-    if ($keyword =~ /^mod(?:ule)?$/) {
-        my $domains = find_option($fw, 'domain');
-
-        foreach my $module (to_array getvalues) {
-            foreach my $domain (to_array $domains) {
-                error("Module '$module' unavailable in domain '$domain'")
-                  unless netfilter_match_available($domain, $module);
-            }
-
-            $current->{modules}{$module} = 1;
-            $modules->{$module} = 1;
-        }
         return 1;
     }
 
@@ -2106,8 +2090,24 @@ sub enter {
                 next;
             }
 
-            parse_builtin_matches(\@fw, $current, $keyword,
-                                  \%modules, \$negated)
+            # extended parameters:
+            if ($keyword =~ /^mod(?:ule)?$/) {
+                my $domains = find_option(\@fw, 'domain');
+
+                foreach my $module (to_array getvalues) {
+                    foreach my $domain (to_array $domains) {
+                        error("Module '$module' unavailable in domain '$domain'")
+                          unless netfilter_match_available($domain, $module);
+                    }
+
+                    $current->{modules}{$module} = 1;
+                    $modules{$module} = 1;
+                }
+
+                next;
+            }
+
+            parse_builtin_matches($current, $keyword, \$negated)
               and next;
 
             ###
