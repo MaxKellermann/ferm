@@ -39,6 +39,7 @@ v1.1+cvs - 6 Jun 2005
     * "option iptables"; only iptables is supported
     * source/destination
     * option automod
+    * policy within a rule declaration
   - fixed the double-module bug
   - show filename and line number in error message
   - implemented the 'include' command
