@@ -2483,8 +2483,8 @@ sub enter {
             if (/^(?:goto|jump)$/) {
                 error('There can only one action per rule')
                   if exists $current->{action};
-                error("'$keyword' not allowed in a policy declaration")
-                  if find_option(\@fw, 'policy_only');
+                warning('Please declare the policy in a separate statement')
+                  if find_option(\@fw, 'policy');
                 $current->{action} = getvar();
                 next;
             };
@@ -2493,8 +2493,8 @@ sub enter {
             if (is_netfilter_core_target($keyword) or $keyword eq 'NOP') {
                 error('There can only one action per rule')
                   if exists $current->{action};
-                error("'$keyword' not allowed in a policy declaration")
-                  if find_option(\@fw, 'policy_only');
+                warning('Please declare the policy in a separate statement')
+                  if find_option(\@fw, 'policy');
                 $current->{action} = $keyword;
                 next;
             }
@@ -2502,8 +2502,8 @@ sub enter {
             if (is_netfilter_module_target($keyword)) {
                 error('There can only one action per rule')
                   if exists $current->{action};
-                error("'$keyword' not allowed in a policy declaration")
-                  if find_option(\@fw, 'policy_only');
+                warning('Please declare the policy in a separate statement')
+                  if find_option(\@fw, 'policy');
 
                 my $domains = find_option(\@fw, 'domain');
                 foreach my $domain (to_array $domains) {
