@@ -1591,8 +1591,6 @@ sub enter {
               if $keyword eq '!';
         }
 
-        my $action = find_option(\@fw, 'action');
-
         # the core: parse all data
         SWITCH: for ($keyword)
         {
@@ -2110,7 +2108,7 @@ sub enter {
             if (/^(?:goto|jump)$/) {
                 error('There can only one action per rule')
                   if exists $current->{action};
-                $current->{action} = getvar();
+                $current->{action} = $current->{target} = getvar();
                 next;
             };
 
@@ -2118,7 +2116,7 @@ sub enter {
             if (is_netfilter_core_target($keyword) or $keyword eq 'NOP') {
                 error('There can only one action per rule')
                   if exists $current->{action};
-                $current->{action} = $keyword;
+                $current->{action} = $current->{target} = $keyword;
                 next;
             }
 
@@ -2142,7 +2140,7 @@ sub enter {
                     }
                 }
 
-                $current->{action} = $keyword;
+                $current->{action} = $current->{target} = $keyword;
                 next;
             }
 
@@ -2462,21 +2460,22 @@ sub enter {
             # target specific options
             #
 
-            unless (defined $action) {
+            my $target = find_option(\@fw, 'target');
+            unless (defined $target) {
                 # no checks in this case
-            } elsif ($action eq 'CLASSIFY') {
+            } elsif ($target eq 'CLASSIFY') {
                 # CLASSIFY target switches
                 if ($keyword eq 'set-class') {
                     $current->{'set-class'} = getvar();
                     next;
                 }
-            } elsif ($action eq 'BALANCE') {
+            } elsif ($target eq 'BALANCE') {
                 # BALANCE target switches
                 if ($keyword =~ /^(?:to-destination|to)$/) {
                     $current->{'to-destination'} = getvar();
                     next;
                 }
-            } elsif ($action eq 'CONNMARK') {
+            } elsif ($target eq 'CONNMARK') {
                 # CONNMARK target switches
                 if ($keyword eq 'set-mark') {
                     $current->{'set-mark'} = getvar();
@@ -2485,13 +2484,13 @@ sub enter {
                     $current->{$keyword} = 1;
                     next;
                 }
-            } elsif ($action eq 'DNAT') {
+            } elsif ($target eq 'DNAT') {
                 # DNAT target switches
                 if ($keyword =~ /^(?:to-destination|to)$/) {
                     $current->{'to-destination'} = getvar();
                     next;
                 }
-            } elsif ($action eq 'LOG') {
+            } elsif ($target eq 'LOG') {
                 # LOG target switches
                 if ($keyword eq 'log-level') {
                     $current->{$keyword} = getvar();
@@ -2508,32 +2507,32 @@ sub enter {
                     $current->{$keyword} = 1;
                     next;
                 }
-            } elsif ($action eq 'MARK') {
+            } elsif ($target eq 'MARK') {
                 # MARK target switches
                 if ($keyword eq 'set-mark') {
                     $current->{$keyword} = getvar();
                     next;
                 }
-            } elsif ($action eq 'MASQUERADE' or
-                     $action eq 'REDIRECT') {
+            } elsif ($target eq 'MASQUERADE' or
+                     $target eq 'REDIRECT') {
                 # MASQUERADE/REDIRECT target switches
                 if ($keyword eq 'to-ports') {
                     $current->{$keyword} = getvar();
                     next;
                 }
-            } elsif ($action eq 'NETMAP') {
+            } elsif ($target eq 'NETMAP') {
                 # NETMAP target switches
                 if ($keyword eq 'to') {
                     $current->{to} = getvar();
                     next;
                 }
-            } elsif ($action eq 'REJECT') {
+            } elsif ($target eq 'REJECT') {
                 # REJECT target switches
                 if ($keyword eq 'reject-with') {
                     $current->{$keyword} = getvar();
                     next;
                 }
-            } elsif ($action eq 'ROUTE') {
+            } elsif ($target eq 'ROUTE') {
                 # ROUTE target switches
                 if ($keyword =~ /^(?:oif|iif|gw)$/) {
                     $current->{$keyword} = getvar();
@@ -2542,7 +2541,7 @@ sub enter {
                     $current->{$keyword} = 1;
                     next;
                 }
-            } elsif ($action eq 'SNAT') {
+            } elsif ($target eq 'SNAT') {
                 # SNAT target switches
                 if ($keyword =~ /^(?:to-source|to)$/) {
                     my @params = to_array getvalues(undef, undef,
@@ -2550,7 +2549,7 @@ sub enter {
                     $current->{'to-source'} = join(',', @params);
                     next;
                 }
-            } elsif ($action eq 'TCPMSS') {
+            } elsif ($target eq 'TCPMSS') {
                 # TCPMSS target switches
                 if ($keyword eq 'set-mss') {
                     $current->{$keyword} = getvar();
@@ -2559,19 +2558,19 @@ sub enter {
                     $current->{$keyword} = 'set';
                     next;
                 }
-            } elsif ($action eq 'TOS') {
+            } elsif ($target eq 'TOS') {
                 # TOS target switches
                 if ($keyword eq 'set-tos') {
                     $current->{$keyword} = getvar();
                     next;
                 }
-            } elsif ($action eq 'TTL') {
+            } elsif ($target eq 'TTL') {
                 # TTL target switches
                 if ($keyword =~ /^ttl-(?:set|dec|inc)$/) {
                     $current->{$keyword} = getvar();
                     next;
                 }
-            } elsif ($action eq 'ULOG') {
+            } elsif ($target eq 'ULOG') {
                 # ULOG target switches
                 if ($keyword =~ /^ulog-(?:nlgroup|prefix|cprange|qthreshold)$/) {
                     $current->{$keyword} = getvar();
