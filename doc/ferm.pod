@@ -346,20 +346,6 @@ Keywords which take no parameters are negated by a prefixed '!':
 Read iptables(8) to see where the B<!> can be used.
 
 
-=head2 Option keys
-
-Using B<option> keys alter the behaviour of B<ferm>; they
-can be used to e.g. clear chains before use, or turn off certain
-sanity checks.
-
-Example:
-
-  option verbose
-
-This option makes B<ferm> show a lot of information about what
-it is doing.
-
-
 =head1 BASIC KEYWORDS
 
 
