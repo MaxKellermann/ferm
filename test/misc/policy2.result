@@ -1,0 +1,2 @@
+iptables -t filter -P INPUT DROP
+iptables -t filter -A INPUT -p tcp -m tcp --dport http -j ACCEPT 
