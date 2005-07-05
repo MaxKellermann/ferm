@@ -3,6 +3,8 @@ chain input {
     proto tcp dport ! 22 DROP;
     proto tcp {
         tcp-flags (SYN FIN RST) SYN DROP;
+        tcp-flags ! (SYN RST) RST ACCEPT;
+        tcp-flags ! RST RST REJECT;
         syn REJECT;
         !syn ACCEPT;
         tcp-option 2 ACCEPT;

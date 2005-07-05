@@ -1298,6 +1298,7 @@ sub tables {
           if exists $rule{mss};
 
         shell_append(\$rr, '--tcp-flags',
+                     $rule{'tcp-flags.negated'} ? '!' : (),
                      $rule{'tcp-flags.mask'}, $rule{'tcp-flags.match'})
           if exists $rule{'tcp-flags'};
 
@@ -2565,6 +2566,12 @@ sub enter {
                     next;
                 }
                 if ($keyword eq 'tcp-flags') {
+                    my $token = peek_token();
+                    if ($token eq '!') {
+                        require_next_token;
+                        $negated = 1;
+                    }
+
                     my @mask = to_array getvalues(undef, undef,
                                                   non_empty => 1);
                     my @match = to_array getvalues(undef, undef,
@@ -2573,6 +2580,8 @@ sub enter {
                     $current->{'tcp-flags'} = 1;
                     $current->{'tcp-flags.mask'} = join(',', @mask);
                     $current->{'tcp-flags.match'} = join(',', @match);
+                    $current->{'tcp-flags.negated'} = $negated;
+                    undef $negated;
                     next;
                 }
                 if ($keyword eq 'syn') {

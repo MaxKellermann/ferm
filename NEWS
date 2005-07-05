@@ -63,6 +63,7 @@ v1.1+cvs - 6 Jun 2005
   - check which match and target modules are available
   - generate output iptables-save format when --fast is specified
   - semi-automatic sub chains with the 'subchain' keyword
+  - support tcp-flags negation
 
 
 v1.1 - 5 May 2003
