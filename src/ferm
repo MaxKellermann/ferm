@@ -2490,11 +2490,21 @@ sub enter {
             };
 
             # action keywords
-            if (is_netfilter_core_target($keyword) or $keyword eq 'NOP') {
+            if (is_netfilter_core_target($keyword)) {
                 error('There can only one action per rule')
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
+                $current->{action} = $keyword;
+                next;
+            }
+
+            if ($keyword eq 'NOP') {
+                error('There can only one action per rule')
+                  if exists $current->{action};
+                warning('Please declare the policy in a separate statement')
+                  if find_option(\@fw, 'policy');
+                warning('"NOP" is deprecated');
                 $current->{action} = $keyword;
                 next;
             }
