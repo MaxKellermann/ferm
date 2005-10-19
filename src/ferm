@@ -2294,6 +2294,8 @@ sub enter {
                           unless @tokens == 1;
                         splice(@tokens, $i, 2, @value);
                         $i += @value - 2;
+                    } elsif ($tokens[$i] =~ m,^"(.*)"$,) {
+                        $tokens[$i] =~ s,\$(\w+),exists $vars{$1} ? $vars{$1} : "\$$1",eg;
                     }
                 }
 

@@ -5,6 +5,9 @@ def $D = "$A";
 def $E = "pre $D post";
 def $F = "another $C one";
 def $G = "$A double $C";
+def $H = bar;
+
+def &myfunc($p1, $p2) = LOG log-prefix "$p1:$p2:$H";
 
 table filter chain INPUT {
     LOG log-prefix $A;
@@ -14,4 +17,5 @@ table filter chain INPUT {
     LOG log-prefix $E;
     LOG log-prefix $F;
     LOG log-prefix $G;
+    &myfunc($A, 'abc');
 }
