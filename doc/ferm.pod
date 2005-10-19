@@ -285,8 +285,8 @@ Quote a string which may contain whitespaces, the dollar sign etc.
 
 =item C<"string">
 
-Quote a string (see above), but variable references with a dollar are
-evaluated:
+Quote a string (see above), but variable references with a dollar sign
+are evaluated:
 
     DNAT to "$myhost:$myport";
 
