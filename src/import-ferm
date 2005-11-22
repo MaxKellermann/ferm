@@ -1,0 +1,301 @@
+#!/usr/bin/perl
+
+#
+# ferm, a firewall setup program that makes firewall rules easy!
+#
+# Copyright (C) 2001-2005 Auke Kok, Max Kellermann
+#
+# Comments, questions, greetings and additions to this program
+# may be sent to <ferm@foo-projects.org>
+#
+
+# This tool allows you to import an existing firewall configuration
+# into ferm.
+
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+
+# $Id$
+
+use strict;
+
+use Data::Dumper;
+
+use vars qw($indent $table $chain @rules);
+
+my %p1 = ( 'i' => 'interface',
+           'o' => 'outerface',
+           's' => 'saddr',
+           'd' => 'daddr',
+           'm' => 'mod',
+           dport => 'dport',
+           'reject-with' => 'reject-with',
+           'limit' => 'limit',
+           'icmp-type' => 'icmp-type',
+         );
+
+my %p1c = ( 'state' => 'state',
+          );
+
+sub is_netfilter_core_target {
+    my $target = shift;
+    die unless defined $target and length $target;
+
+    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE)$/;
+}
+
+sub is_netfilter_module_target {
+    my $target = shift;
+    die unless defined $target and length $target;
+
+    return $target =~ /(?:BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
+                         |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
+                         |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
+                         |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
+                         |TARPIT
+                       )/x;
+}
+
+sub write_line {
+    my $comma = $_[-1] eq ';' ? pop : '';
+    $indent -= 4 if $_[0] =~ /^}/;
+    print ' ' x $indent;
+    print join(' ', @_);
+    print "$comma\n";
+    $indent += 4 if $_[-1] =~ /{$/;
+}
+
+sub prefix_matches {
+    my ($prefix, $rule) = @_;
+    return unless exists $rule->{match};
+    while (my ($key, $value) = each %$prefix) {
+        return unless exists $rule->{match}{$key}
+          and Dumper($rule->{match}{$key}) eq Dumper($value);
+    }
+    return 1;
+}
+
+sub prefix_match_count {
+    my ($prefix, $rules) = @_;
+    my $count = 0;
+    foreach (@$rules) {
+        last unless prefix_matches($prefix, $_);
+        $count++;
+    }
+    return $count;
+}
+
+sub array_matches {
+    my ($key, $rule1, $rule2) = @_;
+    my %r1 = %$rule1;
+    my %r2 = %$rule2;
+    return unless exists $r1{match}{$key} and exists $r2{match}{$key};
+    $r1{match} = {%{$r1{match}}};
+    $r2{match} = {%{$r2{match}}};
+    delete $r1{match}{$key};
+    delete $r2{match}{$key};
+    return Dumper(\%r1) eq Dumper(\%r2);
+}
+
+sub array_match_count {
+    my ($key, $first, $rules) = @_;
+    my $count = 0;
+    foreach (@$rules) {
+        last unless array_matches($key, $first, $_);
+        $count++;
+    }
+    return $count;
+}
+
+sub optimize {
+    my @result;
+
+    while (@_ > 0) {
+        my $rule = shift;
+        if (exists $rule->{match}) {
+            my $match_key;
+            my $match_count = 0;
+            my %match_copy = %{$rule->{match}};
+            while (my ($key, $value) = each %match_copy) {
+                next unless defined $value;
+                my $match_count2 = array_match_count($key, $rule, \@_);
+                if ($match_count2 > $match_count) {
+                    $match_key = $key;
+                    $match_count = $match_count2;
+                }
+            }
+
+            if ($match_count > 0) {
+                my @values = map {
+                    my $value = $_->{match}{$match_key};
+                    ref $value ? @$value : $value;
+                } ($rule, splice(@_, 0, $match_count));
+                $rule->{match}{$match_key} = '(' . join(' ', @values) . ')';
+                unshift @_, $rule;
+            } else {
+                push @result, $rule;
+            }
+        }
+    }
+
+    @_ = @result;
+    undef @result;
+
+    while (@_ > 0) {
+        my $rule = shift;
+        if (exists $rule->{match}) {
+            my %prefix;
+            my $match_count = 0;
+            while (my ($key, $value) = each %{$rule->{match}}) {
+                my $prefix2 = { $key => $value };
+                my $match_count2 = prefix_match_count($prefix2, \@_);
+                if ($match_count2 > $match_count) {
+                    %prefix = %$prefix2;
+                    $match_count = $match_count2;
+                }
+            }
+            if ($match_count > 0) {
+                my @block = map {
+                    foreach my $key (keys %prefix) {
+                        delete $_->{match}{$key};
+                    }
+                    #delete @_->{match}{keys %prefix};
+                    $_;
+                } ($rule, splice(@_, 0, $match_count));
+                push @result, { match => \%prefix,
+                                block => [ optimize(@block) ]
+                              };
+            } else {
+                push @result, $rule;
+            }
+        } else {
+            push @result, $rule;
+        }
+    }
+
+    return @result;
+}
+
+sub flush {
+    my @r = @_ ? @_ : @rules;
+    @r = optimize(@r);
+    foreach my $rule (@r) {
+        my @line;
+        foreach (qw(match jump target)) {
+            next unless exists $rule->{$_};
+            while (my ($key, $value) = each %{$rule->{$_}}) {
+                push @line, $key;
+                push @line, ref $value ? @$value : $value
+                  if defined $value;
+            }
+        }
+
+        if (exists $rule->{block}) {
+            write_line(@line, '{');
+            flush(@{$rule->{block}});
+            write_line('}');
+        } else {
+            write_line(@line, ';') 
+        }
+    }
+    undef @rules;
+}
+
+print "# ferm rules generated by import-ferm\n";
+print "# http://ferm.foo-projects.org/\n";
+write_line qw(domain ip {);
+
+while (<>) {
+    chomp;
+    if (/^(?:#.*)?$/) {
+        # comment or empty
+    } elsif (/^\*(\w+)$/) {
+        write_line('}') if defined $table;
+        $table = $1;
+        write_line('table', $table, '{');
+    } elsif (/^:(\S+)\s+-\s+/) {
+        die unless defined $table;
+        write_line("chain $1;");
+    } elsif (/^:(\S+)\s+(\w+)\s+/) {
+        die unless defined $table;
+        write_line('chain', $1, 'policy', $2, ';');
+    } elsif (s/^-A (\S+) //) {
+        unless (defined $chain) {
+            flush;
+            $chain = $1;
+            write_line('chain', $chain, '{');
+        } elsif ($1 ne $chain) {
+            flush;
+            write_line('}');
+            $chain = $1;
+            write_line('chain', $chain, '{');
+        }
+
+        my %line;
+        my $cur = $line{match} = {};
+        while (s/^-(\w) *// || s/^--(\S+) *//) {
+            my $option = $1;
+            if ($option eq 'p') {
+                die unless s/^(\S+) *//;
+                my $param = $1;
+                delete $cur->{mod}
+                  if exists $cur->{mod} and $cur->{mod} eq $param;
+                $cur->{proto} = $param;
+            } elsif ($option eq 'm') {
+                die unless s/^(\S+) *//;
+                my $param = $1;
+                $cur->{mod} = $param
+                  unless exists $cur->{proto} and $cur->{proto} eq $param;
+            } elsif (exists $p1{$option}) {
+                die unless s/^(\S+) *//;
+                my $param = $1;
+                my $keyword = $p1{$option};
+                $cur->{$keyword} = $param;
+            } elsif (exists $p1c{$option}) {
+                die unless s/^(\S+) *//;
+                my $param = $1;
+                my $keyword = $p1c{$option};
+                my @params = split(',', $param);
+                $cur->{$keyword} = @params == 1 ? $param : \@params;
+            } elsif ($option eq 'j') {
+                die unless s/^(\S+) *//;
+                my $target = $1;
+                $cur = $line{jump} = {};
+                unless (is_netfilter_core_target($target) ||
+                        is_netfilter_module_target($target)) {
+                    $cur->{goto} = $target;
+                } else {
+                    $cur->{$target} = undef;
+                }
+                $cur = $line{target} = {};
+            } else {
+                print STDERR "option '$option' not understood, ignoring line $.\n";
+                next;
+            }
+        }
+        push @rules, \%line;
+    } elsif (/^COMMIT$/) {
+        # ignore commit
+    } else {
+        print STDERR "line $. was not understood, ignoring it\n";
+    }
+}
+
+flush;
+write_line '}' if defined $chain;
+write_line '}' if defined $table;
+
+write_line qw(});
