@@ -45,6 +45,8 @@ my %p1 = ( 'i' => 'interface',
            'reject-with' => 'reject-with',
            'limit' => 'limit',
            'icmp-type' => 'icmp-type',
+           'to-destination' => 'to-destination', 
+           'to-source' => 'to-source', 
          );
 
 my %p1c = ( 'state' => 'state',
