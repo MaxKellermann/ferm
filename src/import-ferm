@@ -150,6 +150,8 @@ sub optimize {
             } else {
                 push @result, $rule;
             }
+        } else {
+            push @result, $rule;
         }
     }
 
