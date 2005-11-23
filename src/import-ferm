@@ -72,11 +72,17 @@ sub is_netfilter_module_target {
 }
 
 sub write_line {
+    # write a line of tokens, with indent handling
+
+    # don't add space before semicolon
     my $comma = $_[-1] eq ';' ? pop : '';
+    # begins with closing curly braces -> decrease indent
     $indent -= 4 if $_[0] =~ /^}/;
+    # do print line
     print ' ' x $indent;
     print join(' ', @_);
     print "$comma\n";
+    # ends with opening curly braces -> increase indent
     $indent += 4 if $_[-1] =~ /{$/;
 }
 
@@ -125,6 +131,11 @@ sub array_match_count {
 sub optimize {
     my @result;
 
+    # try to combine rules with arrays:
+    # saddr 1.2.3.4 proto tcp ACCEPT;
+    # saddr 5.6.7.8 proto tcp ACCEPT;
+    # ->
+    # saddr (1.2.3.4 5.6.7.8) proto tcp ACCEPT;
     while (@_ > 0) {
         my $rule = shift;
         if (exists $rule->{match}) {
@@ -158,6 +169,14 @@ sub optimize {
     @_ = @result;
     undef @result;
 
+    # try to find a common prefix and put rules in a block:
+    # saddr 1.2.3.4 proto tcp dport ssh ACCEPT;
+    # saddr 5.6.7.8 proto tcp dport ssh DROP;
+    # ->
+    # proto tcp dport ssh {
+    #     saddr 1.2.3.4 ACCEPT;
+    #     saddr 5.6.7.8 DROP;
+    # }
     while (@_ > 0) {
         my $rule = shift;
         if (exists $rule->{match}) {
@@ -194,10 +213,13 @@ sub optimize {
 }
 
 sub flush {
+    # optimize and write a list of rules
+
     my @r = @_ ? @_ : @rules;
     @r = optimize(@r);
     foreach my $rule (@r) {
         my @line;
+        # assemble the line, match stuff first, then target parameters
         foreach (qw(match jump target)) {
             next unless exists $rule->{$_};
             while (my ($key, $value) = each %{$rule->{$_}}) {
@@ -208,11 +230,13 @@ sub flush {
         }
 
         if (exists $rule->{block}) {
+            # this rule begins a block created in &optimize
             write_line(@line, '{');
             flush(@{$rule->{block}});
             write_line('}');
         } else {
-            write_line(@line, ';') 
+            # just a simple rule
+            write_line(@line, ';');
         }
     }
     undef @rules;
@@ -224,19 +248,23 @@ write_line qw(domain ip {);
 
 while (<>) {
     chomp;
-    if (/^(?:#.*)?$/) {
-        # comment or empty
+    if (/^(?:#.*|COMMIT)?$/) {
+        # empty, comment or commit
     } elsif (/^\*(\w+)$/) {
+        # table
         write_line('}') if defined $table;
         $table = $1;
         write_line('table', $table, '{');
     } elsif (/^:(\S+)\s+-\s+/) {
+        # custom chain
         die unless defined $table;
         write_line("chain $1;");
     } elsif (/^:(\S+)\s+(\w+)\s+/) {
+        # built-in chain
         die unless defined $table;
         write_line('chain', $1, 'policy', $2, ';');
     } elsif (s/^-A (\S+) //) {
+        # a rule
         unless (defined $chain) {
             flush;
             $chain = $1;
@@ -249,18 +277,23 @@ while (<>) {
         }
 
         my %line;
+        # separate 'match' parameters from 'targe't parameters; $cur
+        # points to the current position
         my $cur = $line{match} = {};
         while (s/^-(\w) *// || s/^--(\S+) *//) {
             my $option = $1;
             if ($option eq 'p') {
                 die unless s/^(\S+) *//;
                 my $param = $1;
+                # protocol implicitly loads the module
                 delete $cur->{mod}
                   if exists $cur->{mod} and $cur->{mod} eq $param;
                 $cur->{proto} = $param;
             } elsif ($option eq 'm') {
                 die unless s/^(\S+) *//;
                 my $param = $1;
+                # we don't need this module if the protocol with the
+                # same name is already specified
                 $cur->{mod} = $param
                   unless exists $cur->{proto} and $cur->{proto} eq $param;
             } elsif (exists $p1{$option}) {
@@ -277,6 +310,7 @@ while (<>) {
             } elsif ($option eq 'j') {
                 die unless s/^(\S+) *//;
                 my $target = $1;
+                # store the target in $line{jump}
                 $cur = $line{jump} = {};
                 unless (is_netfilter_core_target($target) ||
                         is_netfilter_module_target($target)) {
@@ -284,15 +318,16 @@ while (<>) {
                 } else {
                     $cur->{$target} = undef;
                 }
+                # what now follows is target parameters; set $cur
+                # correctly
                 $cur = $line{target} = {};
             } else {
                 print STDERR "option '$option' not understood, ignoring line $.\n";
                 next;
             }
+
         }
         push @rules, \%line;
-    } elsif (/^COMMIT$/) {
-        # ignore commit
     } else {
         print STDERR "line $. was not understood, ignoring it\n";
     }
