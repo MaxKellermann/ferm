@@ -248,8 +248,8 @@ write_line qw(domain ip {);
 
 while (<>) {
     chomp;
-    if (/^(?:#.*|COMMIT)?$/) {
-        # empty, comment or commit
+    if (/^(?:#.*)?$/) {
+        # empty or comment
     } elsif (/^\*(\w+)$/) {
         # table
         write_line('}') if defined $table;
@@ -328,6 +328,13 @@ while (<>) {
 
         }
         push @rules, \%line;
+    } elsif ($_ eq 'COMMIT') {
+        flush;
+
+        if (defined $chain) {
+            write_line('}');
+            undef $chain;
+        }
     } else {
         print STDERR "line $. was not understood, ignoring it\n";
     }
