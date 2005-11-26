@@ -277,7 +277,7 @@ sub flush {
             next unless exists $rule->{$_};
             while (my ($key, $value) = each %{$rule->{$_}}) {
                 push @line, $key;
-                push @line, ref $value ? @$value : $value
+                push @line, ref $value ? '(' . join(' ', @$value) . ')' : $value
                   if defined $value;
             }
         }
