@@ -1058,11 +1058,14 @@ sub tables {
         $chain->{was_created} = 1;
     }
 
+    # do not create anything for the NOP action
+    return
+      if $rule{action} eq 'NOP';
+
     # check for unknown jump target
     if (defined $rule{action} and
         not is_netfilter_core_target($rule{action}) and
         not is_netfilter_module_target($rule{action}) and
-        $rule{action} ne 'NOP' and
         not exists $domain->{chains}{$rule{table}}{$rule{action}}{was_created}) {
         push @rules, $rrr . "-N $rule{action}\n";
         $domain->{chains}{$rule{table}}{$rule{action}}{was_created} = 1;
@@ -1350,8 +1353,7 @@ sub tables {
 
     my $action = $rule{action};
 
-    shell_append(\$rr, '-j', $action)
-      unless $action eq 'NOP';
+    shell_append(\$rr, '-j', $action);
 
     # target module options
 
