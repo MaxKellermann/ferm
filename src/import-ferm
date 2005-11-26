@@ -338,3 +338,5 @@ write_line '}' if defined $chain;
 write_line '}' if defined $table;
 
 write_line qw(});
+
+die unless $indent == 0;
