@@ -52,10 +52,15 @@ to-destination to-source to-ports
 log-prefix
 mac-source uid-owner gid-owner pid-owner sid-owner
 tos mark
+tcp-option mss
 EOT
 
 my %p1c = parse_table(<<EOT);
 state
+EOT
+
+my %p2c = parse_table(<<EOT);
+tcp-flags
 EOT
 
 sub is_netfilter_core_target {
@@ -75,6 +80,13 @@ sub is_netfilter_module_target {
                          |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
                          |TARPIT
                        )/x;
+}
+
+sub format_array {
+    my $a = shift;
+    return $a unless ref $a;
+    return $a->[0] if @$a == 1;
+    return '(' . join(' ', @$a) . ')';
 }
 
 sub write_line {
@@ -160,6 +172,7 @@ sub optimize {
             my %match_copy = %{$rule->{match}};
             while (my ($key, $value) = each %match_copy) {
                 next unless defined $value;
+                next if ref $value and ref $value eq 'HASH';
                 my $match_count2 = array_match_count($key, $rule, \@_);
                 if ($match_count2 > $match_count) {
                     $match_key = $key;
@@ -172,7 +185,7 @@ sub optimize {
                     my $value = $_->{match}{$match_key};
                     ref $value ? @$value : $value;
                 } ($rule, splice(@_, 0, $match_count));
-                $rule->{match}{$match_key} = '(' . join(' ', @values) . ')';
+                $rule->{match}{$match_key} = format_array(@values);
                 unshift @_, $rule;
             } else {
                 push @result, $rule;
@@ -283,8 +296,13 @@ sub flush {
             next unless exists $rule->{$_};
             while (my ($key, $value) = each %{$rule->{$_}}) {
                 push @line, $key;
-                push @line, ref $value ? '(' . join(' ', @$value) . ')' : $value
-                  if defined $value;
+                if ($key eq 'tcp-flags') {
+                    push @line, format_array($value->{mask}),
+                      format_array($value->{comp});
+                } else {
+                    push @line, format_array($value)
+                      if defined $value;
+                }
             }
         }
 
@@ -365,6 +383,15 @@ while (<>) {
                 my $keyword = $p1c{$option};
                 my @params = split(',', $param);
                 $cur->{$keyword} = @params == 1 ? $param : \@params;
+            } elsif (exists $p2c{$option}) {
+                die unless s/^(\S+) (\S+) *//;
+                my ($param1, $param2) = ($1, $2);
+                my $keyword = $p2c{$option};
+                my @params1 = split(',', $param1);
+                my @params2 = split(',', $param2);
+                $cur->{$keyword} = { mask => \@params1,
+                                     comp => \@params2,
+                                   };
             } elsif ($option eq 'j') {
                 die unless s/^(\S+) *//;
                 my $target = $1;
