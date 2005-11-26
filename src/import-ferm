@@ -42,6 +42,10 @@ sub parse_table {
     } split(/\s+/s, shift);
 }
 
+my %p0 = parse_table(<<EOT);
+syn
+EOT
+
 my %p1 = parse_table(<<EOT);
 i=interface o=outerface
 s=saddr d=daddr
@@ -299,9 +303,8 @@ sub flush {
                 if ($key eq 'tcp-flags') {
                     push @line, format_array($value->{mask}),
                       format_array($value->{comp});
-                } else {
-                    push @line, format_array($value)
-                      if defined $value;
+                } elsif (defined $value) {
+                    push @line, format_array($value);
                 }
             }
         }
@@ -372,6 +375,9 @@ while (<>) {
                 # same name is already specified
                 $line{mod}{$param} = 1
                   unless exists $cur->{proto} and $cur->{proto} eq $param;
+            } elsif (exists $p0{$option}) {
+                my $keyword = $p0{$option};
+                $cur->{$keyword} = undef;
             } elsif (exists $p1{$option}) {
                 die unless s/^(\S+) *//;
                 my $param = $1;
