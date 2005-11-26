@@ -112,7 +112,6 @@ use vars qw(%deprecated_keywords %automod);
                          drop => 'DROP',
                          return => 'RETURN',
                          queue => 'QUEUE',
-                         nop => 'NOP',
                          balance => 'BALANCE',
                          dnat => 'DNAT',
                          mirror => 'MIRROR',
@@ -2504,13 +2503,13 @@ sub enter {
                 next;
             }
 
-            if ($keyword eq 'NOP') {
+            if (uc $keyword eq 'NOP') {
                 error('There can only one action per rule')
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
                 warning('"NOP" is deprecated');
-                $current->{action} = $keyword;
+                $current->{action} = uc $keyword;
                 next;
             }
 
