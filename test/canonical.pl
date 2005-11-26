@@ -93,6 +93,11 @@ while (<>) {
         die "unparsed rest from line $.: $_"
           if /\S/;
 
+        # lines without --jump are those which use the deprecated
+        # keyword 'NOP'; completely ignore them, they aren't even
+        # valid iptables syntax.
+        next unless exists $item->{jump};
+
         # add this item
         push @{$data->{iptables}{$table}{$chain}{rules}}, $item;
     } elsif (s/^ipchains //) {
