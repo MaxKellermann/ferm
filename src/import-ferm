@@ -36,21 +36,27 @@ use Data::Dumper;
 
 use vars qw($indent $table $chain @rules);
 
-my %p1 = ( 'i' => 'interface',
-           'o' => 'outerface',
-           's' => 'saddr',
-           'd' => 'daddr',
-           'm' => 'mod',
-           dport => 'dport',
-           'reject-with' => 'reject-with',
-           'limit' => 'limit',
-           'icmp-type' => 'icmp-type',
-           'to-destination' => 'to-destination', 
-           'to-source' => 'to-source', 
-         );
+sub parse_table {
+    map {
+        /(.+)=(.+)/ ? ( $1 => $2 ) : ( $_ => $_ )
+    } split(/\s+/s, shift);
+}
 
-my %p1c = ( 'state' => 'state',
-          );
+my %p1 = parse_table(<<EOT);
+i=interface o=outerface
+s=saddr d=daddr
+dport sport
+reject-with icmp-type
+limit
+to-destination to-source to-ports
+log-prefix
+mac-source uid-owner gid-owner pid-owner sid-owner
+tos mark
+EOT
+
+my %p1c = parse_table(<<EOT);
+state
+EOT
 
 sub is_netfilter_core_target {
     my $target = shift;
