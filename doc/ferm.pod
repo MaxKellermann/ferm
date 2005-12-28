@@ -770,8 +770,9 @@ when you use "protocol tcp".
 
     proto tcp sport 1234;
     proto tcp dport 2345;
-    proto tcp tcp-flags SYN,ACK SYN;
-    proto tcp tcp-flags ! SYN,ACK SYN;
+    proto tcp tcp-flags (SYN ACK) SYN;
+    proto tcp tcp-flags ! (SYN ACK) SYN;
+    proto tcp tcp-flags ALL (RST ACK);
     proto tcp syn;
     proto tcp tcp-option 2;
     proto tcp mss 512;
