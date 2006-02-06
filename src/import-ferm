@@ -325,7 +325,7 @@ sub flush {
 sub tokenize {
     local $_ = shift;
     my @result;
-    while (s/^\s*"([^"])"//s || s/^\s*(!)// || s/^\s*(\S+)//s) {
+    while (s/^\s*"([^"]+)"//s || s/^\s*(!)// || s/^\s*(\S+)//s) {
         push @result, $1;
     }
     return @result;
