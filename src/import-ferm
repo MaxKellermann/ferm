@@ -200,7 +200,7 @@ sub optimize {
                     my $value = $_->{match}{$match_key};
                     ref $value ? @$value : $value;
                 } ($rule, splice(@_, 0, $match_count));
-                $rule->{match}{$match_key} = format_array(\@values);
+                $rule->{match}{$match_key} = \@values;
                 unshift @_, $rule;
             } else {
                 push @result, $rule;
