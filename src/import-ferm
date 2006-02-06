@@ -91,10 +91,16 @@ sub is_netfilter_module_target {
                        )/x;
 }
 
+sub ferm_escape {
+    local $_ = shift;
+    return $_ unless /[^-\w]/s;
+    return "\"$_\"";
+}
+
 sub format_array {
     my $a = shift;
-    return $a unless ref $a;
-    return $a->[0] if @$a == 1;
+    return ferm_escape($a) unless ref $a;
+    return ferm_escape($a->[0]) if @$a == 1;
     return '(' . join(' ', @$a) . ')';
 }
 
