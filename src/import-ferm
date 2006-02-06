@@ -44,6 +44,7 @@ sub parse_table {
 
 my %p0 = parse_table(<<EOT);
 syn
+clamp-mss-to-pmtu
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -56,7 +57,10 @@ to-destination to-source to-ports
 log-prefix log-level
 mac-source uid-owner gid-owner pid-owner sid-owner
 tos mark
-tcp-option mss
+tcp-option mss set-mss
+ttl-set
+ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold
+src-type dst-type
 EOT
 
 my %p1c = parse_table(<<EOT);
