@@ -15,7 +15,7 @@ def $TWO = (
 
 table filter chain INPUT {
     saddr (
-        192.168.0.2 #foo
+        192.168.0.3 #foo
     ) ACCEPT;
     daddr $EMPTY DROP;
     saddr $ONE REJECT;
