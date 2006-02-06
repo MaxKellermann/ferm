@@ -418,6 +418,8 @@ while (<>) {
             }
 
         }
+        print STDERR "warning: line $. was not fully understood, rest was: $_\n"
+          if /\S/;
         push @rules, \%line;
     } elsif ($_ eq 'COMMIT') {
         flush;
