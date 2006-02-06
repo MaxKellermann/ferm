@@ -53,7 +53,7 @@ dport sport
 reject-with icmp-type
 limit
 to-destination to-source to-ports
-log-prefix
+log-prefix log-level
 mac-source uid-owner gid-owner pid-owner sid-owner
 tos mark
 tcp-option mss
