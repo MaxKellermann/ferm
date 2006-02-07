@@ -746,7 +746,7 @@ Temporarily mark source IP addresses.
     mod recent set rsource name "badguy";
     mod recent set rdest;
     mod recent rcheck rsource name "badguy" seconds 60;
-    mod recent update seconds 120;
+    mod recent update seconds 120 hitcount 3 rttl;
 
 This netfilter module has a design flaw: although it is implemented as
 a match module, it has target-like behaviour when using the "set"
