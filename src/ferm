@@ -2755,14 +2755,16 @@ sub rules_to_save {
 
         # create chains / set policy
         if (defined $policies) {
-            while (my ($chain, $policy) = each %$policies) {
+            foreach my $chain (sort keys %$policies) {
+                my $policy = $policies->{$chain};
                 $result .= ":$chain $policy\ [0:0]\n";
             }
         }
 
         # dump rules
         if (defined $r) {
-            while (my ($chain, $rs) = each %$r) {
+            foreach my $chain (sort keys %$r) {
+                my $rs = $r->{$chain};
                 foreach (@$rs) {
                     $result .= $_;
                 }
