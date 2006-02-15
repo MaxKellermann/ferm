@@ -374,6 +374,31 @@ sub optimize {
     return @result;
 }
 
+sub flush_option {
+    my ($line, $key, $value) = @_;
+
+    if (ref($value) and ref($value) eq 'HASH' and
+        $value->{wrap} eq 'pre-negation') {
+        push @$line, '!';
+        $value = $value->{value};
+    }
+
+    push @$line, $key;
+
+    if (ref($value) and ref($value) eq 'HASH' and
+        $value->{wrap} eq 'negation') {
+        push @$line, '!';
+        $value = $value->{value};
+    }
+
+    if ($key eq 'tcp-flags') {
+        push @$line, format_array($value->{mask}),
+          format_array($value->{comp});
+    } elsif (defined $value) {
+        push @$line, format_array($value);
+    }
+}
+
 sub flush {
     # optimize and write a list of rules
 
@@ -389,26 +414,7 @@ sub flush {
         foreach (qw(match jump target)) {
             next unless exists $rule->{$_};
             while (my ($key, $value) = each %{$rule->{$_}}) {
-                if (ref($value) and ref($value) eq 'HASH' and
-                    $value->{wrap} eq 'pre-negation') {
-                    push @line, '!';
-                    $value = $value->{value};
-                }
-
-                push @line, $key;
-
-                if (ref($value) and ref($value) eq 'HASH' and
-                    $value->{wrap} eq 'negation') {
-                    push @line, '!';
-                    $value = $value->{value};
-                }
-
-                if ($key eq 'tcp-flags') {
-                    push @line, format_array($value->{mask}),
-                      format_array($value->{comp});
-                } elsif (defined $value) {
-                    push @line, format_array($value);
-                }
+                flush_option(\@line, $key, $value);
             }
         }
 
