@@ -354,16 +354,21 @@ sub optimize {
         my $inner = $rule->{block}[0];
         delete $rule->{block};
 
+        # merge modules
+
         # merge rule
         foreach (qw(match jump target)) {
             next unless exists $inner->{$_};
             while (my ($key, $value) = each %{$inner->{$_}}) {
                 $rule->{$_}{$key} = $value;
             }
+            delete $inner->{$_};
         }
 
-        # inherit block from child
-        $rule->{block} = $inner->{block};
+        # inherit everything else
+        while (my ($key, $value) = each %$inner) {
+            $rule->{$key} = $value;
+        }
     }
 
     return @result;
