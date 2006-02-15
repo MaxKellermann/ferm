@@ -50,6 +50,7 @@ physdev-is-in physdev-is-out physdev-is-bridged
 set rcheck update remove rttl
 save-mark restore-mark
 log-tcp-sequence log-tcp-options log-ip-options log-uid
+continue tee
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -57,7 +58,7 @@ i=interface o=outerface
 s=saddr d=daddr
 dport sport
 reject-with icmp-type
-to-destination to-source to-ports
+to-destination to-source to-ports to
 tos mark
 tcp-option mss set-mss
 ttl-set
@@ -90,6 +91,7 @@ ttl-eq ttl-gt ttl-lt
 set-class
 set-mark mask
 log-level log-prefix
+oif iif gw
 EOT
 
 my %p1c = parse_table(<<EOT);
