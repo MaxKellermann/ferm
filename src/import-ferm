@@ -58,7 +58,7 @@ my %p1 = parse_table(<<EOT);
 i=interface o=outerface
 s=saddr d=daddr
 dport sport
-reject-with icmp-type
+reject-with icmp-type icmpv6-type
 to-destination to-ports to
 tos mark
 tcp-option mss set-mss
@@ -126,7 +126,8 @@ my @negated = qw(
 protocol saddr daddr interface outerface sport dport
 ahspi condition connrate
 ctorigsrc ctorigdst ctreplsrc ctrepldst
-espspi src-cc dst-cc icmp-type
+espspi src-cc dst-cc
+icmp-type icmpv6-type
 mac-source source-ports destination-ports ports
 genre realm chunk-types
 tcp-flags tcp-option
@@ -531,7 +532,10 @@ sub parse_option {
         my $keyword = 'protocol';
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);
         # protocol implicitly loads the module
-        delete $line->{mod}{$param} unless ref $param;
+        unless (ref $param) {
+            my $mod = $param eq 'ipv6-icmp' ? 'icmpv6' : $param;
+            delete $line->{mod}{$mod};
+        }
         $cur->{proto} = $param;
     } elsif ($option eq 'm') {
         die unless @$tokens;
@@ -539,7 +543,9 @@ sub parse_option {
         # we don't need this module if the protocol with the
         # same name is already specified
         $line->{mod}{$param} = 1
-          unless exists $cur->{proto} and $cur->{proto} eq $param;
+          unless exists $cur->{proto} and
+            ($cur->{proto} eq $param or
+             $cur->{proto} eq 'ipv6-icmp' and $param eq 'icmpv6');
     } elsif (exists $p0{$option}) {
         my $keyword = $p0{$option};
         $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, undef);
