@@ -1,5 +1,5 @@
 iptables -t filter -A INPUT -m conntrack -j DROP --ctstate INVALID
-iptables -t filter -A INPUT -m conntrack -j DROP --ctstate DNAT,SNAT
+iptables -t filter -A INPUT -m conntrack -j REJECT --ctstate DNAT,SNAT
 iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctproto ftp
 iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctorigsrc 10.0.0.0/8
 iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctorigdst 127.0.0.01
