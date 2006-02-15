@@ -70,6 +70,7 @@ ecn-ip-ect
 espspi
 helper
 iplimit-above iplimit-mask
+src-range dst-range
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -81,10 +82,14 @@ tcp-flags
 EOT
 
 my @pre_negated = qw(fragment connbytes connlimit-above
-src-range dst-range rr ts ra any-opt
+rr ts ra any-opt
 set rcheck update remove seconds hitcount
 syn mss
+);
+
+my @mix_negated = qw(
 iplimit-above
+src-range dst-range
 );
 
 my @negated = qw(
@@ -383,13 +388,18 @@ sub tokenize {
 sub wrap_pre_negated {
     my ($option, $negated_ref, $value) = @_;
     return $value unless $negated_ref && $$negated_ref;
-    die "option '$option' in line $. cannot be pre-negated\n"
-      unless grep { $_ eq $option } @pre_negated;
-    undef $$negated_ref;
 
-    my $wrap = 'pre-negation';
-    $wrap = 'negation'
-      if $option eq 'iplimit-above';
+    my $wrap;
+    if (grep { $_ eq $option } @pre_negated) {
+        $wrap = 'pre-negation';
+    } elsif (grep { $_ eq $option } @mix_negated) {
+        $wrap = 'negation';
+    }
+
+    die "option '$option' in line $. cannot be pre-negated\n"
+      unless defined $wrap;
+
+    undef $$negated_ref;
 
     return { wrap => $wrap,
              value => $value,
