@@ -319,7 +319,8 @@ sub optimize {
             while (my ($key, $value) = each %{$rule->{match}}) {
                 my $prefix2 = { $key => $value };
                 my $match_count2 = prefix_match_count($prefix2, \@_);
-                if ($match_count2 > $match_count) {
+                if ($match_count2 > $match_count ||
+                    ($match_count2 == $match_count && $key eq 'proto')) {
                     %prefix = %$prefix2;
                     $match_count = $match_count2;
                 }
