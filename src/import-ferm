@@ -208,11 +208,19 @@ sub prefix_match_count {
     return $count;
 }
 
+sub is_merging_array_member {
+    my $value = shift;
+    return defined $value &&
+      ((!ref($value)) or
+       ref $value eq 'ARRAY');
+}
+
 sub array_matches {
     my ($key, $rule1, $rule2) = @_;
+    return unless is_merging_array_member($rule1->{match}{$key});
+    return unless is_merging_array_member($rule2->{match}{$key});
     my %r1 = %$rule1;
     my %r2 = %$rule2;
-    return unless exists $r1{match}{$key} and exists $r2{match}{$key};
     $r1{match} = {%{$r1{match}}};
     $r2{match} = {%{$r2{match}}};
     delete $r1{match}{$key};
