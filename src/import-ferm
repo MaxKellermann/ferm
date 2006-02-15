@@ -62,6 +62,9 @@ ttl-set
 ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold
 src-type dst-type
 ahspi
+ctstate ctproto ctorigsrc ctorigdst ctreplsrc ctrepldst ctstatus ctexpire
+dscp
+dstlimit
 EOT
 
 my %p1c = parse_table(<<EOT);
