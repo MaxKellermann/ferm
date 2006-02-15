@@ -319,8 +319,7 @@ sub optimize {
             while (my ($key, $value) = each %{$rule->{match}}) {
                 my $prefix2 = { $key => $value };
                 my $match_count2 = prefix_match_count($prefix2, \@_);
-                if ($match_count2 > $match_count ||
-                    ($match_count2 == $match_count && $key eq 'proto')) {
+                if ($match_count2 > $match_count) {
                     %prefix = %$prefix2;
                     $match_count = $match_count2;
                 }
@@ -342,6 +341,29 @@ sub optimize {
         } else {
             push @result, $rule;
         }
+    }
+
+    # combine simple closures:
+    # proto tcp { dport http { LOG; ACCEPT; } }
+    # ->
+    # proto tcp dport http { LOG; ACCEPT; }
+    foreach my $rule (@result) {
+        next unless exists $rule->{block} && @{$rule->{block}} == 1;
+
+        # a block with only one item can be merged
+        my $inner = $rule->{block}[0];
+        delete $rule->{block};
+
+        # merge rule
+        foreach (qw(match jump target)) {
+            next unless exists $inner->{$_};
+            while (my ($key, $value) = each %{$inner->{$_}}) {
+                $rule->{$_}{$key} = $value;
+            }
+        }
+
+        # inherit block from child
+        $rule->{block} = $inner->{block};
     }
 
     return @result;
