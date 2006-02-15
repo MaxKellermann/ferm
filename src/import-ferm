@@ -411,6 +411,11 @@ sub flush {
             push @line, 'mod', $mod;
         }
 
+        if ($rule->{match}{proto}) {
+            flush_option(\@line, 'proto', $rule->{match}{proto});
+            delete $rule->{match}{proto};
+        }
+
         foreach (qw(match jump target)) {
             next unless exists $rule->{$_};
             while (my ($key, $value) = each %{$rule->{$_}}) {
