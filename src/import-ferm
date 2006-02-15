@@ -92,6 +92,8 @@ set-class
 set-mark mask
 log-level log-prefix
 oif iif gw
+set-tos
+ttl-set ttl-dec ttl-inc
 EOT
 
 my %p1c = parse_table(<<EOT);
