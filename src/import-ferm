@@ -46,6 +46,10 @@ my %p0 = parse_table(<<EOT);
 syn
 clamp-mss-to-pmtu
 ecn-tcp-cwr ecn-tcp-ece
+physdev-is-in physdev-is-out physdev-is-bridged
+set rcheck update remove rttl
+save-mark restore-mark
+log-tcp-sequence log-tcp-options log-ip-options log-uid
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -53,10 +57,7 @@ i=interface o=outerface
 s=saddr d=daddr
 dport sport
 reject-with icmp-type
-limit
 to-destination to-source to-ports
-log-prefix log-level
-mac-source uid-owner gid-owner pid-owner sid-owner
 tos mark
 tcp-option mss set-mss
 ttl-set
@@ -71,10 +72,29 @@ espspi
 helper
 iplimit-above iplimit-mask
 src-range dst-range
+length
+limit limit-burst
+mac-source
+every counter start packet
+uid-owner gid-owner pid-owner sid-owner cmd-owner
+physdev-in physdev-out
+pkt-type
+psd-weight-threshold psd-delay-threshold
+psd-lo-ports-weight psd-hi-ports-weight
+average
+realm
+name seconds hitcount
+timestart timestop days datestart datestop
+tos
+ttl-eq ttl-gt ttl-lt
+set-class
+set-mark mask
+log-level log-prefix
 EOT
 
 my %p1c = parse_table(<<EOT);
 state
+source-ports destination-ports ports
 EOT
 
 my %p2c = parse_table(<<EOT);
@@ -90,6 +110,7 @@ syn mss
 my @mix_negated = qw(
 iplimit-above
 src-range dst-range
+realm
 );
 
 my @negated = qw(
