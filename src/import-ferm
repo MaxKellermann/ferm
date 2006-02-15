@@ -43,6 +43,7 @@ sub parse_table {
 }
 
 my %p0 = parse_table(<<EOT);
+f=fragment
 syn
 clamp-mss-to-pmtu
 ecn-tcp-cwr ecn-tcp-ece
@@ -122,7 +123,7 @@ realm
 );
 
 my @negated = qw(
-protocol source destination in-interface out-interface sport dport
+protocol saddr daddr interface outerface sport dport
 ahspi condition connrate
 ctorigsrc ctorigdst ctreplsrc ctrepldst
 espspi src-cc dst-cc icmp-type
@@ -527,7 +528,8 @@ sub parse_option {
     die unless defined $cur;
 
     if ($option eq 'p') {
-        my $param = wrap_negated($option, $tokens, \&fetch_token);
+        my $keyword = 'protocol';
+        my $param = wrap_negated($keyword, $tokens, \&fetch_token);
         # protocol implicitly loads the module
         delete $line->{mod}{$param} unless ref $param;
         $cur->{proto} = $param;
@@ -540,25 +542,25 @@ sub parse_option {
           unless exists $cur->{proto} and $cur->{proto} eq $param;
     } elsif (exists $p0{$option}) {
         my $keyword = $p0{$option};
-        $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, undef);
+        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, undef);
     } elsif (exists $p1{$option}) {
-        my $param = wrap_negated($option, $tokens, \&fetch_token);
         my $keyword = $p1{$option};
-        $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
+        my $param = wrap_negated($keyword, $tokens, \&fetch_token);
+        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
     } elsif (exists $p1c{$option}) {
-        my $param = wrap_negated($option, $tokens, \&fetch_token_comma);
         my $keyword = $p1c{$option};
-        $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
+        my $param = wrap_negated($keyword, $tokens, \&fetch_token_comma);
+        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
     } elsif (exists $p1multi{$option}) {
-        my $param = wrap_negated($option, $tokens, \&fetch_token);
         my $keyword = $p1multi{$option};
+        my $param = wrap_negated($keyword, $tokens, \&fetch_token);
         $cur->{$keyword} ||= [];
         push @{$cur->{$keyword}},
           wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p2c{$option}) {
-        my $param = wrap_negated($option, $tokens, \&fetch_two_tokens_comma);
         my $keyword = $p2c{$option};
-        $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
+        my $param = wrap_negated($keyword, $tokens, \&fetch_two_tokens_comma);
+        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
     } elsif ($option eq 'j') {
         die unless @$tokens;
         my $target = shift @$tokens;
