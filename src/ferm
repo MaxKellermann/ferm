@@ -942,7 +942,7 @@ sub is_netfilter_module_target {
                          |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
                          |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
                          |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
-                         |TARPIT
+                         |TARPIT|NOTRACK
                        )/x;
 }
 
@@ -1002,6 +1002,8 @@ sub reset_domain {
             @chains = qw(PREROUTING POSTROUTING OUTPUT);
         } elsif ($table eq 'mangle') {
             @chains = qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
+        } elsif ($table eq 'raw') {
+            @chains = qw(PREROUTING OUTPUT);
         }
 
         foreach my $chain (@chains) {

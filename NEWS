@@ -57,6 +57,7 @@ v1.1+cvs - 6 Jun 2005
   - variables expansion happens within double quotes
   - implemented automatic variables: $TABLE, $CHAIN
   - IPv6/ip6tables support
+  - raw table support
   - print line number when iptables reports an error
   - write error messages to STDERR
   - replaced the old samples with new ones
