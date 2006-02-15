@@ -26,9 +26,28 @@ tmp/%.NEW: % $(NEW_FERM) ./canonical.pl
 	perl canonical.pl <$@.tmp1 >$@.tmp2
 	mv $@.tmp2 $@
 
+tmp/%.SAVE: % $(NEW_FERM)
+	mkdir -p $(dir $@)
+	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+
+tmp/%.IMPORT: tmp/%.SAVE $(TOPDIR)/src/import-ferm
+	perl $(TOPDIR)/src/import-ferm $< >$@
+
+tmp/%.SAVE2: tmp/%.IMPORT $(NEW_FERM)
+	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+
 %.check: %.OLD %.NEW
 	diff -u $^
 	touch $@
 
-.PHONY : check
-check: $(patsubst %,tmp/%.check,$(FERM_SCRIPTS))
+%.check-import: %.SAVE %.SAVE2
+	diff -u $^
+	touch $@
+
+.PHONY : check-ferm check-import check
+
+check-ferm: $(patsubst %,tmp/%.check,$(FERM_SCRIPTS))
+
+check-import: $(patsubst %,tmp/%.check-import,$(FERM_SCRIPTS))
+
+check: check-ferm check-import
