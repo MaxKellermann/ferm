@@ -386,7 +386,12 @@ sub wrap_pre_negated {
     die "option '$option' in line $. cannot be pre-negated\n"
       unless grep { $_ eq $option } @pre_negated;
     undef $$negated_ref;
-    return { wrap => 'pre-negation',
+
+    my $wrap = 'pre-negation';
+    $wrap = 'negation'
+      if $option eq 'iplimit-above';
+
+    return { wrap => $wrap,
              value => $value,
            };
 }
