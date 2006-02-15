@@ -77,6 +77,16 @@ src-range dst-range rr ts ra any-opt
 set rcheck update remove seconds hitcount
 syn mss);
 
+my @negated = qw(
+protocol source destination in-interface out-interface sport dport
+ahspi condition connrate
+ctorigsrc ctorigdst ctreplsrc ctrepldst
+espspi src-cc dst-cc icmp-type
+mac-source source-ports destination-ports ports
+genre realm chunk-types
+tcp-flags tcp-option
+);
+
 sub is_netfilter_core_target {
     my $target = shift;
     die unless defined $target and length $target;
@@ -322,6 +332,13 @@ sub flush {
                 }
 
                 push @line, $key;
+
+                if (ref($value) and ref($value) eq 'HASH' and
+                    $value->{wrap} eq 'negation') {
+                    push @line, '!';
+                    $value = $value->{value};
+                }
+
                 if ($key eq 'tcp-flags') {
                     push @line, format_array($value->{mask}),
                       format_array($value->{comp});
@@ -364,6 +381,29 @@ sub wrap_pre_negated {
            };
 }
 
+sub wrap_negated {
+    my ($option, $tokens, $count) = @_;
+    $count ||= 1;
+
+    my $negated = @$tokens > 0 && $tokens->[0] eq '!' && shift @$tokens;
+
+    die "option '$option' in line $. cannot be negated\n"
+      if $negated and not grep { $_ eq $option } @negated;
+
+    die "not enough arguments for option option '$option' in line $."
+      unless @$tokens >= $count;
+
+    my @values = splice @$tokens, 0, $count;
+    my $value = @values == 1 ? $values[0] : \@values;
+
+    $value = { wrap => 'negation',
+               value => $value,
+             }
+      if $negated;
+
+    return $value;
+}
+
 sub parse_option {
     my ($line, $option, $pre_negated, $tokens) = @_;
 
@@ -371,10 +411,9 @@ sub parse_option {
     die unless defined $cur;
 
     if ($option eq 'p') {
-        die unless @$tokens;
-        my $param = shift @$tokens;
+        my $param = wrap_negated($option, $tokens);
         # protocol implicitly loads the module
-        delete $line->{mod}{$param};
+        delete $line->{mod}{$param} unless ref $param;
         $cur->{proto} = $param;
     } elsif ($option eq 'm') {
         die unless @$tokens;
@@ -387,13 +426,11 @@ sub parse_option {
         my $keyword = $p0{$option};
         $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, undef);
     } elsif (exists $p1{$option}) {
-        die unless @$tokens;
-        my $param = shift @$tokens;
+        my $param = wrap_negated($option, $tokens);
         my $keyword = $p1{$option};
         $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p1c{$option}) {
-        die unless @$tokens;
-        my $param = shift @$tokens;
+        my $param = wrap_negated($option, $tokens);
         my $keyword = $p1c{$option};
         my @params = split(',', $param);
         $cur->{$keyword} = @params == 1 ? $param : \@params;
