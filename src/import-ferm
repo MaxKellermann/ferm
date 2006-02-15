@@ -45,6 +45,7 @@ sub parse_table {
 my %p0 = parse_table(<<EOT);
 syn
 clamp-mss-to-pmtu
+ecn-tcp-cwr ecn-tcp-ece
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -63,8 +64,12 @@ ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold
 src-type dst-type
 ahspi
 ctstate ctproto ctorigsrc ctorigdst ctreplsrc ctrepldst ctstatus ctexpire
-dscp
+dscp dscp-class
 dstlimit
+ecn-ip-ect
+espspi
+helper
+iplimit-above iplimit-mask
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -78,7 +83,9 @@ EOT
 my @pre_negated = qw(fragment connbytes connlimit-above
 src-range dst-range rr ts ra any-opt
 set rcheck update remove seconds hitcount
-syn mss);
+syn mss
+iplimit-above
+);
 
 my @negated = qw(
 protocol source destination in-interface out-interface sport dport
