@@ -154,7 +154,7 @@ sub is_netfilter_module_target {
 sub ferm_escape {
     local $_ = shift;
     return $_ unless /[^-\w]/s;
-    return "\"$_\"";
+    return "\'$_\'";
 }
 
 sub format_array {
