@@ -58,7 +58,7 @@ i=interface o=outerface
 s=saddr d=daddr
 dport sport
 reject-with icmp-type
-to-destination to-source to-ports to
+to-destination to-ports to
 tos mark
 tcp-option mss set-mss
 ttl-set
@@ -97,6 +97,10 @@ EOT
 my %p1c = parse_table(<<EOT);
 state
 source-ports destination-ports ports
+EOT
+
+my %p1multi = parse_table(<<EOT);
+to-source
 EOT
 
 my %p2c = parse_table(<<EOT);
@@ -521,6 +525,12 @@ sub parse_option {
         my $keyword = $p1c{$option};
         my @params = split(',', $param);
         $cur->{$keyword} = @params == 1 ? $param : \@params;
+    } elsif (exists $p1multi{$option}) {
+        my $param = wrap_negated($option, $tokens);
+        my $keyword = $p1multi{$option};
+        $cur->{$keyword} ||= [];
+        push @{$cur->{$keyword}},
+          wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p2c{$option}) {
         die unless @$tokens >= 2;
         my $param1 = shift @$tokens;
