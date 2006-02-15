@@ -407,9 +407,11 @@ sub flush_option {
         $value = $value->{value};
     }
 
-    if ($key eq 'tcp-flags') {
-        push @$line, format_array($value->{mask}),
-          format_array($value->{comp});
+    if (ref($value) and ref($value) eq 'HASH' and
+        $value->{wrap} eq 'multi') {
+        foreach (@{$value->{values}}) {
+            push @$line, format_array($_);
+        }
     } elsif (defined $value) {
         push @$line, format_array($value);
     }
@@ -482,20 +484,33 @@ sub wrap_pre_negated {
            };
 }
 
+sub fetch_token {
+    my ($option, $tokens) = @_;
+    die "not enough arguments for option '$option' in line $."
+      unless @$tokens > 0;
+    shift @$tokens;
+}
+
+sub fetch_token_comma {
+    [ split(',', fetch_token(@_)) ]
+}
+
+sub fetch_two_tokens_comma {
+    return { wrap => 'multi',
+             values => [ fetch_token_comma(@_),
+                         fetch_token_comma(@_) ],
+           };
+}
+
 sub wrap_negated {
-    my ($option, $tokens, $count) = @_;
-    $count ||= 1;
+    my ($option, $tokens, $fetch) = (shift, shift, shift);
 
     my $negated = @$tokens > 0 && $tokens->[0] eq '!' && shift @$tokens;
 
     die "option '$option' in line $. cannot be negated\n"
       if $negated and not grep { $_ eq $option } @negated;
 
-    die "not enough arguments for option option '$option' in line $."
-      unless @$tokens >= $count;
-
-    my @values = splice @$tokens, 0, $count;
-    my $value = @values == 1 ? $values[0] : \@values;
+    my $value = &$fetch($option, $tokens, @_);
 
     $value = { wrap => 'negation',
                value => $value,
@@ -512,7 +527,7 @@ sub parse_option {
     die unless defined $cur;
 
     if ($option eq 'p') {
-        my $param = wrap_negated($option, $tokens);
+        my $param = wrap_negated($option, $tokens, \&fetch_token);
         # protocol implicitly loads the module
         delete $line->{mod}{$param} unless ref $param;
         $cur->{proto} = $param;
@@ -527,30 +542,23 @@ sub parse_option {
         my $keyword = $p0{$option};
         $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, undef);
     } elsif (exists $p1{$option}) {
-        my $param = wrap_negated($option, $tokens);
+        my $param = wrap_negated($option, $tokens, \&fetch_token);
         my $keyword = $p1{$option};
         $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p1c{$option}) {
-        my $param = wrap_negated($option, $tokens);
+        my $param = wrap_negated($option, $tokens, \&fetch_token_comma);
         my $keyword = $p1c{$option};
-        my @params = split(',', $param);
-        $cur->{$keyword} = @params == 1 ? $param : \@params;
+        $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p1multi{$option}) {
-        my $param = wrap_negated($option, $tokens);
+        my $param = wrap_negated($option, $tokens, \&fetch_token);
         my $keyword = $p1multi{$option};
         $cur->{$keyword} ||= [];
         push @{$cur->{$keyword}},
           wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p2c{$option}) {
-        die unless @$tokens >= 2;
-        my $param1 = shift @$tokens;
-        my $param2 = shift @$tokens;
+        my $param = wrap_negated($option, $tokens, \&fetch_two_tokens_comma);
         my $keyword = $p2c{$option};
-        my @params1 = split(',', $param1);
-        my @params2 = split(',', $param2);
-        $cur->{$keyword} = { mask => \@params1,
-                             comp => \@params2,
-                           };
+        $cur->{$keyword} = wrap_pre_negated($option, \$pre_negated, $param);
     } elsif ($option eq 'j') {
         die unless @$tokens;
         my $target = shift @$tokens;
