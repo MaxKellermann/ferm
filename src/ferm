@@ -1838,7 +1838,7 @@ sub parse_module_options {
 
     # ipt_tos switches
     if (exists $modules->{tos} and $keyword eq 'tos') {
-        $current->{tos} = getvar();
+        $current->{tos} = getvalues();
         return 1;
     }
 
