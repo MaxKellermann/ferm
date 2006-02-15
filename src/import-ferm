@@ -61,6 +61,7 @@ tcp-option mss set-mss
 ttl-set
 ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold
 src-type dst-type
+ahspi
 EOT
 
 my %p1c = parse_table(<<EOT);
