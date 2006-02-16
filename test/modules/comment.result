@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m comment --comment "This is a comment" -j ACCEPT
+iptables -t filter -A INPUT -m comment --comment " funny  whitespaces " -j DROP

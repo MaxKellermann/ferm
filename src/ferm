@@ -1130,6 +1130,10 @@ sub tables {
         }
     }
 
+    # ipt_comment parameters
+    shell_append(\$rr, '--comment', $rule{comment})
+      if exists $rule{comment};
+
     # ipt_conntrack parameters
     shell_append(\$rr, '--ctstate', $rule{ctstate})
       if exists $rule{ctstate};
@@ -1625,6 +1629,12 @@ sub parse_module_options {
 
     # ipt_connmark switches
     if (exists $modules->{connmark} and $keyword eq 'mark') {
+        $current->{$keyword} = getvar();
+        return 1;
+    }
+
+    # ipt_comment switches
+    if (exists $modules->{comment} and $keyword eq 'comment') {
         $current->{$keyword} = getvar();
         return 1;
     }

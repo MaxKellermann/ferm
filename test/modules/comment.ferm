@@ -1,0 +1,4 @@
+table filter chain input mod comment {
+    comment "This is a comment" ACCEPT;
+    comment " funny  whitespaces " DROP;
+}
