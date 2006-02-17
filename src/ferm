@@ -191,6 +191,8 @@ sub add_target_def {
         $params = $1 if $keyword =~ s,=([acs]+)$,,;
         $k->{params} = $params if $params;
 
+        $k->{alias} = $1 if $keyword =~ s,:=(\S+)$,,;
+
         $t->{keywords}{$keyword} = $k;
     }
 }
@@ -1694,6 +1696,14 @@ sub parse_target_options {
     if (exists $target_defs{$target}{keywords}{$keyword}) {
         my $k = $target_defs{$target}{keywords}{$keyword};
         next unless defined $k;
+
+        while (exists $k->{alias}) {
+            die if $k->{alias} eq $keyword;
+            $keyword = $k->{alias};
+            $k = $target_defs{$target}{keywords}{$keyword};
+            die unless defined $k;
+        }
+
         my $params = $k->{params};
 
         my $value;
