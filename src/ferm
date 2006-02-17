@@ -171,8 +171,23 @@ sub add_match_def {
     }
 }
 
+add_match_def 'addrtype', qw(src-type dst-type);
+add_match_def 'comment', qw(comment);
+add_match_def 'connmark', qw(mark);
+add_match_def 'dscp', qw(dscp dscp-class*2);
+add_match_def 'ecn', qw(ecn-tcp-cwr*0 ecn-tcp-ece*0 ecn-ip-ect);
+add_match_def 'helper', qw(helper);
+add_match_def 'mark', qw(mark);
+add_match_def 'nth', qw(every counter start packet);
+add_match_def 'owner', qw(uid-owner gid-owner pid-owner sid-owner cmd-owner);
+add_match_def 'physdev', qw(physdev-in physdev-out),
+  qw(physdev-is-in*0 physdev-is-out*0 physdev-is-bridged*0);
+add_match_def 'pkttype', qw(pkt-type),
 add_match_def 'policy',
   qw(dir pol strict*0 reqid spi proto mode tunnel-src tunnel-dst next*0);
+add_match_def 'psd', qw(psd-weight-threshold psd-delay-threshold),
+  qw(psd-lo-ports-weight psd-hi-ports-weight);
+add_match_def 'random', qw(average);
 add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 # Get command line stuff
@@ -1131,12 +1146,6 @@ sub tables {
     # match module options
     #
 
-    # ipt_addrtype parameters
-    shell_append(\$rr, '--src-type', $rule{'src-type'})
-      if exists $rule{'src-type'};
-    shell_append(\$rr, '--dst-type', $rule{'dst-type'})
-      if exists $rule{'dst-type'};
-
     # ipt_ah/ipt_esp parameters
     foreach (qw(ahspi espspi)) {
         if (exists $rule{$_}) {
@@ -1146,10 +1155,6 @@ sub tables {
             shell_append(\$rr, $rule{$_});
         }
     }
-
-    # ipt_comment parameters
-    shell_append(\$rr, '--comment', $rule{comment})
-      if exists $rule{comment};
 
     # ipt_conntrack parameters
     shell_append(\$rr, '--ctstate', $rule{ctstate})
@@ -1167,19 +1172,6 @@ sub tables {
 
     shell_append(\$rr, '--dscp-class', $rule{'dscp-class'})
       if exists $rule{'dscp-class'};
-
-    # ipt_ecn parameters
-    foreach (qw(ecn-tcp-cwr ecn-tcp-ece)) {
-        shell_append(\$rr, "--$_")
-          if exists $rule{$_};
-    }
-
-    shell_append(\$rr, '--ecn-ip-ect', $rule{'ecn-ip-ect'})
-      if exists $rule{'ecn-ip-ect'};
-
-    # ipt_helper parameters
-    shell_append(\$rr, '--helper', $rule{helper})
-      if exists $rule{helper};
 
     # ipt_icmp
     if (defined $rule{proto} and $rule{proto} eq 'icmp' and
@@ -1232,53 +1224,11 @@ sub tables {
     shell_append(\$rr, '--mac-source', extract_negation $rule{'mac-source'})
       if exists $rule{'mac-source'};
 
-    # ipt_mark, ipt_connmark
-    shell_append(\$rr, '--mark', $rule{mark})
-      if defined $rule{mark};
-
     # ipt_multiport parameters
     foreach (qw(source-ports destination-ports ports)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
     }
-
-    # ipt_nth parameters
-    foreach (qw(every counter start packet)) {
-        shell_append(\$rr, "--$_", $rule{$_})
-          if exists $rule{$_};
-    }
-
-    # ipt_owner parameters
-    foreach (qw(uid gid pid sid cmd)) {
-        shell_append(\$rr, "--${_}-owner", $rule{${_} . '-owner'})
-          if exists $rule{${_} . '-owner'};
-    }
-
-    # ipt_pkttype switches
-    shell_append(\$rr, '--pkt-type', $rule{'pkt-type'})
-      if exists $rule{'pkt-type'};
-
-    # ipt_psd switches
-    foreach (qw(psd-weight-threshold psd-delay-threshold
-                psd-lo-ports-weight psd-hi-ports-weight)) {
-        shell_append(\$rr, "--$_", $rule{$_})
-          if exists $rule{$_};
-    }
-
-    # ipt_physdev switches
-    foreach (qw(physdev-in physdev-out)) {
-        shell_append(\$rr, "--$_", $rule{$_})
-          if exists $rule{$_};
-    }
-
-    foreach (qw(physdev-is-in physdev-is-out physdev-is-bridged)) {
-        shell_append(\$rr, "--$_")
-          if exists $rule{$_};
-    }
-
-    # ipt_random parameters
-    shell_append(\$rr, '--average', $rule{average})
-      if exists $rule{average};
 
     # ipt_realm parameters
     if (exists $rule{realm}) {
@@ -1642,28 +1592,9 @@ sub parse_builtin_matches {
 sub parse_module_options {
     my ($current, $modules, $keyword, $proto) = @_;
 
-    # ipt_addrtype switches
-    if (exists $modules->{addrtype} and
-        /^(?:src|dst)-type$/) {
-        $current->{$_} = getvalues();
-        return 1;
-    }
-
     # ipt_ah switches
     if (exists $modules->{ah} and $keyword eq 'ahspi') {
         $current->{$keyword} = getvalues();
-        return 1;
-    }
-
-    # ipt_connmark switches
-    if (exists $modules->{connmark} and $keyword eq 'mark') {
-        $current->{$keyword} = getvar();
-        return 1;
-    }
-
-    # ipt_comment switches
-    if (exists $modules->{comment} and $keyword eq 'comment') {
-        $current->{$keyword} = getvar();
         return 1;
     }
 
@@ -1696,27 +1627,8 @@ sub parse_module_options {
         }
     }
 
-    # ipt_ecn switches
-    if (exists $modules->{ecn}) {
-        if ($keyword =~ /^ecn-tcp-(?:cwr|ece)$/) {
-            $current->{$keyword} = 1;
-            return 1;
-        }
-
-        if ($keyword eq 'ecn-ip-ect') {
-            $current->{$keyword} = getvalues();
-            return 1;
-        }
-    }
-
     # ipt_esp switches
     if (exists $modules->{esp} and $keyword eq 'espspi') {
-        $current->{$keyword} = getvalues();
-        return 1;
-    }
-
-    # ipt_helper switches
-    if (exists $modules->{helper} and $keyword eq 'helper') {
         $current->{$keyword} = getvalues();
         return 1;
     }
@@ -1759,12 +1671,6 @@ sub parse_module_options {
         return 1;
     }
 
-    # ipt_mark switches
-    if (exists $modules->{mark} and $keyword eq 'mark') {
-        $current->{$keyword} = getvar();
-        return 1;
-    }
-
     # ipt_multiport switches
     if (exists $modules->{multiport} and
         $keyword =~ /^(?:(?:source-|destination-|)ports)$/) {
@@ -1785,51 +1691,6 @@ sub parse_module_options {
 
         $current->{$keyword} = \@params;
 
-        return 1;
-    }
-
-    # ipt_nth switches
-    if (exists $modules->{nth} and
-        /^every$|^counter$|^start$|^packet$/) {
-        $current->{$keyword} = getvar();
-        return 1;
-    }
-
-    # ipt_owner switches
-    if (exists $modules->{owner} and /^(?:uid|gid|pid|sid|cmd)-owner$/) {
-        $current->{$keyword} = getvalues();
-        return 1;
-    }
-
-    # ipt_pkttype switches
-    if (exists $modules->{pkttype} and $keyword eq 'pkt-type') {
-        $current->{$_} = getvalues();
-        return 1;
-    }
-
-    # ipt_psd switches
-    if (exists $modules->{psd} and
-        /^psd-(?:(?:weight|delay)-threshold|(?:lo|hi)-ports-weight)$/) {
-        $current->{$keyword} = getvar();
-        return 1;
-    }
-
-    # ipt_physdev switches
-    if (exists $modules->{physdev}) {
-        if (/^physdev-(?:in|out)$/) {
-            $current->{$keyword} = getvalues();
-            return 1;
-        }
-
-        if (/^physdev-is-(?:in|out|bridged)$/) {
-            $current->{$keyword} = 1;
-            return 1;
-        }
-    }
-
-    # ipt_random switches
-    if (exists $modules->{random} and $keyword eq 'average') {
-        $current->{average} = getvar();
         return 1;
     }
 
