@@ -168,6 +168,7 @@ sub add_match_def {
 
         my $params = 1;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
+        $params = $1 if $keyword =~ s,=([acs]+)$,,;
         $k->{params} = $params if $params;
 
         $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
@@ -1696,8 +1697,28 @@ sub parse_module_options {
             undef $$negated_ref;
         }
 
-        unless (defined $params && $params > 0) {
+        unless (defined $params) {
             undef $value;
+        } elsif ($params =~ /^[a-z]/) {
+            my @params;
+            foreach my $p (split(//, $params)) {
+                if ($p eq 's') {
+                    push @params, getvar(undef, undef, no_negation => 1);
+                } elsif ($p eq 'a') {
+                    push @params, getvalues(undef, undef, no_negation => 1);
+                } elsif ($p eq 'c') {
+                    my @v = to_array getvalues(undef, undef,
+                                               no_negation => 1,
+                                               non_empty => 1);
+                    push @params, join(',', @v);
+                } else {
+                    die;
+                }
+            }
+
+            $value = @params == 1
+              ? $params[0]
+                : bless \@params, 'params';
         } elsif ($params == 1) {
             if (exists $k->{negation}) {
                 my $token = peek_token();
