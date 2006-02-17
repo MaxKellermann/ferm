@@ -172,7 +172,7 @@ sub add_match_def {
 }
 
 add_match_def 'policy',
-  qw(dir pol strict*0 reqid spi proto mode tunnel-src tunnel-dst next);
+  qw(dir pol strict*0 reqid spi proto mode tunnel-src tunnel-dst next*0);
 add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 # Get command line stuff
