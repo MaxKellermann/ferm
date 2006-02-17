@@ -178,11 +178,16 @@ sub add_match_def {
 }
 
 add_match_def 'addrtype', qw(src-type dst-type);
+add_match_def 'ah', qw(ahspi!);
 add_match_def 'comment', qw(comment);
 add_match_def 'connmark', qw(mark);
-add_match_def 'dscp', qw(dscp dscp-class*2);
+add_match_def 'dscp', qw(dscp dscp-class);
 add_match_def 'ecn', qw(ecn-tcp-cwr*0 ecn-tcp-ece*0 ecn-ip-ect);
+add_match_def 'esp', qw(espspi!);
 add_match_def 'helper', qw(helper);
+add_match_def 'length', qw(length);
+add_match_def 'iprange', qw(!src-range !dst-range);
+add_match_def 'mac', qw(mac-source!);
 add_match_def 'mark', qw(mark);
 add_match_def 'nth', qw(every counter start packet);
 add_match_def 'owner', qw(uid-owner gid-owner pid-owner sid-owner cmd-owner);
@@ -194,6 +199,7 @@ add_match_def 'policy',
 add_match_def 'psd', qw(psd-weight-threshold psd-delay-threshold),
   qw(psd-lo-ports-weight psd-hi-ports-weight);
 add_match_def 'random', qw(average);
+add_match_def 'realm', qw(realm!);
 add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 # Get command line stuff
@@ -1155,16 +1161,6 @@ sub tables {
     # match module options
     #
 
-    # ipt_ah/ipt_esp parameters
-    foreach (qw(ahspi espspi)) {
-        if (exists $rule{$_}) {
-            shell_append(\$rr, "--$_");
-            shell_append(\$rr, '!')
-              if $rule{$_} =~ s/^!\s*//;
-            shell_append(\$rr, $rule{$_});
-        }
-    }
-
     # ipt_conntrack parameters
     shell_append(\$rr, '--ctstate', $rule{ctstate})
       if exists $rule{ctstate};
@@ -1174,13 +1170,6 @@ sub tables {
         shell_append(\$rr, "--$_", extract_negation $rule{$_})
           if exists $rule{$_};
     }
-
-    # ipt_dscp parameters
-    shell_append(\$rr, '--dscp', $rule{dscp})
-      if exists $rule{dscp};
-
-    shell_append(\$rr, '--dscp-class', $rule{'dscp-class'})
-      if exists $rule{'dscp-class'};
 
     # ipt_icmp
     if (defined $rule{proto} and $rule{proto} eq 'icmp' and
@@ -1210,41 +1199,16 @@ sub tables {
     shell_append(\$rr, '--iplimit-mask', $rule{'iplimit-mask'})
       if exists $rule{'iplimit-mask'};
 
-    # ipt_iplimit parameters
-    foreach (qw(src-range dst-range)) {
-        if (exists $rule{$_}) {
-            shell_append(\$rr, '!')
-              if $rule{$_} =~ s/^!\s*//;
-            shell_append(\$rr, "--$_", $rule{$_})
-        }
-    }
-
-    # ipt_length parameters
-    shell_append(\$rr, '--length', $rule{length})
-      if exists $rule{length};
-
     # ipt_limit parameters
     shell_append(\$rr, '--limit', $rule{limit})
       if exists $rule{limit};
     shell_append(\$rr, '--limit-burst', $rule{'limit-burst'})
       if exists $rule{'limit-burst'};
 
-    # ipt_mac parameters
-    shell_append(\$rr, '--mac-source', extract_negation $rule{'mac-source'})
-      if exists $rule{'mac-source'};
-
     # ipt_multiport parameters
     foreach (qw(source-ports destination-ports ports)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
-    }
-
-    # ipt_realm parameters
-    if (exists $rule{realm}) {
-        shell_append(\$rr, '--realm');
-        shell_append(\$rr, '!')
-          if $rule{realm} =~ s/^!\s*//;
-        shell_append(\$rr, $rule{realm});
     }
 
     # ipt_recent parameters
@@ -1614,12 +1578,6 @@ sub parse_builtin_matches {
 sub parse_module_options {
     my ($current, $modules, $keyword, $negated_ref, $proto) = @_;
 
-    # ipt_ah switches
-    if (exists $modules->{ah} and $keyword eq 'ahspi') {
-        $current->{$keyword} = getvalues();
-        return 1;
-    }
-
     # ipt_conntrack switches
     if (exists $modules->{conntrack}) {
 
@@ -1641,20 +1599,6 @@ sub parse_module_options {
         }
     }
 
-    # ipt_dscp switches
-    if (exists $modules->{dscp}) {
-        if ($keyword eq 'dscp' or $keyword eq 'dscp-class') {
-            $current->{$keyword} = getvalues();
-            return 1;
-        }
-    }
-
-    # ipt_esp switches
-    if (exists $modules->{esp} and $keyword eq 'espspi') {
-        $current->{$keyword} = getvalues();
-        return 1;
-    }
-
     # ipt_iplimit switches
     if (exists $modules->{iplimit}) {
         if ($keyword eq 'iplimit-above') {
@@ -1667,29 +1611,9 @@ sub parse_module_options {
         }
     }
 
-    # ipt_iprange switches
-    if (exists $modules->{iprange} and
-        $keyword =~ /^(?:src|dst)-range$/) {
-        $current->{$keyword} = getvalues();
-        return 1;
-    }
-    ;
-
-    # ipt_length switches
-    if (exists $modules->{length} and $keyword eq 'length') {
-        $current->{$keyword} = getvalues();
-        return 1;
-    }
-
     # ipt_limit switches
     if (exists $modules->{limit} and $keyword =~ /^limit(?:-burst)?$/) {
         $current->{$keyword} = getvar();
-        return 1;
-    }
-
-    # ipt_mac switches
-    if (exists $modules->{mac} and $keyword eq 'mac-source') {
-        $current->{$keyword} = getvalues();
         return 1;
     }
 
@@ -1713,12 +1637,6 @@ sub parse_module_options {
 
         $current->{$keyword} = \@params;
 
-        return 1;
-    }
-
-    # ipt_realm switches
-    if (exists $modules->{realm} and $keyword eq 'realm') {
-        $current->{$keyword} = getvalues();
         return 1;
     }
 
