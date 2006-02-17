@@ -180,14 +180,18 @@ sub add_match_def {
 
 add_match_def 'addrtype', qw(src-type dst-type);
 add_match_def 'ah', qw(ahspi!);
-add_match_def 'comment', qw(comment);
+add_match_def 'comment', qw(comment=s);
 add_match_def 'connmark', qw(mark);
+add_match_def 'conntrack', qw(ctstate=c ctproto ctorigsrc! ctorigdst!),
+  qw(ctreplsrc! ctrepldst! ctstatus ctexpire=s);
 add_match_def 'dscp', qw(dscp dscp-class);
 add_match_def 'ecn', qw(ecn-tcp-cwr*0 ecn-tcp-ece*0 ecn-ip-ect);
 add_match_def 'esp', qw(espspi!);
 add_match_def 'helper', qw(helper);
 add_match_def 'length', qw(length);
 add_match_def 'iprange', qw(!src-range !dst-range);
+add_match_def 'iplimit', qw(!iplimit-above=s iplimit-mask=s);
+add_match_def 'limit', qw(limit=s limit-burst=s);
 add_match_def 'mac', qw(mac-source!);
 add_match_def 'mark', qw(mark);
 add_match_def 'nth', qw(every counter start packet);
@@ -201,6 +205,9 @@ add_match_def 'psd', qw(psd-weight-threshold psd-delay-threshold),
   qw(psd-lo-ports-weight psd-hi-ports-weight);
 add_match_def 'random', qw(average);
 add_match_def 'realm', qw(realm!);
+add_match_def 'recent', qw(name=s !set*0 !rcheck*0 !update*0 !seconds !hitcount rttl*0);
+add_match_def 'state', qw(state=c);
+add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
 add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 # Get command line stuff
@@ -1162,16 +1169,6 @@ sub tables {
     # match module options
     #
 
-    # ipt_conntrack parameters
-    shell_append(\$rr, '--ctstate', $rule{ctstate})
-      if exists $rule{ctstate};
-
-    foreach (qw(ctproto ctorigsrc ctorigdst),
-             qw(ctreplsrc ctrepldst ctstatus ctexpire)) {
-        shell_append(\$rr, "--$_", extract_negation $rule{$_})
-          if exists $rule{$_};
-    }
-
     # ipt_icmp
     if (defined $rule{proto} and $rule{proto} eq 'icmp' and
         exists $rule{'icmp-type'}) {
@@ -1191,40 +1188,11 @@ sub tables {
                      extract_negation $rule{'icmpv6-type'});
     }
 
-    # ipt_iplimit parameters
-    if (exists $rule{'iplimit-above'}) {
-        shell_append(\$rr, '!')
-          if $rule{'iplimit-above'} =~ s/^!\s*//;
-        shell_append(\$rr, '--iplimit-above', $rule{'iplimit-above'})
-    }
-    shell_append(\$rr, '--iplimit-mask', $rule{'iplimit-mask'})
-      if exists $rule{'iplimit-mask'};
-
-    # ipt_limit parameters
-    shell_append(\$rr, '--limit', $rule{limit})
-      if exists $rule{limit};
-    shell_append(\$rr, '--limit-burst', $rule{'limit-burst'})
-      if exists $rule{'limit-burst'};
-
     # ipt_multiport parameters
     foreach (qw(source-ports destination-ports ports)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
     }
-
-    # ipt_recent parameters
-    foreach (qw(name seconds hitcount)) {
-        shell_append(\$rr, "--$_", $rule{$_})
-          if exists $rule{$_};
-    }
-    foreach (qw(set rcheck update remove rttl)) {
-        shell_append(\$rr, "--$_")
-          if exists $rule{$_};
-    }
-
-    # ipt_state parameters
-    shell_append(\$rr, '--state', $rule{state})
-      if exists $rule{state};
 
     # ipt_tcp
     if (defined $rule{proto} and $rule{proto} eq 'tcp' and
@@ -1253,15 +1221,6 @@ sub tables {
 
         shell_append(\$rr, '--tcp-option', extract_negation $rule{'tcp-option'})
           if exists $rule{'tcp-option'};
-    }
-
-    # ipt_time parameters
-    shell_append(\$rr, '--days', $rule{days})
-      if exists $rule{days};
-
-    foreach (qw(timestart timestop datestart datestop)) {
-        shell_append(\$rr, "--$_", $rule{$_})
-          if exists $rule{$_};
     }
 
     # ipt_tos parameters
@@ -1578,46 +1537,6 @@ sub parse_builtin_matches {
 
 sub parse_module_options {
     my ($current, $modules, $keyword, $negated_ref, $proto) = @_;
-
-    # ipt_conntrack switches
-    if (exists $modules->{conntrack}) {
-
-        if ($keyword eq 'ctstate') {
-            my @params = to_array getvalues(undef, undef,
-                                            non_empty => 1);
-            $current->{$keyword} = join(',', @params);
-            return 1;
-        }
-
-        if (/^(?:ctproto|ct(?:orig|repl)(?:src|dst)|ctstatus|ctexpire)$/) {
-            $current->{$keyword} = getvalues();
-            return 1;
-        }
-
-        if ($keyword eq 'ctexpire') {
-            $current->{$keyword} = getvar();
-            return 1;
-        }
-    }
-
-    # ipt_iplimit switches
-    if (exists $modules->{iplimit}) {
-        if ($keyword eq 'iplimit-above') {
-            $current->{$keyword} = getvar();
-            return 1;
-        }
-        if ($keyword eq 'iplimit-mask') {
-            $current->{$keyword} = getvar();
-            return 1;
-        }
-    }
-
-    # ipt_limit switches
-    if (exists $modules->{limit} and $keyword =~ /^limit(?:-burst)?$/) {
-        $current->{$keyword} = getvar();
-        return 1;
-    }
-
     # ipt_multiport switches
     if (exists $modules->{multiport} and
         $keyword =~ /^(?:(?:source-|destination-|)ports)$/) {
@@ -1639,41 +1558,6 @@ sub parse_module_options {
         $current->{$keyword} = \@params;
 
         return 1;
-    }
-
-    # ipt_recent switches
-    if (exists $modules->{recent}) {
-        if (/^(?:name|seconds|hitcount)$/) {
-            $current->{$keyword} = getvar();
-            return 1;
-        }
-        if (/^(?:set|rcheck|update|remove|rttl)$/) {
-            $current->{$keyword} = 1;
-            return 1;
-        }
-    }
-
-    # ipt_state switches
-    if (exists $modules->{state} and $keyword eq 'state') {
-        my @params = to_array getvalues(undef, undef,
-                                        non_empty => 1);
-        $current->{state} = join(',', @params);
-        return 1;
-    }
-
-    # ipt_time switches
-    if (exists $modules->{time}) {
-        if ($keyword eq 'days') {
-            my @params = to_array getvalues(undef, undef,
-                                            non_empty => 1);
-            $current->{days} = join(',', @params);
-            return 1;
-        }
-
-        if (/^(?:timestart|timestop|datestart|datestop)$/) {
-            $current->{$keyword} = getvar();
-            return 1;
-        }
     }
 
     # ipt_tos switches
