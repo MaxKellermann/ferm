@@ -52,6 +52,7 @@ set rcheck update remove rttl
 save-mark restore-mark
 log-tcp-sequence log-tcp-options log-ip-options log-uid
 continue tee
+strict next
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -96,6 +97,7 @@ oif iif gw
 set-tos
 ttl-set ttl-dec ttl-inc
 comment
+dir pol reqid spi proto mode tunnel-src tunnel-dst
 EOT
 
 my %p1c = parse_table(<<EOT);
