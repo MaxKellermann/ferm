@@ -58,7 +58,7 @@ use vars qw(%domains);
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 ## constants
-use vars qw(%deprecated_keywords %automod);
+use vars qw(%deprecated_keywords %automod %match_defs);
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
 %deprecated_keywords = ( macsource => 'mac-source',
@@ -157,6 +157,19 @@ use vars qw(%deprecated_keywords %automod);
              datestart => 'time',
              datestop => 'time',
            );
+
+sub add_match_def {
+    my $mod = shift;
+    die if exists $match_defs{$mod};
+    $mod = $match_defs{$mod} = {};
+    foreach (@_) {
+        my $keyword = $_;
+        my $params = 1;
+        $params = $1 if $keyword =~ s,\*(\d+)$,,;
+        undef $params unless $params;
+        $mod->{keywords}{$keyword} = { params => $params };
+    }
+}
 
 # Get command line stuff
 {
@@ -1352,6 +1365,23 @@ sub tables {
           if defined $rule{dport};
     }
 
+    # modules stored in %match_defs
+    while (my ($key, $value) = each %rule) {
+        next unless $key =~ /^module__(\w+)__([-\w]+)$/;
+        my ($module_name, $keyword) = ($1, $2);
+
+        my $def = $match_defs{$module_name};
+        die unless defined $def;
+
+        unless (defined $value) {
+            shell_append(\$rr, "--$keyword");
+        } elsif (ref $value and ref $value eq 'params') {
+            shell_append(\$rr, "--$keyword", @$value);
+        } else {
+            shell_append(\$rr, "--$keyword", $value);
+        }
+    }
+
     #
     # target options
     #
@@ -1497,7 +1527,7 @@ sub mkrules {
 
         my ($key, $value_string) = @$current;
 
-        unless (ref $value_string) {
+        unless (ref $value_string and ref $value_string ne 'params') {
                 # set this one and recurse
             $rule->{$key} = $value_string;
 
@@ -1855,6 +1885,33 @@ sub parse_module_options {
     # ipt_ttl switches
     if (exists $modules->{ttl} and /^ttl-(?:eq|lt|gt)$/) {
         $current->{$_} = getvar();
+        return 1;
+    }
+
+    # modules stored in %match_defs
+    while (my ($name, $mod) = each %match_defs) {
+        next unless exists $modules->{$name};
+        my $k = $mod->{keywords}{$keyword};
+        next unless defined $k;
+        my $params = $k->{params};
+
+        my $value;
+
+        unless (defined $params && $params > 0) {
+            undef $value;
+        } elsif ($params == 1) {
+            $value = getvalues();
+        } else {
+            $value = bless [ map {
+                getvar()
+            } (1..$params) ], 'params';
+        }
+
+        $current->{"module__${name}__${keyword}"} = $value;
+
+        # reset hash
+        keys %match_defs;
+
         return 1;
     }
 
