@@ -1620,67 +1620,66 @@ sub parse_module_options {
 sub parse_target_options {
     my ($current, $target, $keyword) = @_;
 
-    if (exists $target_defs{$target}{keywords}{$keyword}) {
-        my $k = $target_defs{$target}{keywords}{$keyword};
-        next unless defined $k;
+    return unless exists $target_defs{$target} &&
+      exists $target_defs{$target}{keywords}{$keyword};
 
-        while (exists $k->{alias}) {
-            die if $k->{alias} eq $keyword;
-            $keyword = $k->{alias};
-            $k = $target_defs{$target}{keywords}{$keyword};
-            die unless defined $k;
-        }
+    my $k = $target_defs{$target}{keywords}{$keyword};
+    next unless defined $k;
 
-        my $params = $k->{params};
-
-        my $value;
-        unless (defined $params) {
-            undef $value;
-        } elsif ($params =~ /^[a-z]/) {
-            my @params;
-            foreach my $p (split(//, $params)) {
-                if ($p eq 's') {
-                    push @params, getvar(undef, undef, no_negation => 1);
-                } elsif ($p eq 'a') {
-                    push @params, getvalues(undef, undef, no_negation => 1)
-                } elsif ($p eq 'c') {
-                    my @v = to_array getvalues(undef, undef,
-                                               no_negation => 1,
-                                               non_empty => 1);
-                    push @params, join(',', @v);
-                } else {
-                    die;
-                }
-            }
-
-            $value = @params == 1
-              ? $params[0]
-                : bless \@params, 'params';
-        } elsif ($params == 1) {
-            $value = getvar(undef, undef, no_negation => 1);
-
-            warning('log-prefix is too long; truncating to 29 characters')
-              if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
-
-            if ($keyword eq 'set-tos') {
-                $value =~ s/^min-?cost$/0x02/;
-                $value =~ s/^(?:reliability|reliable)$/0x04/;
-                $value =~ s/^max-?throughput$/0x08/;
-                $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-                $value =~ s/^clear$/0x00/;
-            }
-        } else {
-            $value = bless [ map {
-                getvar(undef, undef, no_negation => 1)
-            } (1..$params) ], 'params';
-        }
-
-        $current->{target_options}{$keyword} = $value;
-
-        return 1;
+    while (exists $k->{alias}) {
+        die if $k->{alias} eq $keyword;
+        $keyword = $k->{alias};
+        $k = $target_defs{$target}{keywords}{$keyword};
+        die unless defined $k;
     }
 
-    return;
+    my $params = $k->{params};
+
+    my $value;
+    unless (defined $params) {
+        undef $value;
+    } elsif ($params =~ /^[a-z]/) {
+        my @params;
+        foreach my $p (split(//, $params)) {
+            if ($p eq 's') {
+                push @params, getvar(undef, undef, no_negation => 1);
+            } elsif ($p eq 'a') {
+                push @params, getvalues(undef, undef, no_negation => 1)
+            } elsif ($p eq 'c') {
+                my @v = to_array getvalues(undef, undef,
+                                           no_negation => 1,
+                                           non_empty => 1);
+                push @params, join(',', @v);
+            } else {
+                die;
+            }
+        }
+
+        $value = @params == 1
+          ? $params[0]
+            : bless \@params, 'params';
+    } elsif ($params == 1) {
+        $value = getvar(undef, undef, no_negation => 1);
+
+        warning('log-prefix is too long; truncating to 29 characters')
+          if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
+
+        if ($keyword eq 'set-tos') {
+            $value =~ s/^min-?cost$/0x02/;
+            $value =~ s/^(?:reliability|reliable)$/0x04/;
+            $value =~ s/^max-?throughput$/0x08/;
+            $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+            $value =~ s/^clear$/0x00/;
+        }
+    } else {
+        $value = bless [ map {
+            getvar(undef, undef, no_negation => 1)
+        } (1..$params) ], 'params';
+    }
+
+    $current->{target_options}{$keyword} = $value;
+
+    return 1;
 }
 
 sub enter {
