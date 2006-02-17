@@ -173,6 +173,7 @@ sub add_match_def {
 
 add_match_def 'policy',
   qw(dir pol strict*0 reqid spi proto mode tunnel-src tunnel-dst next);
+add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 # Get command line stuff
 {
@@ -1351,12 +1352,6 @@ sub tables {
         shell_append(\$rr, "--tos", $rule{tos})
     }
 
-    # ipt_ttl parameters
-    foreach (qw(ttl-eq ttl-lt ttl-gt)) {
-        shell_append(\$rr, "--$_", $rule{$_})
-          if exists $rule{$_};
-    }
-
     # ipt_udp parameters
     if (defined $rule{proto} and $rule{proto} eq 'udp' and
         grep { exists $rule{$_} } qw(sport dport)) {
@@ -1882,12 +1877,6 @@ sub parse_module_options {
     # ipt_tos switches
     if (exists $modules->{tos} and $keyword eq 'tos') {
         $current->{tos} = getvalues();
-        return 1;
-    }
-
-    # ipt_ttl switches
-    if (exists $modules->{ttl} and /^ttl-(?:eq|lt|gt)$/) {
-        $current->{$_} = getvar();
         return 1;
     }
 
