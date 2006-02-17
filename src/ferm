@@ -171,6 +171,9 @@ sub add_match_def {
     }
 }
 
+add_match_def 'policy',
+  qw(dir pol strict*0 reqid spi proto mode tunnel-src tunnel-dst next);
+
 # Get command line stuff
 {
     my ($opt_noexec, $opt_lines,
