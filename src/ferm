@@ -164,10 +164,13 @@ sub add_match_def {
     $mod = $match_defs{$mod} = {};
     foreach (@_) {
         my $keyword = $_;
+        my $k = {};
+
         my $params = 1;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
-        undef $params unless $params;
-        $mod->{keywords}{$keyword} = { params => $params };
+        $k->{params} = $params if $params;
+
+        $mod->{keywords}{$keyword} = $k;
     }
 }
 
