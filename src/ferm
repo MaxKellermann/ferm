@@ -170,6 +170,9 @@ sub add_match_def {
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
         $k->{params} = $params if $params;
 
+        $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
+        $k->{negation} = 1 if $keyword =~ s,!$,,;
+
         $mod->{keywords}{$keyword} = $k;
     }
 }
@@ -887,6 +890,9 @@ sub getvalues {
         $token =~ s,\$(\w+),string_variable_value($1),eg;
         return $token;
     } elsif ($token eq '!') {
+        error('negation is not allowed here')
+          if $options{no_negation};
+
         $token = getvalues($code, $param);
 
         error('it is not possible to negate an array')
@@ -1324,12 +1330,23 @@ sub tables {
         my $def = $match_defs{$module_name};
         die unless defined $def;
 
+        my @negated;
+        if (ref $value and ref $value eq 'negated') {
+            $value = $value->[0];
+
+            if ($def->{pre_negation}) {
+                shell_append(\$rr, '!');
+            } else {
+                push @negated, '!';
+            }
+        }
+
         unless (defined $value) {
             shell_append(\$rr, "--$keyword");
         } elsif (ref $value and ref $value eq 'params') {
-            shell_append(\$rr, "--$keyword", @$value);
+            shell_append(\$rr, "--$keyword", @negated, @$value);
         } else {
-            shell_append(\$rr, "--$keyword", $value);
+            shell_append(\$rr, "--$keyword", @negated, $value);
         }
     }
 
@@ -1478,7 +1495,9 @@ sub mkrules {
 
         my ($key, $value_string) = @$current;
 
-        unless (ref $value_string and ref $value_string ne 'params') {
+        unless (ref $value_string and
+                ref $value_string ne 'params' and
+                ref $value_string ne 'negated') {
                 # set this one and recurse
             $rule->{$key} = $value_string;
 
@@ -1593,7 +1612,7 @@ sub parse_builtin_matches {
 }
 
 sub parse_module_options {
-    my ($current, $modules, $keyword, $proto) = @_;
+    my ($current, $modules, $keyword, $negated_ref, $proto) = @_;
 
     # ipt_ah switches
     if (exists $modules->{ah} and $keyword eq 'ahspi') {
@@ -1753,15 +1772,39 @@ sub parse_module_options {
 
         my $value;
 
+        my $negated;
+        if ($$negated_ref && exists $k->{pre_negation}) {
+            $negated = 1;
+            undef $$negated_ref;
+        }
+
         unless (defined $params && $params > 0) {
             undef $value;
         } elsif ($params == 1) {
-            $value = getvalues();
+            if (exists $k->{negation}) {
+                my $token = peek_token();
+                if ($token eq '!') {
+                    require_next_token;
+                    $negated = 1;
+                }
+            }
+
+            $value = getvalues(undef, undef, no_negation => 1);
         } else {
+            if (exists $k->{negation}) {
+                my $token = peek_token();
+                if ($token eq '!') {
+                    require_next_token;
+                    $negated = 1;
+                }
+            }
+
             $value = bless [ map {
-                getvar()
+                getvar(undef, undef, no_negation => 1)
             } (1..$params) ], 'params';
         }
+
+        $value = bless [ $value ], 'negated' if $negated;
 
         $current->{"module__${name}__${keyword}"} = $value;
 
@@ -2559,7 +2602,7 @@ sub enter {
             }
 
             if (keys %modules) {
-                parse_module_options($current, \%modules, $keyword, $proto)
+                parse_module_options($current, \%modules, $keyword, \$negated, $proto)
                   and next;
             }
 
