@@ -170,7 +170,7 @@ sub add_match_def {
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
         $k->{params} = $params if $params;
 
-        $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
+        $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
         $k->{negation} = 1 if $keyword =~ s,!$,,;
 
         $mod->{keywords}{$keyword} = $k;
@@ -1327,14 +1327,14 @@ sub tables {
         next unless $key =~ /^module__(\w+)__([-\w]+)$/;
         my ($module_name, $keyword) = ($1, $2);
 
-        my $def = $match_defs{$module_name};
+        my $def = $match_defs{$module_name}{keywords}{$keyword};
         die unless defined $def;
 
         my @negated;
         if (ref $value and ref $value eq 'negated') {
             $value = $value->[0];
 
-            if ($def->{pre_negation}) {
+            if (exists $def->{pre_negation}) {
                 shell_append(\$rr, '!');
             } else {
                 push @negated, '!';
