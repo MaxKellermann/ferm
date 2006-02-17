@@ -58,7 +58,7 @@ use vars qw(%domains);
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 ## constants
-use vars qw(%deprecated_keywords %automod %match_defs);
+use vars qw(%deprecated_keywords %automod %match_defs %target_defs);
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
 %deprecated_keywords = ( macsource => 'mac-source',
@@ -175,6 +175,23 @@ sub add_match_def {
         $k->{negation} = 1 if $keyword =~ s,!$,,;
 
         $mod->{keywords}{$keyword} = $k;
+    }
+}
+
+sub add_target_def {
+    my $t = shift;
+    die if exists $target_defs{$t};
+    $t = $target_defs{$t} = {};
+    foreach (@_) {
+        my $keyword = $_;
+        my $k = {};
+
+        my $params = 1;
+        $params = $1 if $keyword =~ s,\*(\d+)$,,;
+        $params = $1 if $keyword =~ s,=([acs]+)$,,;
+        $k->{params} = $params if $params;
+
+        $t->{keywords}{$keyword} = $k;
     }
 }
 
@@ -1282,6 +1299,28 @@ sub tables {
 
     shell_append(\$rr, '-j', $action);
 
+    # targets stored in %target_defs
+
+    while (my ($key, $value) = each %rule) {
+        next unless $key =~ /^target__([-\w]+)$/;
+        my $keyword = $1;
+
+        my $def = $target_defs{$action}{keywords}{$keyword};
+        die unless defined $def;
+
+        unless (defined $value) {
+            shell_append(\$rr, "--$keyword");
+        } elsif (ref $value and ref $value eq 'params') {
+            shell_append(\$rr, "--$keyword", @$value);
+        } elsif (ref $value and ref $value eq 'ARRAY') {
+            foreach (@$value) {
+                shell_append(\$rr, "--$keyword", $_);
+            }
+        } else {
+            shell_append(\$rr, "--$keyword", $value);
+        }
+    }
+
     # target module options
 
     if ($action eq 'CLASSIFY') {
@@ -1420,6 +1459,7 @@ sub mkrules {
         my ($key, $value_string) = @$current;
 
         unless (ref $value_string and
+                $key !~ /^target__/ and
                 ref $value_string ne 'params' and
                 ref $value_string ne 'negated') {
                 # set this one and recurse
@@ -1651,7 +1691,46 @@ sub parse_module_options {
 sub parse_target_options {
     my ($current, $target, $keyword) = @_;
 
-    if ($target eq 'CLASSIFY') {
+    if (exists $target_defs{$target}{keywords}{$keyword}) {
+        my $k = $target_defs{$target}{keywords}{$keyword};
+        next unless defined $k;
+        my $params = $k->{params};
+
+        my $value;
+        unless (defined $params) {
+            undef $value;
+        } elsif ($params =~ /^[a-z]/) {
+            my @params;
+            foreach my $p (split(//, $params)) {
+                if ($p eq 's') {
+                    push @params, getvar(undef, undef, no_negation => 1);
+                } elsif ($p eq 'a') {
+                    push @params, getvalues(undef, undef, no_negation => 1)
+                } elsif ($p eq 'c') {
+                    my @v = to_array getvalues(undef, undef,
+                                               no_negation => 1,
+                                               non_empty => 1);
+                    push @params, join(',', @v);
+                } else {
+                    die;
+                }
+            }
+
+            $value = @params == 1
+              ? $params[0]
+                : bless \@params, 'params';
+        } elsif ($params == 1) {
+            $value = getvar(undef, undef, no_negation => 1);
+        } else {
+            $value = bless [ map {
+                getvar(undef, undef, no_negation => 1)
+            } (1..$params) ], 'params';
+        }
+
+        $current->{"target__${keyword}"} = $value;
+
+        return 1;
+    } elsif ($target eq 'CLASSIFY') {
         # CLASSIFY target switches
         if ($keyword eq 'set-class') {
             $current->{'set-class'} = getvar();
