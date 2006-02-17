@@ -1700,6 +1700,14 @@ sub parse_module_options {
         unless (defined $params) {
             undef $value;
         } elsif ($params =~ /^[a-z]/) {
+            if (exists $k->{negation}) {
+                my $token = peek_token();
+                if ($token eq '!') {
+                    require_next_token;
+                    $negated = 1;
+                }
+            }
+
             my @params;
             foreach my $p (split(//, $params)) {
                 if ($p eq 's') {
