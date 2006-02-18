@@ -227,6 +227,7 @@ add_match_def 'realm', qw(realm!);
 add_match_def 'recent', qw(name=s !set*0 !rcheck*0 !update*0 !seconds !hitcount rttl*0);
 add_match_def 'state', qw(state=c);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
+add_match_def 'tos', qw(tos);
 add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
@@ -1260,18 +1261,6 @@ sub tables {
           if exists $rule{'tcp-option'};
     }
 
-    # ipt_tos parameters
-    if (exists $rule{tos}) {
-        # some translations for ferm 1.1 compatibility
-        $rule{tos} =~ s/^min-?cost$/0x02/;
-        $rule{tos} =~ s/^(?:reliability|reliable)$/0x04/;
-        $rule{tos} =~ s/^max-?throughput$/0x08/;
-        $rule{tos} =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-        $rule{tos} =~ s/^clear$/0x00/;
-
-        shell_append(\$rr, "--tos", $rule{tos})
-    }
-
     # ipt_udp parameters
     if (defined $rule{proto} and $rule{proto} eq 'udp' and
         grep { exists $rule{$_} } qw(sport dport)) {
@@ -1529,12 +1518,6 @@ sub parse_module_options {
         return 1;
     }
 
-    # ipt_tos switches
-    if (exists $modules->{tos} and $keyword eq 'tos') {
-        $current->{tos} = getvalues();
-        return 1;
-    }
-
     # modules stored in %match_defs
     while (my ($name, $mod) = each %match_defs) {
         next unless exists $modules->{$name};
@@ -1590,6 +1573,18 @@ sub parse_module_options {
             }
 
             $value = getvalues(undef, undef, no_negation => 1);
+
+            if ($name eq 'tos' && $keyword eq 'tos') {
+                $value = [ map {
+                    my $value = $_;
+                    $value =~ s/^min-?cost$/0x02/;
+                    $value =~ s/^(?:reliability|reliable)$/0x04/;
+                    $value =~ s/^max-?throughput$/0x08/;
+                    $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+                    $value =~ s/^clear$/0x00/;
+                    $value
+                } to_array($value) ];
+            }
         } else {
             if (exists $k->{negation}) {
                 my $token = peek_token();
