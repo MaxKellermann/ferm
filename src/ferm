@@ -169,6 +169,10 @@ sub add_match_def {
         my $params = 1;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
         $params = $1 if $keyword =~ s,=([acs]+)$,,;
+        if ($keyword =~ s,&(\S+)$,,) {
+            $params = eval "\\&$1";
+            die $@ if $@;
+        }
         $k->{params} = $params if $params;
 
         $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
@@ -189,6 +193,10 @@ sub add_target_def {
         my $params = 1;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
         $params = $1 if $keyword =~ s,=([acs]+)$,,;
+        if ($keyword =~ s,&(\S+)$,,) {
+            $params = eval "\\&$1";
+            die $@ if $@;
+        }
         $k->{params} = $params if $params;
 
         $k->{alias} = $1 if $keyword =~ s,:=(\S+)$,,;
@@ -227,7 +235,7 @@ add_match_def 'realm', qw(realm!);
 add_match_def 'recent', qw(name=s !set*0 !rcheck*0 !update*0 !seconds !hitcount rttl*0);
 add_match_def 'state', qw(state=c);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
-add_match_def 'tos', qw(tos);
+add_match_def 'tos', qw(tos&compat_tos_params);
 add_match_def 'ttl', qw(ttl-eq ttl-lt ttl-gt);
 
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
@@ -244,9 +252,25 @@ add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SNAT', qw(to-source=a);
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
-add_target_def 'TOS', qw(set-tos);
+add_target_def 'TOS', qw(set-tos&compat_tos_params);
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
+
+sub compat_tos_params {
+    my $value = getvalues(undef, undef, no_negation => 1);
+
+    my @value = map {
+        my $value = $_;
+        $value =~ s/^min-?cost$/0x02/;
+        $value =~ s/^(?:reliability|reliable)$/0x04/;
+        $value =~ s/^max-?throughput$/0x08/;
+        $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
+        $value =~ s/^clear$/0x00/;
+        $value
+    } to_array($value);
+
+    return @value == 1 ? $value[0] : \@value;
+}
 
 # Get command line stuff
 {
@@ -1535,6 +1559,8 @@ sub parse_module_options {
 
         unless (defined $params) {
             undef $value;
+        } elsif (ref $params && ref $params eq 'CODE') {
+            $value = &$params;
         } elsif ($params =~ /^[a-z]/) {
             if (exists $k->{negation}) {
                 my $token = peek_token();
@@ -1573,18 +1599,6 @@ sub parse_module_options {
             }
 
             $value = getvalues(undef, undef, no_negation => 1);
-
-            if ($name eq 'tos' && $keyword eq 'tos') {
-                $value = [ map {
-                    my $value = $_;
-                    $value =~ s/^min-?cost$/0x02/;
-                    $value =~ s/^(?:reliability|reliable)$/0x04/;
-                    $value =~ s/^max-?throughput$/0x08/;
-                    $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-                    $value =~ s/^clear$/0x00/;
-                    $value
-                } to_array($value) ];
-            }
         } else {
             if (exists $k->{negation}) {
                 my $token = peek_token();
@@ -1633,6 +1647,8 @@ sub parse_target_options {
     my $value;
     unless (defined $params) {
         undef $value;
+    } elsif (ref $params && ref $params eq 'CODE') {
+        $value = &$params;
     } elsif ($params =~ /^[a-z]/) {
         my @params;
         foreach my $p (split(//, $params)) {
@@ -1658,14 +1674,6 @@ sub parse_target_options {
 
         warning('log-prefix is too long; truncating to 29 characters')
           if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
-
-        if ($keyword eq 'set-tos') {
-            $value =~ s/^min-?cost$/0x02/;
-            $value =~ s/^(?:reliability|reliable)$/0x04/;
-            $value =~ s/^max-?throughput$/0x08/;
-            $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-            $value =~ s/^clear$/0x00/;
-        }
     } else {
         $value = bless [ map {
             getvar(undef, undef, no_negation => 1)
