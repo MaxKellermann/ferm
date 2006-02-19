@@ -971,7 +971,7 @@ sub getvalues {
         error('it is not possible to negate an array')
           if ref $token;
 
-        return '! ' . $token;
+        return bless [ $token ], 'negated';
     } elsif ($token =~ /^.+,.+$/) {
         warning('Arrays within a string are deprecated, please use parantheses');
 
@@ -1097,8 +1097,8 @@ sub shell_append {
 
 sub extract_negation {
     local $_ = shift;
-    s/^!\s*//
-      ? ( '!', $_ )
+    ref && ref eq 'negated'
+      ? ( '!', $_->[0] )
         : $_;
 }
 
@@ -1412,7 +1412,6 @@ sub mkrules {
         } elsif (ref $value_string eq 'ARRAY') {
             # recurse for every value
             foreach my $value (@$value_string) {
-                $value =~ s/^!/! /;
                 # set this one and recurse
                 $rule->{$key} = $value;
 
