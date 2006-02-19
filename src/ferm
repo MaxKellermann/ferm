@@ -257,7 +257,7 @@ add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
 
 sub compat_tos_params {
-    my $value = getvalues(undef, undef, no_negation => 1);
+    my $value = getvalues();
 
     my @value = map {
         my $value = $_;
@@ -910,9 +910,6 @@ sub getvalues {
                     next;
                 }
 
-                error('items cannot be negated in a array')
-                  if $token eq '!';
-
                 push @wordlist, $token;
             } elsif (ref $token eq 'ARRAY') {
                 push @wordlist, @$token;
@@ -967,14 +964,12 @@ sub getvalues {
         return $token;
     } elsif ($token eq '!') {
         error('negation is not allowed here')
-          if $options{no_negation};
+          unless $options{allow_negation};
 
         $token = getvalues($code, $param);
 
         error('it is not possible to negate an array')
           if ref $token;
-        error('double negation is not allowed')
-          if $token eq '!';
 
         return '! ' . $token;
     } elsif ($token =~ /^.+,.+$/) {
@@ -1486,20 +1481,20 @@ sub parse_builtin_matches {
 
     # routing base parameters
     if ($keyword =~ /^(?:interface|if)$/) {
-        $current->{interface} = getvalues();
+        $current->{interface} = getvalues(undef, undef, allow_negation => 1);
         return 1;
     }
     if ($keyword =~ /^(?:outerface|of)$/) {
-        $current->{outerface} = getvalues();
+        $current->{outerface} = getvalues(undef, undef, allow_negation => 1);
         return 1;
     }
     if ($keyword =~ /^proto(?:col)?$/) {
-        $current->{proto} = getvalues();
+        $current->{proto} = getvalues(undef, undef, allow_negation => 1);
         return 1;
     }
 
     if ($keyword =~ /^[sd]addr$/) {
-        $current->{$keyword} = getvalues();
+        $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
         return 1;
     }
 
@@ -1530,7 +1525,7 @@ sub parse_module_options {
         # into portions of 15, and handle these portions as
         # array elements
 
-        my @ports = to_array getvalues();
+        my @ports = to_array getvalues(undef, undef, allow_negation => 1);
         my @params;
 
         while (@ports) {
@@ -1573,12 +1568,11 @@ sub parse_module_options {
             my @params;
             foreach my $p (split(//, $params)) {
                 if ($p eq 's') {
-                    push @params, getvar(undef, undef, no_negation => 1);
+                    push @params, getvar();
                 } elsif ($p eq 'a') {
-                    push @params, getvalues(undef, undef, no_negation => 1);
+                    push @params, getvalues();
                 } elsif ($p eq 'c') {
                     my @v = to_array getvalues(undef, undef,
-                                               no_negation => 1,
                                                non_empty => 1);
                     push @params, join(',', @v);
                 } else {
@@ -1598,7 +1592,7 @@ sub parse_module_options {
                 }
             }
 
-            $value = getvalues(undef, undef, no_negation => 1);
+            $value = getvalues();
         } else {
             if (exists $k->{negation}) {
                 my $token = peek_token();
@@ -1609,7 +1603,7 @@ sub parse_module_options {
             }
 
             $value = bless [ map {
-                getvar(undef, undef, no_negation => 1)
+                getvar()
             } (1..$params) ], 'params';
         }
 
@@ -1653,12 +1647,11 @@ sub parse_target_options {
         my @params;
         foreach my $p (split(//, $params)) {
             if ($p eq 's') {
-                push @params, getvar(undef, undef, no_negation => 1);
+                push @params, getvar();
             } elsif ($p eq 'a') {
-                push @params, getvalues(undef, undef, no_negation => 1)
+                push @params, getvalues();
             } elsif ($p eq 'c') {
                 my @v = to_array getvalues(undef, undef,
-                                           no_negation => 1,
                                            non_empty => 1);
                 push @params, join(',', @v);
             } else {
@@ -1670,13 +1663,13 @@ sub parse_target_options {
           ? $params[0]
             : bless \@params, 'params';
     } elsif ($params == 1) {
-        $value = getvar(undef, undef, no_negation => 1);
+        $value = getvar();
 
         warning('log-prefix is too long; truncating to 29 characters')
           if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
     } else {
         $value = bless [ map {
-            getvar(undef, undef, no_negation => 1)
+            getvar()
         } (1..$params) ], 'params';
     }
 
@@ -1715,9 +1708,6 @@ sub enter {
 
             error('unexpected end of file after negation')
               unless defined $keyword;
-
-            error('double negation')
-              if $keyword eq '!';
         }
 
         # the core: parse all data
@@ -1853,7 +1843,7 @@ sub enter {
                     error('"=" expected after variable name')
                       unless $keyword eq '=';
 
-                    my $value = getvalues();
+                    my $value = getvalues(undef, undef, allow_negation => 1);
 
                     $keyword = next_token();
                     error('";" expected after variable declaration')
@@ -1979,7 +1969,8 @@ sub enter {
                               unless $token eq ',';
                         }
 
-                        push @params, getvalues();
+                        push @params, getvalues(undef, undef,
+                                                allow_negation => 1);
                     }
                 }
 
@@ -2264,7 +2255,8 @@ sub enter {
             if (defined $proto and
                 $proto eq 'icmp' and
                 $keyword eq 'icmp-type') {
-                $current->{$keyword} = getvalues();
+                $current->{$keyword} = getvalues(undef, undef,
+                                                 allow_negation => 1);
                 next;
             }
 
@@ -2272,7 +2264,8 @@ sub enter {
             if (defined $proto and
                 ($proto eq 'icmpv6' or $proto eq 'ipv6-icmp') and
                 $keyword eq 'icmpv6-type') {
-                $current->{$keyword} = getvalues();
+                $current->{$keyword} = getvalues(undef, undef,
+                                                 allow_negation => 1);
                 next;
             }
 
@@ -2280,7 +2273,8 @@ sub enter {
             if (defined $proto and
                 grep { $_ eq 'tcp' } to_array $proto) {
                 if ($keyword =~ /^[sd]port$/) {
-                    $current->{$keyword} = getvalues();
+                    $current->{$keyword} = getvalues(undef, undef,
+                                                     allow_negation => 1);
                     next;
                 }
                 if ($keyword eq 'tcp-flags') {
@@ -2312,7 +2306,14 @@ sub enter {
                     }
                     next;
                 }
-                if ($keyword =~ /^(?:tcp-option|mss)$/) {
+
+                if ($keyword eq 'tcp-option') {
+                    $current->{$keyword} = getvalues(undef, undef,
+                                                     allow_negation => 1);
+                    next;
+                }
+
+                if ($keyword eq 'mss') {
                     $current->{$keyword} = getvalues();
                     next;
                 }
@@ -2334,7 +2335,8 @@ sub enter {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array $proto;
 
-                $current->{$keyword} = getvalues();
+                $current->{$keyword} = getvalues(undef, undef,
+                                                 allow_negation => 1);
                 next;
             }
 
