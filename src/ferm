@@ -1086,6 +1086,33 @@ sub shell_append {
     }
 }
 
+sub shell_append_option {
+    my ($ref, $def, $keyword, $value) = @_;
+
+    my @negated;
+    if (ref $value and ref $value eq 'negated') {
+        $value = $value->[0];
+
+        if (exists $def->{pre_negation}) {
+            shell_append($ref, '!');
+        } else {
+            push @negated, '!';
+        }
+    }
+
+    unless (defined $value) {
+        shell_append($ref, "--$keyword");
+    } elsif (ref $value and ref $value eq 'params') {
+        shell_append($ref, "--$keyword", @negated, @$value);
+    } elsif (ref $value and ref $value eq 'ARRAY') {
+        foreach (@$value) {
+            shell_append($ref, "--$keyword", $_);
+        }
+    } else {
+        shell_append($ref, "--$keyword", @negated, $value);
+    }
+}
+
 sub extract_negation {
     local $_ = shift;
     ref && ref eq 'negated'
@@ -1290,24 +1317,7 @@ sub tables {
         my $def = $match_defs{$module_name}{keywords}{$keyword};
         die unless defined $def;
 
-        my @negated;
-        if (ref $value and ref $value eq 'negated') {
-            $value = $value->[0];
-
-            if (exists $def->{pre_negation}) {
-                shell_append(\$rr, '!');
-            } else {
-                push @negated, '!';
-            }
-        }
-
-        unless (defined $value) {
-            shell_append(\$rr, "--$keyword");
-        } elsif (ref $value and ref $value eq 'params') {
-            shell_append(\$rr, "--$keyword", @negated, @$value);
-        } else {
-            shell_append(\$rr, "--$keyword", @negated, $value);
-        }
+        shell_append_option(\$rr, $def, $keyword, $value);
     }
 
     #
@@ -1324,17 +1334,7 @@ sub tables {
         my $def = $target_defs{$action}{keywords}{$keyword};
         die unless defined $def;
 
-        unless (defined $value) {
-            shell_append(\$rr, "--$keyword");
-        } elsif (ref $value and ref $value eq 'params') {
-            shell_append(\$rr, "--$keyword", @$value);
-        } elsif (ref $value and ref $value eq 'ARRAY') {
-            foreach (@$value) {
-                shell_append(\$rr, "--$keyword", $_);
-            }
-        } else {
-            shell_append(\$rr, "--$keyword", $value);
-        }
+        shell_append_option(\$rr, $def, $keyword, $value);
     }
 
     # this line is done
