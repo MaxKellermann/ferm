@@ -59,6 +59,7 @@ use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 ## constants
 use vars qw(%deprecated_keywords %automod %match_defs %target_defs);
+
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
 %deprecated_keywords = ( macsource => 'mac-source',
@@ -158,10 +159,11 @@ use vars qw(%deprecated_keywords %automod %match_defs %target_defs);
              datestop => 'time',
            );
 
-sub add_match_def {
-    my $mod = shift;
-    die if exists $match_defs{$mod};
-    $mod = $match_defs{$mod} = {};
+sub add_def {
+    my $defs = shift;
+    my $name = shift;
+    die if exists $defs->{$name};
+    my $def = $defs->{$name} = {};
     foreach (@_) {
         my $keyword = $_;
         my $k = {};
@@ -178,31 +180,20 @@ sub add_match_def {
         $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
         $k->{negation} = 1 if $keyword =~ s,!$,,;
 
-        $mod->{keywords}{$keyword} = $k;
+        $k->{alias} = $1 if $keyword =~ s,:=(\S+)$,,;
+
+        $def->{keywords}{$keyword} = $k;
     }
+
+    return $def;
+}
+
+sub add_match_def {
+    add_def(\%match_defs, @_);
 }
 
 sub add_target_def {
-    my $t = shift;
-    die if exists $target_defs{$t};
-    $t = $target_defs{$t} = {};
-    foreach (@_) {
-        my $keyword = $_;
-        my $k = {};
-
-        my $params = 1;
-        $params = $1 if $keyword =~ s,\*(\d+)$,,;
-        $params = $1 if $keyword =~ s,=([acs]+)$,,;
-        if ($keyword =~ s,&(\S+)$,,) {
-            $params = eval "\\&$1";
-            die $@ if $@;
-        }
-        $k->{params} = $params if $params;
-
-        $k->{alias} = $1 if $keyword =~ s,:=(\S+)$,,;
-
-        $t->{keywords}{$keyword} = $k;
-    }
+    add_def(\%target_defs, @_);
 }
 
 add_match_def 'addrtype', qw(src-type dst-type);
