@@ -1019,7 +1019,7 @@ sub getvar {
     my $token = getvalues(@_);
 
     error('array not allowed here')
-      if ref $token;
+      if ref $token and ref $token eq 'ARRAY';
 
     return $token;
 }
