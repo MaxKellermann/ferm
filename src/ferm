@@ -1484,19 +1484,15 @@ sub parse_builtin_matches {
     return;
 }
 
-sub parse_protocol_options {
-    my ($current, $proto, $keyword, $negated_ref) = @_;
+sub parse_keyword {
+    my ($current, $def, $keyword, $negated_ref) = @_;
 
-    return unless exists $proto_defs{$proto} &&
-      exists $proto_defs{$proto}{keywords}{$keyword};
-
-    my $k = $proto_defs{$proto}{keywords}{$keyword};
-    my $params = $k->{params};
+    my $params = $def->{params};
 
     my $value;
 
     my $negated;
-    if ($$negated_ref && exists $k->{pre_negation}) {
+    if ($$negated_ref && exists $def->{pre_negation}) {
         $negated = 1;
         undef $$negated_ref;
     }
@@ -1506,7 +1502,7 @@ sub parse_protocol_options {
     } elsif (ref $params && ref $params eq 'CODE') {
         $value = &$params;
     } elsif ($params =~ /^[a-z]/) {
-        if (exists $k->{negation} and not $negated) {
+        if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
             if ($token eq '!') {
                 require_next_token;
@@ -1533,7 +1529,7 @@ sub parse_protocol_options {
           ? $params[0]
             : bless \@params, 'params';
     } elsif ($params == 1) {
-        if (exists $k->{negation} and not $negated) {
+        if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
             if ($token eq '!') {
                 require_next_token;
@@ -1542,8 +1538,11 @@ sub parse_protocol_options {
         }
 
         $value = getvalues();
+
+        warning('log-prefix is too long; truncating to 29 characters')
+          if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
     } else {
-        if (exists $k->{negation} and not $negated) {
+        if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
             if ($token eq '!') {
                 require_next_token;
@@ -1556,13 +1555,21 @@ sub parse_protocol_options {
         } (1..$params) ], 'params';
     }
 
-    if ($negated) {
-        $value = bless [ $value ], 'negated';
+    $value = bless [ $value ], 'negated'
+      if $negated;
 
-        undef $negated if $k->{negation};
-    }
+    return $value;
+}
 
-    $current->{"protocol__${proto}__${keyword}"} = $value;
+sub parse_protocol_options {
+    my ($current, $proto, $keyword, $negated_ref) = @_;
+
+    return unless exists $proto_defs{$proto} &&
+      exists $proto_defs{$proto}{keywords}{$keyword};
+
+    $current->{"protocol__${proto}__${keyword}"}
+      = parse_keyword($current, $proto_defs{$proto}{keywords}{$keyword},
+                      $keyword, $negated_ref);
 
     return 1;
 }
@@ -1597,74 +1604,10 @@ sub parse_module_options {
         next unless exists $modules->{$name};
         my $k = $mod->{keywords}{$keyword};
         next unless defined $k;
-        my $params = $k->{params};
 
-        my $value;
-
-        my $negated;
-        if ($$negated_ref && exists $k->{pre_negation}) {
-            $negated = 1;
-            undef $$negated_ref;
-        }
-
-        unless (defined $params) {
-            undef $value;
-        } elsif (ref $params && ref $params eq 'CODE') {
-            $value = &$params;
-        } elsif ($params =~ /^[a-z]/) {
-            if (exists $k->{negation}) {
-                my $token = peek_token();
-                if ($token eq '!') {
-                    require_next_token;
-                    $negated = 1;
-                }
-            }
-
-            my @params;
-            foreach my $p (split(//, $params)) {
-                if ($p eq 's') {
-                    push @params, getvar();
-                } elsif ($p eq 'a') {
-                    push @params, getvalues();
-                } elsif ($p eq 'c') {
-                    my @v = to_array getvalues(undef, undef,
-                                               non_empty => 1);
-                    push @params, join(',', @v);
-                } else {
-                    die;
-                }
-            }
-
-            $value = @params == 1
-              ? $params[0]
-                : bless \@params, 'params';
-        } elsif ($params == 1) {
-            if (exists $k->{negation}) {
-                my $token = peek_token();
-                if ($token eq '!') {
-                    require_next_token;
-                    $negated = 1;
-                }
-            }
-
-            $value = getvalues();
-        } else {
-            if (exists $k->{negation}) {
-                my $token = peek_token();
-                if ($token eq '!') {
-                    require_next_token;
-                    $negated = 1;
-                }
-            }
-
-            $value = bless [ map {
-                getvar()
-            } (1..$params) ], 'params';
-        }
-
-        $value = bless [ $value ], 'negated' if $negated;
-
-        $current->{"module__${name}__${keyword}"} = $value;
+        $current->{"module__${name}__${keyword}"}
+          = parse_keyword($current, $k,
+                          $keyword, $negated_ref);
 
         # reset hash
         keys %match_defs;
@@ -1682,7 +1625,6 @@ sub parse_target_options {
       exists $target_defs{$target}{keywords}{$keyword};
 
     my $k = $target_defs{$target}{keywords}{$keyword};
-    next unless defined $k;
 
     while (exists $k->{alias}) {
         die if $k->{alias} eq $keyword;
@@ -1691,44 +1633,10 @@ sub parse_target_options {
         die unless defined $k;
     }
 
-    my $params = $k->{params};
-
-    my $value;
-    unless (defined $params) {
-        undef $value;
-    } elsif (ref $params && ref $params eq 'CODE') {
-        $value = &$params;
-    } elsif ($params =~ /^[a-z]/) {
-        my @params;
-        foreach my $p (split(//, $params)) {
-            if ($p eq 's') {
-                push @params, getvar();
-            } elsif ($p eq 'a') {
-                push @params, getvalues();
-            } elsif ($p eq 'c') {
-                my @v = to_array getvalues(undef, undef,
-                                           non_empty => 1);
-                push @params, join(',', @v);
-            } else {
-                die;
-            }
-        }
-
-        $value = @params == 1
-          ? $params[0]
-            : bless \@params, 'params';
-    } elsif ($params == 1) {
-        $value = getvar();
-
-        warning('log-prefix is too long; truncating to 29 characters')
-          if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
-    } else {
-        $value = bless [ map {
-            getvar()
-        } (1..$params) ], 'params';
-    }
-
-    $current->{target_options}{$keyword} = $value;
+    my $negated_dummy;
+    $current->{target_options}{$keyword}
+      = parse_keyword($current, $k,
+                      $keyword, \$negated_dummy);
 
     return 1;
 }
