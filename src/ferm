@@ -887,6 +887,21 @@ sub string_variable_value {
     return $value;
 }
 
+sub join_value {
+    my ($expr, $value) = @_;
+
+    unless (ref $value) {
+        return $value;
+    } elsif (ref $value eq 'ARRAY') {
+        return join($expr, @$value);
+    } elsif (ref $value eq 'negated') {
+        $value = join_value($expr, $value->[0]);
+        return bless [ $value ], 'negated';
+    } else {
+        die;
+    }
+}
+
 sub getvalues {
     my ($code, $param) = (shift, shift);
     my %options = @_;
@@ -1600,11 +1615,8 @@ sub parse_module_options {
             }
 
             $current->{$keyword} = \@params;
-        } elsif (ref $ports and ref $ports eq 'negated') {
-            $ports->[0] = join(',', @{$ports->[0]});
-            $current->{$keyword} = $ports;
         } else {
-            die;
+            $current->{$keyword} = join_value(',', $ports);
         }
 
         return 1;
