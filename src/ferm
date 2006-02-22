@@ -58,7 +58,7 @@ use vars qw(%domains);
 use subs qw(initialize_netfilter open_script read_header prepare_tokens);
 
 ## constants
-use vars qw(%deprecated_keywords %automod %match_defs %target_defs);
+use vars qw(%deprecated_keywords %automod);
 
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
@@ -159,6 +159,8 @@ use vars qw(%deprecated_keywords %automod %match_defs %target_defs);
              datestop => 'time',
            );
 
+use vars qw(%proto_defs %match_defs %target_defs);
+
 sub add_def {
     my $defs = shift;
     my $name = shift;
@@ -188,6 +190,10 @@ sub add_def {
     return $def;
 }
 
+sub add_proto_def {
+    add_def(\%proto_defs, @_);
+}
+
 sub add_match_def {
     add_def(\%match_defs, @_);
 }
@@ -195,6 +201,11 @@ sub add_match_def {
 sub add_target_def {
     add_def(\%target_defs, @_);
 }
+
+add_proto_def 'icmp', qw(icmp-type!);
+add_proto_def 'icmpv6', qw(icmpv6-type!);
+add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
+add_proto_def 'udp', qw();
 
 add_match_def 'addrtype', qw(src-type dst-type);
 add_match_def 'ah', qw(ahspi!);
@@ -1244,69 +1255,40 @@ sub tables {
     # match module options
     #
 
-    # ipt_icmp
-    if (defined $rule{proto} and $rule{proto} eq 'icmp' and
-        exists $rule{'icmp-type'}) {
-        shell_append(\$rr, '-m', 'icmp');
+    if (defined $rule{proto}) {
+        my $proto = $rule{proto};
+        $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
 
-        shell_append(\$rr, '--icmp-type', extract_negation $rule{'icmp-type'})
-          if defined $rule{'icmp-type'};
-    }
+        if (exists $proto_defs{$proto}) {
+            shell_append(\$rr, '-m', $proto);
 
-    # ipt_icmpv6
-    if (defined $rule{proto} and
-        ($rule{proto} eq 'icmpv6' or $rule{proto} eq 'ipv6-icmp') and
-        exists $rule{'icmpv6-type'}) {
-        shell_append(\$rr, '-m', 'icmpv6');
+            my $def = $proto_defs{$proto};
+            while (my ($keyword, $k) = each %{$def->{keywords}}) {
+                my $key = "protocol__${proto}__$keyword";
+                next unless exists $rule{$key};
+                my $value = $rule->{$key};
 
-        shell_append(\$rr, '--icmpv6-type',
-                     extract_negation $rule{'icmpv6-type'});
+                shell_append_option(\$rr, $k, $keyword, $value);
+            }
+        }
+
+        # special case: --dport and --sport for TCP/UDP
+        if ($rule{proto} eq 'tcp' or $rule{proto} eq 'udp') {
+            shell_append_option(\$rr, { params => 1,
+                                        negation => 1,
+                                      }, 'dport', $rule{dport})
+              if exists $rule{dport};
+            shell_append_option(\$rr, { params => 1,
+                                        negation => 1,
+                                      }, 'sport', $rule{sport})
+              if exists $rule{sport};
+        }
     }
 
     # ipt_multiport parameters
     foreach (qw(source-ports destination-ports ports)) {
         shell_append(\$rr, "--$_", $rule{$_})
           if exists $rule{$_};
-    }
-
-    # ipt_tcp
-    if (defined $rule{proto} and $rule{proto} eq 'tcp' and
-        grep { exists $rule{$_} } qw(sport dport syn mss tcp-flags tcp-option)) {
-        shell_append(\$rr, '-m', 'tcp');
-
-        shell_append(\$rr, '--sport', extract_negation $rule{sport})
-          if defined $rule{sport};
-        shell_append(\$rr, '--dport', extract_negation $rule{dport})
-          if defined $rule{dport};
-
-        if (defined $rule{'syn'}) {
-            shell_append(\$rr, '!')
-              unless $rule{syn} eq 'set';
-
-            shell_append(\$rr, '--syn')
-        }
-
-        shell_append(\$rr, '--mss', $rule{mss})
-          if exists $rule{mss};
-
-        shell_append(\$rr, '--tcp-flags',
-                     $rule{'tcp-flags.negated'} ? '!' : (),
-                     $rule{'tcp-flags.mask'}, $rule{'tcp-flags.match'})
-          if exists $rule{'tcp-flags'};
-
-        shell_append(\$rr, '--tcp-option', extract_negation $rule{'tcp-option'})
-          if exists $rule{'tcp-option'};
-    }
-
-    # ipt_udp parameters
-    if (defined $rule{proto} and $rule{proto} eq 'udp' and
-        grep { exists $rule{$_} } qw(sport dport)) {
-        shell_append(\$rr, '-m', 'udp');
-
-        shell_append(\$rr, '--sport', extract_negation $rule{sport})
-          if defined $rule{sport};
-        shell_append(\$rr, '--dport', extract_negation $rule{dport})
-          if defined $rule{dport};
     }
 
     # modules stored in %match_defs
@@ -1500,6 +1482,89 @@ sub parse_builtin_matches {
     }
 
     return;
+}
+
+sub parse_protocol_options {
+    my ($current, $proto, $keyword, $negated_ref) = @_;
+
+    return unless exists $proto_defs{$proto} &&
+      exists $proto_defs{$proto}{keywords}{$keyword};
+
+    my $k = $proto_defs{$proto}{keywords}{$keyword};
+    my $params = $k->{params};
+
+    my $value;
+
+    my $negated;
+    if ($$negated_ref && exists $k->{pre_negation}) {
+        $negated = 1;
+        undef $$negated_ref;
+    }
+
+    unless (defined $params) {
+        undef $value;
+    } elsif (ref $params && ref $params eq 'CODE') {
+        $value = &$params;
+    } elsif ($params =~ /^[a-z]/) {
+        if (exists $k->{negation} and not $negated) {
+            my $token = peek_token();
+            if ($token eq '!') {
+                require_next_token;
+                $negated = 1;
+            }
+        }
+
+        my @params;
+        foreach my $p (split(//, $params)) {
+            if ($p eq 's') {
+                push @params, getvar();
+            } elsif ($p eq 'a') {
+                push @params, getvalues();
+            } elsif ($p eq 'c') {
+                my @v = to_array getvalues(undef, undef,
+                                           non_empty => 1);
+                push @params, join(',', @v);
+            } else {
+                die;
+            }
+        }
+
+        $value = @params == 1
+          ? $params[0]
+            : bless \@params, 'params';
+    } elsif ($params == 1) {
+        if (exists $k->{negation} and not $negated) {
+            my $token = peek_token();
+            if ($token eq '!') {
+                require_next_token;
+                $negated = 1;
+            }
+        }
+
+        $value = getvalues();
+    } else {
+        if (exists $k->{negation} and not $negated) {
+            my $token = peek_token();
+            if ($token eq '!') {
+                require_next_token;
+                $negated = 1;
+            }
+        }
+
+        $value = bless [ map {
+            getvar()
+        } (1..$params) ], 'params';
+    }
+
+    if ($negated) {
+        $value = bless [ $value ], 'negated';
+
+        undef $negated if $k->{negation};
+    }
+
+    $current->{"protocol__${proto}__${keyword}"} = $value;
+
+    return 1;
 }
 
 sub parse_module_options {
@@ -2240,76 +2305,14 @@ sub enter {
             #
 
             my $proto = find_option(\@fw, 'proto');
+            if (defined $proto and not ref $proto) {
+                $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
 
-            # icmp protocol switches
-            if (defined $proto and
-                $proto eq 'icmp' and
-                $keyword eq 'icmp-type') {
-                $current->{$keyword} = getvalues(undef, undef,
-                                                 allow_negation => 1);
-                next;
+                parse_protocol_options($current, $proto, $keyword, \$negated)
+                  and next;
             }
 
-            # icmpv6
-            if (defined $proto and
-                ($proto eq 'icmpv6' or $proto eq 'ipv6-icmp') and
-                $keyword eq 'icmpv6-type') {
-                $current->{$keyword} = getvalues(undef, undef,
-                                                 allow_negation => 1);
-                next;
-            }
-
-            # tcp protocol switches
-            if (defined $proto and
-                grep { $_ eq 'tcp' } to_array $proto) {
-                if ($keyword =~ /^[sd]port$/) {
-                    $current->{$keyword} = getvalues(undef, undef,
-                                                     allow_negation => 1);
-                    next;
-                }
-                if ($keyword eq 'tcp-flags') {
-                    my $token = peek_token();
-                    if ($token eq '!') {
-                        require_next_token;
-                        $negated = 1;
-                    }
-
-                    my @mask = to_array getvalues(undef, undef,
-                                                  non_empty => 1);
-                    my @match = to_array getvalues(undef, undef,
-                                                   non_empty => 1);
-
-                    $current->{'tcp-flags'} = 1;
-                    $current->{'tcp-flags.mask'} = join(',', @mask);
-                    $current->{'tcp-flags.match'} = join(',', @match);
-                    $current->{'tcp-flags.negated'} = $negated;
-                    undef $negated;
-                    next;
-                }
-                if ($keyword eq 'syn') {
-                    # match tcp packages with syn-byte set
-                    if ($negated) {
-                        $current->{syn} = 'unset';
-                        undef $negated;
-                    } else {
-                        $current->{syn} = 'set';
-                    }
-                    next;
-                }
-
-                if ($keyword eq 'tcp-option') {
-                    $current->{$keyword} = getvalues(undef, undef,
-                                                     allow_negation => 1);
-                    next;
-                }
-
-                if ($keyword eq 'mss') {
-                    $current->{$keyword} = getvalues();
-                    next;
-                }
-            }
-
-            # udp protocol switches
+            # port switches
             if ($keyword eq 'port') {
                 error("source/destination not declared")
                   unless exists $current->{side};
