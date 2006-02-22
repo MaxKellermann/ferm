@@ -971,7 +971,7 @@ sub getvalues {
         $token = getvalues($code, $param);
 
         error('it is not possible to negate an array')
-          if ref $token;
+          if ref $token and not $options{allow_array_negation};
 
         return bless [ $token ], 'negated';
     } elsif ($token =~ /^.+,.+$/) {
@@ -1287,7 +1287,9 @@ sub tables {
 
     # ipt_multiport parameters
     foreach (qw(source-ports destination-ports ports)) {
-        shell_append(\$rr, "--$_", $rule{$_})
+        shell_append_option(\$rr, { params => 1,
+                                    negation => 1,
+                                  }, $_, $rule{$_})
           if exists $rule{$_};
     }
 
@@ -1587,14 +1589,23 @@ sub parse_module_options {
         # into portions of 15, and handle these portions as
         # array elements
 
-        my @ports = to_array getvalues(undef, undef, allow_negation => 1);
-        my @params;
+        my $ports = getvalues(undef, undef,
+                              allow_negation => 1,
+                              allow_array_negation => 1);
+        if (ref $ports and ref $ports eq 'ARRAY') {
+            my @params;
 
-        while (@ports) {
-            push @params, join(',', splice(@ports, 0, 15));
+            while (@$ports) {
+                push @params, join(',', splice(@$ports, 0, 15));
+            }
+
+            $current->{$keyword} = \@params;
+        } elsif (ref $ports and ref $ports eq 'negated') {
+            $ports->[0] = join(',', @{$ports->[0]});
+            $current->{$keyword} = $ports;
+        } else {
+            die;
         }
-
-        $current->{$keyword} = \@params;
 
         return 1;
     }
