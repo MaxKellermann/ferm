@@ -519,6 +519,12 @@ sub read_file_words {
 }
 
 sub initialize_netfilter {
+    my %chains = ( filter => [qw(INPUT FORWARD OUTPUT)],
+                   nat => [qw(PREROUTING POSTROUTING OUTPUT)],
+                   mangle => [qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING)],
+                   raw => [qw(PREROUTING OUTPUT)],
+                 );
+
     foreach my $domain (qw(ip ip6)) {
         my @tables = qw(filter nat mangle);
 
@@ -538,6 +544,11 @@ sub initialize_netfilter {
         }
 
         $domains{$domain}{tables_names} = \@tables;
+
+        foreach my $table (@tables) {
+            $domains{$domain}{tables}{$table}{builtin_chains} = $chains{$table}
+              if exists $chains{$table};
+        }
     }
 }
 
@@ -1181,20 +1192,13 @@ sub reset_domain {
     my $domain = shift;
 
     foreach my $table (@{$domains{$domain}{tables_names}}) {
-        my @chains;
+        if (exists $domains{$domain}{tables}{$table} &&
+            exists $domains{$domain}{tables}{$table}{builtin_chains}) {
+            my $chains = $domains{$domain}{tables}{$table}{builtin_chains};
 
-        if ($table eq 'filter') {
-            @chains = qw(INPUT FORWARD OUTPUT);
-        } elsif ($table eq 'nat') {
-            @chains = qw(PREROUTING POSTROUTING OUTPUT);
-        } elsif ($table eq 'mangle') {
-            @chains = qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
-        } elsif ($table eq 'raw') {
-            @chains = qw(PREROUTING OUTPUT);
-        }
-
-        foreach my $chain (@chains) {
-            push @rules, "$domains{$domain}{location} -t $table -P $chain ACCEPT\n";
+            foreach my $chain (@$chains) {
+                push @rules, "$domains{$domain}{location} -t $table -P $chain ACCEPT\n";
+            }
         }
 
         push @rules, "$domains{$domain}{location} -t $table -F\n";
