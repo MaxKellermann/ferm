@@ -391,8 +391,10 @@ sub compat_tos_params {
       if defined $opt_createchains;
 
     if (defined $opt_location) {
-        $domains{ip}{location} = $opt_location;
-        if ( ! -X $domains{ip}{location}) {
+        my $domain = $option{domain} || 'ip';
+
+        $domains{$domain}{location} = $opt_location;
+        if ( ! -X $domains{$domain}{location}) {
             mydie("Specified location is not executable or does not exist");
         }
     }
