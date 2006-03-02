@@ -223,6 +223,8 @@ add_match_def 'iplimit', qw(!iplimit-above=s iplimit-mask=s);
 add_match_def 'limit', qw(limit=s limit-burst=s);
 add_match_def 'mac', qw(mac-source!);
 add_match_def 'mark', qw(mark);
+add_match_def 'multiport', qw(source-ports!&multiport_params),
+  qw(destination-ports!&multiport_params ports!&multiport_params);
 add_match_def 'nth', qw(every counter start packet);
 add_match_def 'owner', qw(uid-owner gid-owner pid-owner sid-owner cmd-owner);
 add_match_def 'physdev', qw(physdev-in physdev-out),
@@ -257,6 +259,36 @@ add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TOS', qw(set-tos&compat_tos_params);
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
+
+sub multiport_params {
+    my $fw = shift;
+
+    # multiport only allows 15 ports at a time. For this
+    # reason, we do a little magic here: split the ports
+    # into portions of 15, and handle these portions as
+    # array elements
+
+    my $proto = find_option($fw, 'proto');
+    error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
+      unless defined $proto and grep { /^(?:tcp|udp)$/ } &to_array($proto);
+
+    my $value = getvalues(undef, undef,
+                          allow_negation => 1,
+                          allow_array_negation => 1);
+    if (ref $value and ref $value eq 'ARRAY') {
+        my @params;
+
+        while (@$value) {
+            push @params, join(',', splice(@$value, 0, 15));
+        }
+
+        return @params == 1
+          ? $params[0]
+            : \@params;
+    } else {
+        return join_value(',', $value);
+    }
+}
 
 sub compat_tos_params {
     my $value = getvalues();
@@ -1300,14 +1332,6 @@ sub tables {
         }
     }
 
-    # ipt_multiport parameters
-    foreach (qw(source-ports destination-ports ports)) {
-        shell_append_option(\$rr, { params => 1,
-                                    negation => 1,
-                                  }, $_, $rule{$_})
-          if exists $rule{$_};
-    }
-
     # modules stored in %match_defs
     while (my ($key, $value) = each %rule) {
         next unless $key =~ /^module__(\w+)__([-\w]+)$/;
@@ -1593,34 +1617,6 @@ sub parse_protocol_options {
 
 sub parse_module_options {
     my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
-    # ipt_multiport switches
-    if (exists $modules->{multiport} and
-        $keyword =~ /^(?:(?:source-|destination-|)ports)$/) {
-        error('To use multiport options, you have to specify "proto tcp" or "proto udp" first')
-          unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array $proto;
-
-        # multiport only allows 15 ports at a time. For this
-        # reason, we do a little magic here: split the ports
-        # into portions of 15, and handle these portions as
-        # array elements
-
-        my $ports = getvalues(undef, undef,
-                              allow_negation => 1,
-                              allow_array_negation => 1);
-        if (ref $ports and ref $ports eq 'ARRAY') {
-            my @params;
-
-            while (@$ports) {
-                push @params, join(',', splice(@$ports, 0, 15));
-            }
-
-            $current->{$keyword} = \@params;
-        } else {
-            $current->{$keyword} = join_value(',', $ports);
-        }
-
-        return 1;
-    }
 
     # modules stored in %match_defs
     while (my ($name, $mod) = each %match_defs) {
