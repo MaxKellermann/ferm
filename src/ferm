@@ -1502,7 +1502,7 @@ sub parse_builtin_matches {
 }
 
 sub parse_keyword {
-    my ($current, $def, $keyword, $negated_ref) = @_;
+    my ($fw, $def, $keyword, $negated_ref) = @_;
 
     my $params = $def->{params};
 
@@ -1517,7 +1517,7 @@ sub parse_keyword {
     unless (defined $params) {
         undef $value;
     } elsif (ref $params && ref $params eq 'CODE') {
-        $value = &$params;
+        $value = &$params($fw);
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
@@ -1579,20 +1579,20 @@ sub parse_keyword {
 }
 
 sub parse_protocol_options {
-    my ($current, $proto, $keyword, $negated_ref) = @_;
+    my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
 
     return unless exists $proto_defs{$proto} &&
       exists $proto_defs{$proto}{keywords}{$keyword};
 
     $current->{"protocol__${proto}__${keyword}"}
-      = parse_keyword($current, $proto_defs{$proto}{keywords}{$keyword},
+      = parse_keyword($fw, $proto_defs{$proto}{keywords}{$keyword},
                       $keyword, $negated_ref);
 
     return 1;
 }
 
 sub parse_module_options {
-    my ($current, $modules, $keyword, $negated_ref, $proto) = @_;
+    my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
     # ipt_multiport switches
     if (exists $modules->{multiport} and
         $keyword =~ /^(?:(?:source-|destination-|)ports)$/) {
@@ -1629,7 +1629,7 @@ sub parse_module_options {
         next unless defined $k;
 
         $current->{"module__${name}__${keyword}"}
-          = parse_keyword($current, $k,
+          = parse_keyword($fw, $k,
                           $keyword, $negated_ref);
 
         # reset hash
@@ -1642,7 +1642,7 @@ sub parse_module_options {
 }
 
 sub parse_target_options {
-    my ($current, $target, $keyword) = @_;
+    my ($fw, $current, $target, $keyword) = @_;
 
     return unless exists $target_defs{$target} &&
       exists $target_defs{$target}{keywords}{$keyword};
@@ -1658,7 +1658,7 @@ sub parse_target_options {
 
     my $negated_dummy;
     $current->{target_options}{$keyword}
-      = parse_keyword($current, $k,
+      = parse_keyword($fw, $k,
                       $keyword, \$negated_dummy);
 
     return 1;
@@ -2239,7 +2239,7 @@ sub enter {
             if (defined $proto and not ref $proto) {
                 $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
 
-                parse_protocol_options($current, $proto, $keyword, \$negated)
+                parse_protocol_options(\@fw, $current, $proto, $keyword, \$negated)
                   and next;
             }
 
@@ -2275,7 +2275,7 @@ sub enter {
             }
 
             if (keys %modules) {
-                parse_module_options($current, \%modules, $keyword, \$negated, $proto)
+                parse_module_options(\@fw, $current, \%modules, $keyword, \$negated, $proto)
                   and next;
             }
 
@@ -2285,7 +2285,7 @@ sub enter {
 
             my $target = find_option(\@fw, 'action');
             if (defined $target and
-                parse_target_options($current, $target, $keyword)) {
+                parse_target_options(\@fw, $current, $target, $keyword)) {
                 next;
             }
 
