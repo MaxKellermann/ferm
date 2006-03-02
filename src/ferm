@@ -1382,17 +1382,26 @@ sub mkrules {
     my $fw = shift;
 
     if (exists $option{domain}) {
-        my @domains = to_array $fw->[0]{domain};
+        my $found;
+        foreach my $i (0 .. @$fw - 1) {
+            next unless exists $fw->[$i]{domain};
 
-        if (grep { $_ eq $option{domain} } @domains) {
-            # copy @$fw and limit to the selected domain
-            $fw = [ @$fw ];
-            $fw->[0] = {%{$fw->[0]}};
-            $fw->[0]{domain} = $option{domain};
-        } else {
-            # wrong domain - skip
-            return;
+            my @domains = to_array $fw->[$i]{domain};
+            if (grep { $_ eq $option{domain} } @domains) {
+                # copy @$fw and limit to the selected domain
+                $fw = [ @$fw ];
+                $fw->[$i] = {%{$fw->[$i]}};
+                $fw->[$i]{domain} = $option{domain};
+
+                $found = 1;
+                last;
+            } else {
+                # wrong domain - skip
+                return;
+            }
         }
+
+        die unless $found;
     }
 
     # pack the data in a handy format (list-of-hashes with one kw
