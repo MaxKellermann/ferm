@@ -520,7 +520,7 @@ sub read_file_words {
 
 sub initialize_netfilter {
     foreach my $domain (qw(ip ip6)) {
-        my @tables;
+        my @tables = qw(filter nat mangle);
 
         unless ($option{test}) {
             # read tables_matches
@@ -536,9 +536,6 @@ sub initialize_netfilter {
             @tables = @$tables
               if defined $tables;
         }
-
-        @tables = qw(filter nat mangle)
-          unless @tables;
 
         $domains{$domain}{tables_names} = \@tables;
     }
