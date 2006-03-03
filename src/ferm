@@ -1189,23 +1189,47 @@ sub extract_negation {
         : $_;
 }
 
-sub reset_domain {
+sub reset_table {
     my $domain = shift;
+    my $table = shift;
 
-    foreach my $table (@{$domains{$domain}{tables_names}}) {
-        if (exists $domains{$domain}{tables}{$table} &&
-            exists $domains{$domain}{tables}{$table}{builtin_chains}) {
-            my $chains = $domains{$domain}{tables}{$table}{builtin_chains};
+    error("Table '$table' does not exist in domain $domain")
+      unless grep { $_ eq $table } @{$domains{$domain}{tables_names}};
 
-            foreach my $chain (@$chains) {
-                push @rules, "$domains{$domain}{location} -t $table -P $chain ACCEPT\n";
-            }
+    if (exists $domains{$domain}{tables}{$table} &&
+        exists $domains{$domain}{tables}{$table}{builtin_chains}) {
+        my $chains = $domains{$domain}{tables}{$table}{builtin_chains};
+
+        foreach my $chain (@$chains) {
+            push @rules, "$domains{$domain}{location} -t $table -P $chain ACCEPT\n";
         }
-
-        push @rules, "$domains{$domain}{location} -t $table -F\n";
-        push @rules, "$domains{$domain}{location} -t $table -X\n";
     }
 
+    push @rules, "$domains{$domain}{location} -t $table -F\n";
+    push @rules, "$domains{$domain}{location} -t $table -X\n";
+}
+
+sub reset_domain_or_table {
+    my $domain = shift;
+    my $table = shift;
+
+    if ($domains{$domain}{tables_names_guessed}) {
+        # we don't know for sure which tables exist; reset only tables
+        # which are being referenced
+
+        reset_table($domain, $table);
+    } else {
+        # we have an authoritative list of tables; reset all of them
+        # now
+
+        foreach my $table2 (@{$domains{$domain}{tables_names}}) {
+            reset_table($domain, $table2);
+            $domains{$domain}{tables}{$table2}{reset} = 1;
+        }
+
+        reset_table($domain, $table)
+          unless $domains{$domain}{tables}{$table}{reset};
+    }
 }
 
 sub tables {
@@ -1218,9 +1242,10 @@ sub tables {
     $chain = $domain->{chains}{$rule{table}}{$rule{chain}} = {}
       unless defined $chain;
 
-    unless ($domains{$rule{domain}}{reset}) {
-        reset_domain($rule{domain});
-        $domains{$rule{domain}}{reset} = 1;
+    unless (exists $domains{$rule{domain}}{tables}{$rule{table}} &&
+            $domains{$rule{domain}}{tables}{$rule{table}}{reset}) {
+        reset_domain_or_table($rule{domain}, $rule{table});
+        $domains{$rule{domain}}{tables}{$rule{table}}{reset} = 1;
     }
 
     # iptables, for 2.3/2.4 kernels
