@@ -545,9 +545,8 @@ sub initialize_netfilter {
 
         $domains{$domain}{tables_names} = \@tables;
 
-        foreach my $table (@tables) {
-            $domains{$domain}{tables}{$table}{builtin_chains} = $chains{$table}
-              if exists $chains{$table};
+        while (my ($table, $chains) = each %chains) {
+            $domains{$domain}{tables}{$table}{builtin_chains} = $chains;
         }
     }
 }
