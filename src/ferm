@@ -2056,7 +2056,7 @@ sub enter {
 
                 foreach my $domain2 (to_array $domain) {
                     foreach my $table (to_array $current->{table}) {
-                        error("Table '$table' does not exist in domain $domain2")
+                        warn("Table '$table' does not exist in domain $domain2")
                           unless grep { $_ eq $table } @{$domains{$domain2}{tables_names}};
                     }
                 }
@@ -2191,7 +2191,7 @@ sub enter {
 
                 foreach my $module (to_array getvalues) {
                     foreach my $domain (to_array $domains) {
-                        error("Module '$module' unavailable in domain '$domain'")
+                        warn("Module '$module' unavailable in domain '$domain'")
                           unless netfilter_match_available($domain, $module);
                     }
 
