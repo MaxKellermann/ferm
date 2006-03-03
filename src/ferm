@@ -525,9 +525,9 @@ sub initialize_netfilter {
                    raw => [qw(PREROUTING OUTPUT)],
                  );
 
-    foreach my $domain (qw(ip ip6)) {
-        my @tables = qw(filter nat mangle);
+    my @default_ip_tables = qw(filter nat mangle);
 
+    foreach my $domain (qw(ip ip6)) {
         unless ($option{test}) {
             # read tables_matches
             $domains{$domain}{tables_matches}
@@ -538,12 +538,14 @@ sub initialize_netfilter {
               = read_file_words("/proc/net/${domain}_tables_targets");
 
             # read tables_names
-            my $tables = read_file_words("/proc/net/${domain}_tables_names");
-            @tables = @$tables
-              if defined $tables;
+            $domains{$domain}{tables_names}
+              = read_file_words("/proc/net/${domain}_tables_names");
         }
 
-        $domains{$domain}{tables_names} = \@tables;
+        unless (defined $domains{$domain}{tables_names}) {
+            $domains{$domain}{tables_names} = \@default_ip_tables;
+            $domains{$domain}{tables_names_guessed} = 1;
+        }
 
         while (my ($table, $chains) = each %chains) {
             $domains{$domain}{tables}{$table}{builtin_chains} = $chains;
