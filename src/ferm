@@ -580,12 +580,13 @@ sub netfilter_target_available {
 }
 
 sub tokenize_string {
-    # split the an input string into words
+    # split the an input string into words and delete comments
     my ($string) = @_;
 
     my @ret;
 
-    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+)/g) {
+    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|#)/g) {
+        last if $word eq '#';
         push @ret, $word;
     }
 
@@ -610,9 +611,6 @@ sub read_header {
         return unless defined $line;
 
         $script->{line} ++;
-
-        # chop comments:
-        $line =~ s/#.*$//g;
 
         my @line = tokenize_string($line);
         next unless @line;
@@ -685,9 +683,6 @@ sub prepare_tokens {
         return unless defined $line;
 
         $script->{line} ++;
-
-        # chop comments:
-        $line =~ s/#.*$//g;
 
         my @line = tokenize_string($line);
 
