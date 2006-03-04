@@ -1,0 +1,4 @@
+# test semi-automatic subchains
+domain (ip ip6) table filter chain INPUT proto udp subchain {
+    dport domain ACCEPT;
+}

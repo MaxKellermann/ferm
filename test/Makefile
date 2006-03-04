@@ -7,6 +7,9 @@ FERM_SCRIPTS += positive/bug positive/iptables-targets positive/masqto positive/
 FERM_SCRIPTS += $(wildcard modules/*.ferm) $(wildcard targets/*.ferm) $(wildcard protocols/*.ferm) $(wildcard misc/*.ferm)
 FERM_SCRIPTS += $(wildcard ipv6/*.ferm)
 
+EXCLUDE_IMPORT = misc/subchain-domains.ferm
+IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
+
 all:
 
 clean:
@@ -48,6 +51,6 @@ tmp/%.SAVE2: tmp/%.IMPORT $(NEW_FERM)
 
 check-ferm: $(patsubst %,tmp/%.check,$(FERM_SCRIPTS))
 
-check-import: $(patsubst %,tmp/%.check-import,$(FERM_SCRIPTS))
+check-import: $(patsubst %,tmp/%.check-import,$(IMPORT_SCRIPTS))
 
 check: check-ferm check-import
