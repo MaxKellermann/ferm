@@ -1237,11 +1237,11 @@ sub tables {
     my $rule = shift;
     my %rule = %$rule;
 
-    my $domain = $domains{$rule{domain}};
-    die unless $domain and $domain->{location};
-    my $chain = $domain->{chains}{$rule{table}}{$rule{chain}};
-    $chain = $domain->{chains}{$rule{table}}{$rule{chain}} = {}
-      unless defined $chain;
+    my $domain_info = $domains{$rule{domain}};
+    die unless $domain_info and $domain_info->{location};
+    my $chain_info = $domain_info->{chains}{$rule{table}}{$rule{chain}};
+    $chain_info = $domain_info->{chains}{$rule{table}}{$rule{chain}} = {}
+      unless defined $chain_info;
 
     unless (exists $domains{$rule{domain}}{tables}{$rule{table}} &&
             $domains{$rule{domain}}{tables}{$rule{table}}{reset}) {
@@ -1254,27 +1254,27 @@ sub tables {
     my $rrr = "";
 
     # pre-setup rrr for creation of chains
-    $rrr .= "$domain->{location} -t " . $rule{'table'} . " ";
+    $rrr .= "$domain_info->{location} -t " . $rule{'table'} . " ";
 
     # should we set a policy?
-    if (exists $chain->{set_policy}) {
-        my $policy = $chain->{policy};
+    if (exists $chain_info->{set_policy}) {
+        my $policy = $chain_info->{policy};
 
         push @rules, $rrr . "-P $rule{chain} $policy\n";
 
-        delete $chain->{set_policy};
+        delete $chain_info->{set_policy};
     }
 
     # mark this chain as "non-empty" because we will add stuff to
     # it now; this flag is later used to check if a custom chain
     # referenced by "goto" was actually defined
-    $chain->{non_empty} = 1;
+    $chain_info->{non_empty} = 1;
 
     # check if the chain is already defined
-    unless (exists $chain->{was_created} or
+    unless (exists $chain_info->{was_created} or
             is_netfilter_builtin_chain($rule{table}, $rule{chain})) {
         push @rules, $rrr . "-N $rule{chain}\n";
-        $chain->{was_created} = 1;
+        $chain_info->{was_created} = 1;
     }
 
     # do not create anything for the NOP action
@@ -1285,9 +1285,9 @@ sub tables {
     if (defined $rule{action} and
         not is_netfilter_core_target($rule{action}) and
         not is_netfilter_module_target($rule{action}) and
-        not exists $domain->{chains}{$rule{table}}{$rule{action}}{was_created}) {
+        not exists $domain_info->{chains}{$rule{table}}{$rule{action}}{was_created}) {
         push @rules, $rrr . "-N $rule{action}\n";
-        $domain->{chains}{$rule{table}}{$rule{action}}{was_created} = 1;
+        $domain_info->{chains}{$rule{table}}{$rule{action}}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
