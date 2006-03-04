@@ -140,7 +140,7 @@ sub is_netfilter_core_target {
     my $target = shift;
     die unless defined $target and length $target;
 
-    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE)$/;
+    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE|NOP)$/;
 }
 
 sub is_netfilter_module_target {
@@ -440,7 +440,11 @@ sub flush {
         }
 
         foreach (qw(match jump target)) {
-            next unless exists $rule->{$_};
+            unless (exists $rule->{$_}) {
+                push @line, 'NOP' if $_ eq 'jump';
+                next;
+            }
+
             while (my ($key, $value) = each %{$rule->{$_}}) {
                 flush_option(\@line, $key, $value);
             }

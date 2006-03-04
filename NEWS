@@ -40,7 +40,6 @@ v1.1+cvs - 6 Jun 2005
     * source/destination
     * option automod
     * policy within a rule declaration
-    * target NOP, which is useless
   - fixed the double-module bug
   - show filename and line number in error message
   - implemented the 'include' command

@@ -123,6 +123,7 @@ use vars qw(%deprecated_keywords %automod);
                          tcpmss => 'TCPMSS',
                          ttl => 'TTL',
                          ulog => 'ULOG',
+                         nop => 'NOP',
                        );
 
 # support for the deprecated "automod" option. provide a mapping
@@ -1288,12 +1289,9 @@ sub tables {
         $chain_info->{was_created} = 1;
     }
 
-    # do not create anything for the NOP action
-    return
-      if $action eq 'NOP';
-
     # check for unknown jump target
     if (defined $action and
+        $action ne 'NOP' and
         not is_netfilter_core_target($action) and
         not is_netfilter_module_target($action) and
         not exists $domain_info->{chains}{$table}{$action}{was_created}) {
@@ -1387,7 +1385,8 @@ sub tables {
     # target options
     #
 
-    shell_append(\$rr, '-j', $action);
+    shell_append(\$rr, '-j', $action)
+      unless $action eq 'NOP';
 
     # targets stored in %target_defs
 
@@ -2238,12 +2237,11 @@ sub enter {
                 next;
             }
 
-            if (uc $keyword eq 'NOP') {
+            if ($keyword eq 'NOP') {
                 error('There can only one action per rule')
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
-                warning('"NOP" is deprecated');
                 $current->{action} = uc $keyword;
                 next;
             }

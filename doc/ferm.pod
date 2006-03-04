@@ -551,6 +551,10 @@ Type "iptables -j REJECT -h" for details.
 Finish the current chain and return to the calling chain (if "goto
 [custom-chain-name]" was used).
 
+=item B<NOP>
+
+No action at all.
+
 =back
 
 
