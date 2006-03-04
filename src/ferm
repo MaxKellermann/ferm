@@ -429,7 +429,9 @@ check();
 
 # and execute all generated rules
 if ($option{fast}) {
-    execute_fast(rules_to_save($rules{ip}));
+    while (my ($domain, $rules) = each %rules) {
+        execute_fast($domain, rules_to_save($rules));
+    }
 } else {
     execute();
 }
@@ -2472,19 +2474,21 @@ sub rules_to_save {
 }
 
 sub execute_fast {
-    my $save = shift;
+    my ($domain, $save) = @_;
 
     print $save
       if $option{lines};
 
     return if $option{noexec};
 
+    my $restore = "/sbin/${domain}tables-restore";
+
     local *RESTORE;
-    open RESTORE, '|/sbin/iptables-restore'
-      or die "Failed to run iptables-restore: $!";
+    open RESTORE, "|$restore"
+      or die "Failed to run $restore: $!";
     print RESTORE $save;
     close RESTORE
-      or die "Failed to run iptables-restore: $!";
+      or die "Failed to run $restore: $!";
 }
 
 # end of ferm
