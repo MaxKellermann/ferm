@@ -30,7 +30,6 @@
 use strict;
 use IO::File;
 use Getopt::Long;
-use Pod::Usage;
 
 use vars qw($VERSION);
 
@@ -337,8 +336,10 @@ sub compat_tos_params {
                'domain=s' => \$opt_domain,
               );
 
-    pod2usage(-exitstatus => 0)
-      if defined $opt_help;
+    if (defined $opt_help) {
+        require Pod::Usage;
+        Pod::Usage::pod2usage(-exitstatus => 0);
+    }
 
     if (defined $opt_version) {
         printversion();
@@ -404,8 +405,10 @@ sub compat_tos_params {
 
 &initialize_netfilter;
 
-pod2usage(-exitstatus => 1)
-  unless @ARGV == 1;
+unless (@ARGV == 1) {
+    require Pod::Usage;
+    Pod::Usage::pod2usage(-exitstatus => 1);
+}
 
 push @stack, {};
 open_script($ARGV[0]);
