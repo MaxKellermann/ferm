@@ -1237,16 +1237,23 @@ sub tables {
     my $rule = shift;
     my %rule = %$rule;
 
-    my $domain_info = $domains{$rule{domain}};
+    my $domain = $rule{domain};
+    my $domain_info = $domains{$domain};
     die unless $domain_info and $domain_info->{location};
-    my $chain_info = $domain_info->{chains}{$rule{table}}{$rule{chain}};
-    $chain_info = $domain_info->{chains}{$rule{table}}{$rule{chain}} = {}
+
+    my $table = $rule{table};
+    my $table_info = $domain_info->{tables}{$table};
+    $table_info = $domain_info->{tables}{$table} = {}
+      unless defined $table_info;
+
+    my $chain = $rule{chain};
+    my $chain_info = $domain_info->{chains}{$table}{$chain};
+    $chain_info = $domain_info->{chains}{$table}{$chain} = {}
       unless defined $chain_info;
 
-    unless (exists $domains{$rule{domain}}{tables}{$rule{table}} &&
-            $domains{$rule{domain}}{tables}{$rule{table}}{reset}) {
-        reset_domain_or_table($rule{domain}, $rule{table});
-        $domains{$rule{domain}}{tables}{$rule{table}}{reset} = 1;
+    unless ($table_info->{reset}) {
+        reset_domain_or_table($domain, $table);
+        $table_info->{reset} = 1;
     }
 
     # iptables, for 2.3/2.4 kernels
@@ -1260,7 +1267,7 @@ sub tables {
     if (exists $chain_info->{set_policy}) {
         my $policy = $chain_info->{policy};
 
-        push @rules, $rrr . "-P $rule{chain} $policy\n";
+        push @rules, $rrr . "-P $chain $policy\n";
 
         delete $chain_info->{set_policy};
     }
@@ -1272,8 +1279,8 @@ sub tables {
 
     # check if the chain is already defined
     unless (exists $chain_info->{was_created} or
-            is_netfilter_builtin_chain($rule{table}, $rule{chain})) {
-        push @rules, $rrr . "-N $rule{chain}\n";
+            is_netfilter_builtin_chain($table, $chain)) {
+        push @rules, $rrr . "-N $chain\n";
         $chain_info->{was_created} = 1;
     }
 
@@ -1285,21 +1292,20 @@ sub tables {
     if (defined $rule{action} and
         not is_netfilter_core_target($rule{action}) and
         not is_netfilter_module_target($rule{action}) and
-        not exists $domain_info->{chains}{$rule{table}}{$rule{action}}{was_created}) {
+        not exists $domain_info->{chains}{$table}{$rule{action}}{was_created}) {
         push @rules, $rrr . "-N $rule{action}\n";
-        $domain_info->{chains}{$rule{table}}{$rule{action}}{was_created} = 1;
+        $domain_info->{chains}{$table}{$rule{action}}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
     return
       unless $rule{has_rule};
 
-    shell_append(\$rr, $domains{$rule{domain}}{location});
+    shell_append(\$rr, $domain_info->{location});
 
-    shell_append(\$rr, '-t', $rule{table})
-      if defined $rule{'table'};
+    shell_append(\$rr, '-t', $table);
 
-    shell_append(\$rr, '-A', $rule{chain});
+    shell_append(\$rr, '-A', $chain);
 
     # modules
     if (exists $rule{modules}) {
