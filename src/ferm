@@ -423,7 +423,8 @@ if (defined $domains{ip}{location}) {
     $domains{ip}{location} = 'iptables';
 }
 
-$domains{ip6}{location} = 'ip6tables';
+$domains{ip6}{location} = 'ip6tables'
+  unless defined $domains{ip6}{location};
 
 # parse all input recursively
 enter(0);
