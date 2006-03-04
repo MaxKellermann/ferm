@@ -1253,6 +1253,8 @@ sub tables {
     $chain_info = $domain_info->{chains}{$table}{$chain} = {}
       unless defined $chain_info;
 
+    my $action = $rule{action};
+
     unless ($table_info->{reset}) {
         reset_domain_or_table($domain, $table);
         $table_info->{reset} = 1;
@@ -1288,15 +1290,15 @@ sub tables {
 
     # do not create anything for the NOP action
     return
-      if $rule{action} eq 'NOP';
+      if $action eq 'NOP';
 
     # check for unknown jump target
-    if (defined $rule{action} and
-        not is_netfilter_core_target($rule{action}) and
-        not is_netfilter_module_target($rule{action}) and
-        not exists $domain_info->{chains}{$table}{$rule{action}}{was_created}) {
-        push @{$rules{$domain}}, $rrr . "-N $rule{action}\n";
-        $domain_info->{chains}{$table}{$rule{action}}{was_created} = 1;
+    if (defined $action and
+        not is_netfilter_core_target($action) and
+        not is_netfilter_module_target($action) and
+        not exists $domain_info->{chains}{$table}{$action}{was_created}) {
+        push @{$rules{$domain}}, $rrr . "-N $action\n";
+        $domain_info->{chains}{$table}{$action}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
@@ -1384,8 +1386,6 @@ sub tables {
     #
     # target options
     #
-
-    my $action = $rule{action};
 
     shell_append(\$rr, '-j', $action);
 
