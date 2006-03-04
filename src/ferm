@@ -255,7 +255,7 @@ add_target_def 'NETMAP', qw(to);
 add_target_def 'REDIRECT', qw(to-ports);
 add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
-add_target_def 'SNAT', qw(to-source=a);
+add_target_def 'SNAT', qw(to-source=a to:=to-source);
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TOS', qw(set-tos&compat_tos_params);
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
