@@ -45,6 +45,7 @@ use vars qw(%option);
 # %oldvars = ferm 1.1 compatibility variables, name => value
 # %vars = ferm variables, name => value
 # @rules = the rules which are being created
+# $auto_chain = index for the next auto-generated chain
 use vars qw($script %oldvars @rules @stack $auto_chain);
 
 ## netfilter variables
