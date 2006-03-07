@@ -2101,7 +2101,7 @@ sub enter {
                 my $chains = find_option(\@fw, 'chain');
 
                 my $policy = uc getvar();
-                error("Invalid policy target: $keyword")
+                error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
                 foreach my $domain (to_array $domains) {
