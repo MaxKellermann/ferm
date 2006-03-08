@@ -106,6 +106,8 @@ use vars qw(%deprecated_keywords %automod);
                          psddelaythreshold => 'psd-delay-threshold',
                          psdloportsweight => 'psd-lo-ports-weight',
                          psdhiportsweight => 'psd-hi-ports-weight',
+                         deny => 'DROP',
+                         DENY => 'DROP',
                          MASQ => 'MASQUERADE',
                          masq => 'MASQUERADE',
                          masquerade => 'MASQUERADE',
