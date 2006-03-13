@@ -10,7 +10,9 @@
 def $NET_TRUSTED = 195.135.144.144/28;
 
 table filter {
-    chain INPUT policy DROP {
+    chain INPUT {
+        policy DROP;
+
         # connection tracking
         mod state state INVALID DROP;
         mod state state (ESTABLISHED RELATED) ACCEPT;

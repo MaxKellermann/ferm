@@ -13,7 +13,9 @@ def $DEV_WORLD = ppp0;
 def $NET_PRIVATE = 192.168.0.0/16;
 
 table filter {
-    chain INPUT policy DROP {
+    chain INPUT {
+        policy DROP;
+
         # connection tracking
         mod state state INVALID DROP;
         mod state state (ESTABLISHED RELATED) ACCEPT;
@@ -55,7 +57,9 @@ table filter {
     # outgoing connections are not limited
     chain OUTPUT policy ACCEPT;
 
-    chain FORWARD policy DROP {
+    chain FORWARD {
+        policy DROP;
+
         # connection tracking
         mod state state INVALID DROP;
         mod state state (ESTABLISHED RELATED) ACCEPT;
