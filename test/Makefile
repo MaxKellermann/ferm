@@ -1,6 +1,8 @@
 TOPDIR = ..
 include $(TOPDIR)/config.mk
 
+STAMPDIR = tmp
+
 # a list of all ferm scripts which should be tested with iptables
 FERM_SCRIPTS = positive/flush positive/multimod positive/policyorder
 FERM_SCRIPTS += positive/bug positive/iptables-targets positive/masqto positive/mod params/owner positive/state positive/tables2 positive/TCPMSS positive/ttlset positive/ulog positive/varlists
@@ -13,30 +15,30 @@ IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 all:
 
 clean:
-	rm -rf tmp
+	rm -rf $(STAMPDIR)
 
-tmp/%.OLD: PATCHFILE = $(shell test -f "patch/$(<).iptables" && echo "patch/$(<).iptables" )
-tmp/%.OLD: % $(OLD_FERM) canonical.pl
+$(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "patch/$(<).iptables" && echo "patch/$(<).iptables" )
+$(STAMPDIR)/%.OLD: % $(OLD_FERM) canonical.pl
 	@mkdir -p $(dir $@)
 	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else perl $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
 	if test -n "$(PATCHFILE)"; then patch -i$(PATCHFILE) $@.tmp1; fi
 	perl canonical.pl <$@.tmp1 >$@.tmp2
 	@mv $@.tmp2 $@
 
-tmp/%.NEW: % $(NEW_FERM) ./canonical.pl
+$(STAMPDIR)/%.NEW: % $(NEW_FERM) ./canonical.pl
 	@mkdir -p $(dir $@)
 	perl $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
 	perl canonical.pl <$@.tmp1 >$@.tmp2
 	-mv $@.tmp2 $@
 
-tmp/%.SAVE: % $(NEW_FERM)
+$(STAMPDIR)/%.SAVE: % $(NEW_FERM)
 	@mkdir -p $(dir $@)
 	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
-tmp/%.IMPORT: tmp/%.SAVE $(TOPDIR)/src/import-ferm
+$(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE $(TOPDIR)/src/import-ferm
 	perl $(TOPDIR)/src/import-ferm $< >$@
 
-tmp/%.SAVE2: tmp/%.IMPORT $(NEW_FERM)
+$(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
 	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
 %.check: %.OLD %.NEW
@@ -49,8 +51,8 @@ tmp/%.SAVE2: tmp/%.IMPORT $(NEW_FERM)
 
 .PHONY : check-ferm check-import check
 
-check-ferm: $(patsubst %,tmp/%.check,$(FERM_SCRIPTS))
+check-ferm: $(patsubst %,$(STAMPDIR)/%.check,$(FERM_SCRIPTS))
 
-check-import: $(patsubst %,tmp/%.check-import,$(IMPORT_SCRIPTS))
+check-import: $(patsubst %,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
 
 check: check-ferm check-import
