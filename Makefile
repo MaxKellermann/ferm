@@ -121,7 +121,7 @@ install: all
 	install -d -m 755 $(DOCDIR) $(MANDIR)
 	install -m 644 doc/ferm.txt doc/ferm.html $(DOCDIR)
 	install -m 644 doc/ferm.1 $(MANDIR)
-	gzip -9 $(MANDIR)/ferm.1
+	gzip -f9 $(MANDIR)/ferm.1
 
 uninstall:
 	rm -rf $(DOCDIR)
