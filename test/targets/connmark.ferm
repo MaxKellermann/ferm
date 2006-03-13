@@ -1,4 +1,4 @@
-table filter chain input {
+table filter chain INPUT {
     proto udp CONNMARK set-mark 7;
     proto tcp CONNMARK save-mark;
     proto tcp CONNMARK restore-mark;

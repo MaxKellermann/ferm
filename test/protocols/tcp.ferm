@@ -1,4 +1,4 @@
-chain input {
+chain INPUT {
     proto tcp dport 22 ACCEPT;
     proto tcp dport ! 22 DROP;
     proto tcp {

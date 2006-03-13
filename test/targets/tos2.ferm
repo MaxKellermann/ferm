@@ -1,4 +1,4 @@
-table filter chain input {
+table filter chain INPUT {
     TOS settos interactive;
     TOS settos max-throughput;
     TOS settos reliable;

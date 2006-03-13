@@ -1,4 +1,4 @@
-chain input {
+chain INPUT {
     ULOG;
     ULOG ulog-nlgroup 1;
     ULOG ulog-prefix "foo;bar";

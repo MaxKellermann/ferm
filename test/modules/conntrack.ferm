@@ -1,4 +1,4 @@
-table filter chain input mod conntrack {
+table filter chain INPUT mod conntrack {
     ctstate INVALID DROP;
     ctstate (DNAT SNAT) REJECT;
     ctproto ftp ACCEPT;

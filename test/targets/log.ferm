@@ -1,4 +1,4 @@
-chain input {
+chain INPUT {
     LOG;
     LOG log-prefix "foo bar";
     LOG log-prefix "foo;bar";

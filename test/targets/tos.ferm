@@ -1,4 +1,4 @@
-table filter chain input {
+table filter chain INPUT {
     TOS set-tos Minimize-Delay;
     TOS set-tos Maximize-Throughput;
     TOS set-tos Maximize-Reliability;

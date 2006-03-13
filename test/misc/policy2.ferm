@@ -1,4 +1,4 @@
-chain input {
+chain INPUT {
         policy DROP;
         proto tcp dport http ACCEPT;
 }

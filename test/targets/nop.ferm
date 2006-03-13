@@ -1,3 +1,3 @@
-table filter chain input {
+table filter chain INPUT {
     proto tcp dport http NOP;
 }

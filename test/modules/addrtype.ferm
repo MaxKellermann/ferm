@@ -1,4 +1,4 @@
-table filter chain input mod addrtype {
+table filter chain INPUT mod addrtype {
     src-type UNSPEC ACCEPT;
     src-type BLACKHOLE ACCEPT;
     src-type PROHIBIT ACCEPT;

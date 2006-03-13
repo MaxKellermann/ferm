@@ -1,3 +1,3 @@
-table nat chain postrouting {
+table nat chain POSTROUTING {
     outerface eth2 NETMAP to 192.168.1.0/24;
 }

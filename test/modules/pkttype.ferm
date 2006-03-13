@@ -1,4 +1,4 @@
-table filter chain input mod pkttype {
+table filter chain INPUT mod pkttype {
     pkt-type unicast ACCEPT;
     pkttype multicast DROP;
 }

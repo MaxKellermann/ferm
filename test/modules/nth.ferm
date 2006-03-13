@@ -1,4 +1,4 @@
-table filter chain input mod nth {
+table filter chain INPUT mod nth {
     every 5 DROP;
     every 3 counter 1 start 2 packet 1 REJECT;
 }

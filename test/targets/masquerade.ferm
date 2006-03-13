@@ -1,4 +1,4 @@
-table nat chain postrouting {
+table nat chain POSTROUTING {
     outerface ppp0 MASQUERADE;
     outerface ppp0 MASQUERADE to-ports 10000:20000;
 }

@@ -1,4 +1,4 @@
-chain input {
+chain INPUT {
     REJECT;
     REJECT reject-with icmp-host-prohibited;
 }

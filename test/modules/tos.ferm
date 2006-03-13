@@ -1,4 +1,4 @@
-table filter chain input mod tos {
+table filter chain INPUT mod tos {
     tos Minimize-Delay ACCEPT;
     tos Maximize-Throughput ACCEPT;
     tos Maximize-Reliability ACCEPT;

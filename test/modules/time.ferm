@@ -1,4 +1,4 @@
-table filter chain input mod time {
+table filter chain INPUT mod time {
     proto tcp dport ssh {
         timestart 09:00 timestop 18:00 ACCEPT;
         REJECT reject-with icmp-host-prohibited;
