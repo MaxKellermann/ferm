@@ -14,7 +14,7 @@ LSMFILE	= build/ferm-${VERSION}.lsm
 
 .PHONY: all clean
 
-all: doc/ferm.txt doc/ferm.html doc/ferm.1
+all: doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1
 
 clean:
 	rm -rf build
@@ -31,6 +31,11 @@ doc/ferm.html: doc/ferm.pod
 	pod2html $< --netscape --flush > $@
 
 doc/ferm.1: doc/ferm.pod
+	pod2man --section=1 --release="ferm $(VERSION)" \
+		--center="FIREWALL RULES MADE EASY" \
+		--official $< > $@
+
+doc/import-ferm.1: src/import-ferm
 	pod2man --section=1 --release="ferm $(VERSION)" \
 		--center="FIREWALL RULES MADE EASY" \
 		--official $< > $@
@@ -120,12 +125,12 @@ install: all
 
 	install -d -m 755 $(DOCDIR) $(MANDIR)
 	install -m 644 doc/ferm.txt doc/ferm.html $(DOCDIR)
-	install -m 644 doc/ferm.1 $(MANDIR)
-	gzip -f9 $(MANDIR)/ferm.1
+	install -m 644 doc/{import-,}ferm.1 $(MANDIR)
+	gzip -f9 $(MANDIR)/{import-,}ferm.1
 
 uninstall:
 	rm -rf $(DOCDIR)
-	rm -f $(MANDIR)/ferm.1 $(MANDIR)/ferm.1.gz
+	rm -f $(MANDIR)/{import-,}ferm.1{,.gz}
 	rm -f $(PREFIX)/sbin/{import-,}ferm
 
 #
