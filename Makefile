@@ -116,7 +116,7 @@ install: all
 	install -d -m 755 $(DOCDIR)/examples $(PREFIX)/sbin
 	install -m 644 AUTHORS COPYING NEWS README TODO $(DOCDIR)
 	install -m 644 examples/* $(DOCDIR)/examples
-	install -m 755 src/ferm $(PREFIX)/sbin/ferm
+	install -m 755 src/{import-,}ferm $(PREFIX)/sbin/
 
 	install -d -m 755 $(DOCDIR) $(MANDIR)
 	install -m 644 doc/ferm.txt doc/ferm.html $(DOCDIR)
@@ -126,7 +126,7 @@ install: all
 uninstall:
 	rm -rf $(DOCDIR)
 	rm -f $(MANDIR)/ferm.1 $(MANDIR)/ferm.1.gz
-	rm -f $(PREFIX)/sbin/ferm
+	rm -f $(PREFIX)/sbin/{import-,}ferm
 
 #
 # misc targets
