@@ -82,7 +82,8 @@ Note how much less typing we need to do? :-)
 Basically, this is all there is to it, although you can make it quite
 more complex. Something to look at:
 
-   chain INPUT policy ACCEPT {
+   chain INPUT {
+       policy ACCEPT;
        daddr 10.0.0.0/8 proto tcp dport ! ftp goto mychain sport :1023 TOS 4 settos 8 mark 2;
        daddr 10.0.0.0/8 proto tcp dport ftp REJECT;
    }
