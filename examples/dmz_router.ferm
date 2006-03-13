@@ -84,7 +84,7 @@ table filter {
 
         # the DMZ may only access the internet
         interface $DEV_DMZ {
-            outerface $DEV_WORLD;
+            outerface $DEV_WORLD ACCEPT;
             # report failure gracefully
             REJECT reject-with icmp-net-prohibited;
         }
