@@ -12,16 +12,13 @@ DISTDIR = build/ferm-$(VERSION)
 TARFILE = build/ferm-${VERSION}.tar.gz
 LSMFILE	= build/ferm-${VERSION}.lsm
 
-.PHONY: all clean check
+.PHONY: all clean
 
 all: doc/ferm.txt doc/ferm.html doc/ferm.1
 
 clean:
 	rm -rf build
 	rm -f doc/ferm.txt doc/ferm.html doc/ferm.1 *.tmp
-
-check:
-	make -C test $@
 
 #
 # documentation
@@ -37,6 +34,62 @@ doc/ferm.1: doc/ferm.pod
 	pod2man --section=1 --release="ferm $(VERSION)" \
 		--center="FIREWALL RULES MADE EASY" \
 		--official $< > $@
+
+#
+# test suite
+#
+
+STAMPDIR = $(TOPDIR)/build/test
+
+# a list of all ferm scripts which should be tested with iptables
+FERM_SCRIPTS = test/positive/flush test/positive/multimod test/positive/policyorder
+FERM_SCRIPTS += test/positive/bug test/positive/iptables-targets test/positive/masqto test/positive/mod test/params/owner test/positive/state test/positive/tables2 test/positive/TCPMSS test/positive/ttlset test/positive/ulog test/positive/varlists
+FERM_SCRIPTS += $(wildcard test/modules/*.ferm) $(wildcard test/targets/*.ferm)
+FERM_SCRIPTS += $(wildcard test/protocols/*.ferm) $(wildcard test/misc/*.ferm)
+FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
+
+EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
+IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
+
+$(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
+$(STAMPDIR)/%.OLD: % $(OLD_FERM) test/canonical.pl
+	@mkdir -p $(dir $@)
+	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else perl $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
+	if test -n "$(PATCHFILE)"; then patch -i$(PATCHFILE) $@.tmp1; fi
+	perl test/canonical.pl <$@.tmp1 >$@.tmp2
+	@mv $@.tmp2 $@
+
+$(STAMPDIR)/%.NEW: % $(NEW_FERM) test/canonical.pl
+	@mkdir -p $(dir $@)
+	perl $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
+	perl test/canonical.pl <$@.tmp1 >$@.tmp2
+	-mv $@.tmp2 $@
+
+$(STAMPDIR)/%.SAVE: % $(NEW_FERM)
+	@mkdir -p $(dir $@)
+	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+
+$(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
+	perl src/import-ferm $< >$@
+
+$(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
+	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+
+%.check: %.OLD %.NEW
+	diff -u $^
+	@touch $@
+
+%.check-import: %.SAVE %.SAVE2
+	diff -u $^
+	@touch $@
+
+.PHONY : check-ferm check-import check
+
+check-ferm: $(patsubst %,$(STAMPDIR)/%.check,$(FERM_SCRIPTS))
+
+check-import: $(patsubst %,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
+
+check: check-ferm check-import
 
 #
 # distribution
