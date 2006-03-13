@@ -115,7 +115,7 @@ dist: build/ferm-$(VERSION).tar.gz
 install: all
 	install -d -m 755 $(DOCDIR)/examples $(PREFIX)/sbin
 	install -m 644 AUTHORS COPYING NEWS README TODO $(DOCDIR)
-	install -m 644 examples/* $(DOCDIR)/examples
+	install -m 644 examples/*.ferm $(DOCDIR)/examples
 	install -m 755 src/{import-,}ferm $(PREFIX)/sbin/
 
 	install -d -m 755 $(DOCDIR) $(MANDIR)
