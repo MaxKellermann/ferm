@@ -1,7 +1,7 @@
 TOPDIR = ..
 include $(TOPDIR)/config.mk
 
-STAMPDIR = tmp
+STAMPDIR = $(TOPDIR)/build/test
 
 # a list of all ferm scripts which should be tested with iptables
 FERM_SCRIPTS = positive/flush positive/multimod positive/policyorder
