@@ -104,7 +104,7 @@ build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
 	install -d -m 755 $(DISTDIR) $(DISTDIR)/src $(DISTDIR)/doc $(DISTDIR)/examples
 	install -m 755 src/{import-,}ferm $(DISTDIR)/src
-	install -m 644 doc/ferm.pod doc/ferm.txt doc/ferm.html doc/ferm.1 $(DISTDIR)/doc
+	install -m 644 doc/ferm.pod doc/ferm.txt doc/ferm.html doc/{import-,}ferm.1 $(DISTDIR)/doc
 	install -m 644 config.mk Makefile AUTHORS COPYING NEWS README TODO $(DISTDIR)
 	install -m 644 $(wildcard examples/*.ferm) $(DISTDIR)/examples
 	cd build && tar czf ferm-$(VERSION).tar.gz ferm-$(VERSION)
