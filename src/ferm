@@ -640,6 +640,7 @@ sub read_header {
             if ($value and $name =~ /^(?:ipchains|iptables|ipfwadm)$/) {
                 print STDERR "The options ipchains, iptables and ipfwadm are obsolete, ignoring them\n";
             } else {
+                print STDERR "The 'option' keyword is deprecated\n";
                 $option{$name} = $value;
             }
         } elsif ($line[0] eq 'set') {
