@@ -1056,7 +1056,7 @@ sub getvalues {
         error('equals operator ("=") is not allowed here');
     } elsif ($token eq '$') {
         my $name = require_next_token($code, $param);
-        error('variable name expected')
+        error('variable name expected - if you want to concatenate strings, try using double quotes')
           unless $name =~ /^\w+$/;
 
         my $value = variable_value($name);
