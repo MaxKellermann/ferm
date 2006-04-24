@@ -1050,6 +1050,50 @@ Ferm function make routine tasks quick and easy:
     &FORWARD_TCP(tcp, smtp, 192.168.1.3);
     &FORWARD_TCP((tcp udp), domain, 192.168.1.4);
 
+=head1 TRANSITION FROM FERM 1.1
+
+ferm 1.2 aims to be 100% compatible with ferm 1.1, i.e. old
+configuration files should work as expected.  For a "clean" ferm 1.2
+configuration without warnings, here is a list of the most important
+changes:
+
+=over 8
+
+=item I<ipfwadm and ipchains>
+
+Support for these has been removed.
+
+=item I<options B<clearall>, B<flushall>, B<flushchains>, B<createchains>>
+
+All these options are always implied.  There is no option anymore to
+disable them.
+
+=item I<Chain policies>
+
+Chain policies should be written in a dedicated statement; ferm 1.1:
+
+ chain INPUT policy DROP {
+   # ...
+ }
+
+ferm 1.2:
+
+ chain INPUT {
+   policy DROP;
+   # ...
+ }
+
+=item I<Variables>
+
+The concept of variables has been overhauled in ferm 1.2; you can now
+declare functions which take parameters.  Besides that, you should use
+the new syntax:
+
+ def $FOO = (http ssh);
+ chain INPUT proto tcp dport $FOO ACCEPT;
+
+=back
+
 =head1 OPTIONS
 
 Options can be specified with the "option" keyword, which
