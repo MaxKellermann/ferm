@@ -640,8 +640,8 @@ Checks the SPI header in an ESP packet.
 Checks which conntrack helper module tracks this connection.  The port
 may be specified with "-portnr".
 
-    mod helper helper irc;
-    mod helper helper ftp-21;
+    mod helper helper irc ACCEPT;
+    mod helper helper ftp-21 ACCEPT;
 
 =item B<iprange>
 
