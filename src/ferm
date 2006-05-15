@@ -1628,7 +1628,7 @@ sub parse_keyword {
 
         $value = getvalues();
 
-        warning('log-prefix is too long; truncating to 29 characters')
+        warning("log-prefix is too long; truncating to 29 characters: '$1'")
           if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
     } else {
         if (exists $def->{negation} and not $negated) {
