@@ -897,6 +897,14 @@ Modify the TTL header field.
     TTL ttl-dec 1; # decrease by 1
     TTL ttl-inc 4; # increase by 4
 
+=item B<ULOG>
+
+Log packets to a userspace program.
+
+    ULOG ulog-nlgroup 5 ulog-prefix "Look at this: ";
+    ULOG ulog-cprange 256;
+    ULOG ulog-qthreshold 10;
+
 =back
 
 =head1 ADVANCED FEATURES
