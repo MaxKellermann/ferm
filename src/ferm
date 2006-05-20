@@ -162,8 +162,10 @@ use vars qw(%deprecated_keywords %automod);
              datestop => 'time',
            );
 
+# these hashes provide the Netfilter module definitions
 use vars qw(%proto_defs %match_defs %target_defs);
 
+# add a module definition
 sub add_def {
     my $defs = shift;
     my $name = shift;
@@ -193,14 +195,17 @@ sub add_def {
     return $def;
 }
 
+# add a protocol module definition
 sub add_proto_def {
     add_def(\%proto_defs, @_);
 }
 
+# add a match module definition
 sub add_match_def {
     add_def(\%match_defs, @_);
 }
 
+# add a target module definition
 sub add_target_def {
     add_def(\%target_defs, @_);
 }
@@ -263,6 +268,7 @@ add_target_def 'TOS', qw(set-tos&compat_tos_params);
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
 
+# parameter parser for ipt_multiport
 sub multiport_params {
     my $fw = shift;
 
@@ -293,9 +299,12 @@ sub multiport_params {
     }
 }
 
+# parameter parser for ipt_tos
 sub compat_tos_params {
     my $value = getvalues();
 
+    # ferm 1.1 allowed some abbreviations.  It is this function's only
+    # job to translate these deprecated keywords to the "real" ones.
     my @value = map {
         my $value = $_;
         $value =~ s/^min-?cost$/0x02/;
@@ -506,11 +515,13 @@ sub error {
     mydie(@_);
 }
 
+# print a warning message about code from an input file
 sub warning {
     print STDERR "Warning in $script->{filename} line $script->{line}: "
       . (shift) . "\n";
 }
 
+# read words from a file, one per line
 sub read_file_words {
     my $filename = shift;
 
@@ -528,6 +539,7 @@ sub read_file_words {
     return \@words;
 }
 
+# initialize data structures for netfilter support
 sub initialize_netfilter {
     my %chains = ( filter => [qw(INPUT FORWARD OUTPUT)],
                    nat => [qw(PREROUTING POSTROUTING OUTPUT)],
@@ -563,6 +575,7 @@ sub initialize_netfilter {
     }
 }
 
+# determines whether a netfilter match module is available
 sub netfilter_match_available {
     my ($domain, $match) = @_;
 
@@ -574,6 +587,7 @@ sub netfilter_match_available {
     return grep { $_ eq $match } @{$domains{$domain}{tables_matches}};
 }
 
+# determines whether a netfilter target module is available
 sub netfilter_target_available {
     my ($domain, $match) = @_;
 
@@ -585,8 +599,8 @@ sub netfilter_target_available {
     return grep { $_ eq $match } @{$domains{$domain}{tables_targets}};
 }
 
+# split the an input string into words and delete comments
 sub tokenize_string {
-    # split the an input string into words and delete comments
     my ($string) = @_;
 
     my @ret;
@@ -599,11 +613,13 @@ sub tokenize_string {
     return @ret;
 }
 
+# shift an array; helper function to be passed to &getvar / &getvalues
 sub next_array_token {
     my $array = shift;
     shift @$array;
 }
 
+# read the header of a ferm script, handle (deprecated) syntax
 sub read_header {
     die unless defined $script;
     die if defined $script->{parent};
@@ -678,6 +694,7 @@ sub read_header {
     return 1;
 }
 
+# read some more tokens from the input file into a buffer
 sub prepare_tokens {
     return
       unless defined $script;
@@ -700,6 +717,7 @@ sub prepare_tokens {
     return 1;
 }
 
+# open a ferm sub script
 sub open_script {
     my $filename = shift;
 
@@ -723,6 +741,7 @@ sub open_script {
     return $script;
 }
 
+# collect script filenames which are being included
 sub collect_filenames {
     my @ret;
 
@@ -779,6 +798,7 @@ sub collect_filenames {
     return @ret;
 }
 
+# peek a token from the queue, but don't remove it
 sub peek_token {
     # get a token
     prepare_tokens();
@@ -795,8 +815,8 @@ sub peek_token {
     return $tokens->[0];
 }
 
+# get a token from the queue
 sub next_token {
-    # get a token
     prepare_tokens();
 
     return
@@ -857,9 +877,9 @@ sub next_token {
     return $token;
 }
 
+# require that another token exists, and that it's not a "special"
+# token, e.g. ";" and "{"
 sub require_next_token {
-    # require that another token exists, and that it's not a "special"
-    # token, e.g. ";" and "{"
     my $code = shift || \&next_token;
 
     my $token = &$code(@_);
@@ -873,9 +893,9 @@ sub require_next_token {
     return $token;
 }
 
+# determine the value of an old style variable, die if the variable is
+# unknown
 sub old_variable_value {
-    # determine the value of a variable, die if the variable is
-    # unknown
     my $name = shift;
 
     error("no such variable: \%$name")
@@ -884,8 +904,8 @@ sub old_variable_value {
     return $oldvars{$name};
 }
 
+# determine the value of a variable, die if the value is an array
 sub string_old_variable_value {
-    # determine the value of a variable, die if the value is an array
     my $name = shift;
     my $value = old_variable_value($name);
 
@@ -895,8 +915,9 @@ sub string_old_variable_value {
     return $value;
 }
 
+# resolve all old style variable references in the string - may be an
+# array!
 sub resolve_old_variable_refs {
-    # resolve all variable references in the string - may be an array!
     my $token = shift;
 
     if ($token =~ /^\%(\w+)$/) {
@@ -911,6 +932,7 @@ sub resolve_old_variable_refs {
     }
 }
 
+# return the value of a variable
 sub variable_value {
     my $name = shift;
 
@@ -925,8 +947,8 @@ sub variable_value {
     return;
 }
 
+# determine the value of a variable, die if the value is an array
 sub string_variable_value {
-    # determine the value of a variable, die if the value is an array
     my $name = shift;
     my $value = variable_value($name);
 
@@ -936,6 +958,8 @@ sub string_variable_value {
     return $value;
 }
 
+# similar to the built-in "join" function, but also handle negated
+# values in a special way
 sub join_value {
     my ($expr, $value) = @_;
 
@@ -944,6 +968,7 @@ sub join_value {
     } elsif (ref $value eq 'ARRAY') {
         return join($expr, @$value);
     } elsif (ref $value eq 'negated') {
+        # bless'negated' is a special marker for negated values
         $value = join_value($expr, $value->[0]);
         return bless [ $value ], 'negated';
     } else {
@@ -951,12 +976,11 @@ sub join_value {
     }
 }
 
+# returns the next parameter, which may either be a scalar or an array
 sub getvalues {
     my ($code, $param) = (shift, shift);
     my %options = @_;
 
-    # returns the next parameter, which may either be a scalar or an
-    # array
     my $token = require_next_token($code, $param);
 
     if ($token eq '(') {
@@ -1080,8 +1104,8 @@ sub getvalues {
     }
 }
 
+# returns the next parameter, but only allow a scalar
 sub getvar {
-    # returns the next parameter, but only allow a scalar
     my $token = getvalues(@_);
 
     error('array not allowed here')
@@ -1091,8 +1115,8 @@ sub getvar {
 }
 
 
+# returns the specified value as an array. dereference arrayrefs
 sub to_array {
-    # returns the specified value as an array. dereference arrayrefs
     my $value = shift;
     die unless wantarray;
     die if @_;
@@ -1131,6 +1155,7 @@ sub is_netfilter_builtin_chain {
       qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
 }
 
+# escape the string in a way safe for the shell
 sub shell_escape {
     my $token = shift;
 
@@ -1153,6 +1178,8 @@ sub shell_escape {
     return $token;
 }
 
+# append parameters to a shell command line, with the correct escape
+# sequences
 sub shell_append {
     my $ref = shift;
 
@@ -1161,6 +1188,8 @@ sub shell_append {
     }
 }
 
+# append an option to the shell command line, using information from
+# the module definition (see %match_defs etc.)
 sub shell_append_option {
     my ($ref, $def, $keyword, $value) = @_;
 
@@ -1188,6 +1217,7 @@ sub shell_append_option {
     }
 }
 
+# dereference a bless'negated'
 sub extract_negation {
     local $_ = shift;
     ref && ref eq 'negated'
@@ -1195,6 +1225,7 @@ sub extract_negation {
         : $_;
 }
 
+# reset a netfilter table, clearing all rules and custom chains
 sub reset_table {
     my $domain = shift;
     my $table = shift;
@@ -1215,6 +1246,8 @@ sub reset_table {
     push @{$rules{$domain}}, "$domains{$domain}{location} -t $table -X\n";
 }
 
+# reset a netfilter domain or table, depending on how sure we are
+# which table exist
 sub reset_domain_or_table {
     my $domain = shift;
     my $table = shift;
@@ -1238,6 +1271,7 @@ sub reset_domain_or_table {
     }
 }
 
+# convert an internal rule structure into an iptables call
 sub tables {
     my $rule = shift;
     my %rule = %$rule;
@@ -1414,6 +1448,8 @@ sub printrule {
 }
 
 
+# convert a bunch of internal rule structures in iptables calls,
+# unfold arrays during that
 sub mkrules {
     # compile the list hashes into rules
     my $fw = shift;
@@ -1517,6 +1553,7 @@ sub mkrules {
     dofr({}, @fr);
 }
 
+# find an option in the rule stack
 sub find_option {
     my ($fw, $key) = @_;
 
@@ -1526,6 +1563,7 @@ sub find_option {
     return $item->{$key};
 }
 
+# parse tokens from builtin match modules
 sub parse_builtin_matches {
     my ($current, $keyword, $negated_ref) = @_;
 
@@ -1573,6 +1611,7 @@ sub parse_builtin_matches {
     return;
 }
 
+# parse a keyword from a module definition
 sub parse_keyword {
     my ($fw, $def, $keyword, $negated_ref) = @_;
 
@@ -1650,6 +1689,7 @@ sub parse_keyword {
     return $value;
 }
 
+# parse options for a protocol module definition
 sub parse_protocol_options {
     my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
 
@@ -1663,6 +1703,7 @@ sub parse_protocol_options {
     return 1;
 }
 
+# parse options for a match module definition
 sub parse_module_options {
     my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
 
@@ -1685,6 +1726,7 @@ sub parse_module_options {
     return;
 }
 
+# parse options for a target module definition
 sub parse_target_options {
     my ($fw, $current, $target, $keyword) = @_;
 
@@ -1708,6 +1750,8 @@ sub parse_target_options {
     return 1;
 }
 
+# the main parser loop: read tokens, convert them into internal rule
+# structures
 sub enter {
     my $lev = shift;  # current recursion depth
     my @fw = @_; # fwset in list of hashes
