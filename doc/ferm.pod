@@ -462,9 +462,9 @@ targeted at the address (daddr).
 
 Examples:
 
-    saddr 192.168/8; # (identical to the next one:)
-    saddr 192.168.0.0/255.255.255.0;
-    daddr my.domain.com;
+    saddr 192.168/8 ACCEPT; # (identical to the next one:)
+    saddr 192.168.0.0/255.255.255.0 ACCEPT;
+    daddr my.domain.com ACCEPT;
 
 =item B<fragment>
 
@@ -488,11 +488,11 @@ This match can be used only after you specified "protocol tcp" or
 
 And some examples of valid ports/ranges:
 
-    dport 80;
-    dport http;
-    dport ssh:http;
-    dport 0:1023; # equivalent to :1023
-    dport 1023:65535;
+    dport 80 ACCEPT;
+    dport http ACCEPT;
+    dport ssh:http ACCEPT;
+    dport 0:1023 ACCEPT; # equivalent to :1023
+    dport 1023:65535 ACCEPT;
 
 =item B<icmp-type [type]>
 
