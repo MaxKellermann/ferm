@@ -1016,8 +1016,8 @@ With backticks, you may use the output of an external command:
     def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
     chain INPUT proto tcp saddr $DNSSERVERS ACCEPT;
 
-The command is executed with F</bin/sh>, just like backticks in
-perl. ferm does not do any variable expansion here.
+The command is executed with the shell (F</bin/sh>), just like
+backticks in perl.  ferm does not do any variable expansion here.
 
 The output is then tokenized, and saved as a ferm list (array). Lines
 beginning with '#' are ignored; the other lines may contain any number
