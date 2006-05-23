@@ -1,4 +1,4 @@
-table filter chain INPUT proto tcp mod tcpmss {
+table filter chain OUTPUT proto tcp syn mod tcpmss {
     mss 1400:1536 TCPMSS clamp-mss-to-pmtu;
     mss 42 DROP;
 }
