@@ -885,6 +885,13 @@ Change the source address of the packet.
     SNAT to 1.2.3.4;
     SNAT to 1.2.3.4:20000-30000;
 
+=item B<TCPMSS>
+
+Alter the MSS value of TCP SYN packets.
+
+    TCPMSS set-mss 1400;
+    TCPMSS clamp-mss-to-pmtu;
+
 =item B<TOS set-tos [value]>
 
 Set the tcp package Type Of Service bit to this value.  This will be
