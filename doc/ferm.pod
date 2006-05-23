@@ -276,7 +276,7 @@ the end of line is ignored.
 =item C<`command`>
 
 Execute the command in a shell, and insert the process output. See the
-section I<BACKTICKS> for details.
+section I<backticks> for details.
 
 =item C<'string'>
 
