@@ -784,6 +784,13 @@ when you use "protocol tcp".
 
 Type "iptables -p tcp -h" for details.
 
+=item B<tcpmss>
+
+Check the TCP MSS field of a SYN or SYN/ACK packet.
+
+    mod tcpmss mss 123 ACCEPT;
+    mod tcpmss mss 234:567 ACCEPT;
+
 =item B<time>
 
 Check if the time a packet arrives is in given range.

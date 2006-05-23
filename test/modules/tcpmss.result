@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -p tcp -m tcpmss --mss 1400:1536 -j TCPMSS --clamp-mss-to-pmtu
+iptables -t filter -A INPUT -p tcp -m tcpmss --mss 42 -j DROP
