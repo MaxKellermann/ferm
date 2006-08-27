@@ -370,7 +370,7 @@ sub compat_tos_params {
 
 # Get command line stuff
 {
-    my ($opt_noexec, $opt_lines,
+    my ($opt_noexec, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
@@ -381,6 +381,7 @@ sub compat_tos_params {
 
     GetOptions('noexec|n' => \$opt_noexec,
                'lines|l' => \$opt_lines,
+               'interactive|i' => \$opt_interactive,
                'verbose|v' => \$opt_verbose,
                'debug|d' => \$opt_debug,
                'location=s' => \$opt_location,
@@ -409,6 +410,7 @@ sub compat_tos_params {
 
     $option{'noexec'} = (defined $opt_noexec);
     $option{'lines'} = (defined $opt_lines);
+    $option{interactive} = (defined $opt_interactive);
     $option{'automod'} = (defined $opt_automod);
     $option{test} = (defined $opt_test);
 
@@ -416,6 +418,13 @@ sub compat_tos_params {
         $option{noexec} = 1;
         $option{lines} = 1;
     }
+
+    delete $option{interactive} if $option{noexec};
+
+    mydie('ferm interactive mode not possible: /dev/stdin is not a tty')
+      if $option{interactive} and not -t STDIN;
+    mydie('ferm interactive mode not possible: /dev/stdout is not a tty')
+      if $option{interactive} and not -t STDOUT;
 
     if (defined $opt_fast) {
         unless ($option{noexec} or -x '/sbin/iptables-restore') {
@@ -493,6 +502,10 @@ enter(0);
 # check consistency
 check();
 
+# save existing rules for rollback
+
+save_previous() if $option{interactive};
+
 # and execute all generated rules
 if ($option{fast}) {
     while (my ($domain, $rules) = each %rules) {
@@ -501,6 +514,10 @@ if ($option{fast}) {
 } else {
     execute();
 }
+
+# ask user, and rollback if there is no confirmation
+
+confirm_rules() or rollback();
 
 exit 0;
 
@@ -2585,6 +2602,69 @@ sub execute_fast {
       or die "Failed to run $restore: $!";
 }
 
+sub save_previous {
+    # POSIX is needed later, in &confirm_rules() - prepare here to
+    # ensure POSIX is available
+    require POSIX;
+
+    foreach my $domain (keys %rules) {
+        my $save = "/sbin/${domain}tables-save";
+        mydie("need $save in interactive mode") unless -x $save;
+
+        my $restore = "/sbin/${domain}tables-restore";
+        mydie("need $restore in interactive mode") unless -x $restore;
+
+        $domains{$domain}{programs}{save} = $save;
+        $domains{$domain}{programs}{restore} = $restore;
+        $domains{$domain}{previous} = `$save`;
+        mydie("failed to run $save")
+          if $? or not $domains{$domain}{previous};
+    }
+}
+
+sub rollback {
+    my $error;
+    foreach my $domain (keys %rules) {
+        local *RESTORE;
+        unless (open RESTORE, "|$domains{$domain}{programs}{restore}") {
+            print STDERR "failed to run $domains{$domain}{programs}{restore}: $!";
+            $error = 1;
+            next;
+        }
+        print RESTORE $domains{$domain}{previous};
+        unless (close RESTORE) {
+            print STDERR "failed to run $domains{$domain}{programs}{restore}: $!";
+            $error = 1;
+            next;
+        }
+    }
+
+    print STDERR "\nFirewall rules rolled back.\n" unless $error;
+    exit 1;
+}
+
+sub alrm_handler {
+    # do nothing, just interrupt a system call
+}
+
+sub confirm_rules {
+    $SIG{ALRM} = \&alrm_handler;
+    alarm(30);
+
+    print "\n"
+      . "ferm has applied the new firewall rules.\n"
+        . "Please type 'yes' to confirm:\n";
+    STDOUT->flush();
+
+    POSIX::tcflush(*STDIN, 2);
+    my $line = '';
+    STDIN->sysread($line, 3);
+
+    $SIG{ALRM} = 'DEFAULT';
+
+    return $line eq 'yes';
+}
+
 # end of ferm
 
 __END__
@@ -2601,6 +2681,7 @@ B<ferm> I<options> I<inputfiles>
 
  -n, --noexec      Do not execute the rules, just simulate
  -l, --lines       Show all rules that were created
+ -i, --interactive Interactive mode: revert if user does not confirm
  --test            Test mode; ignore host specific configuration.
                    This implies --noexec and --lines.
  -V, --version     Show current version number

@@ -1145,6 +1145,13 @@ will be shown just before they are executed, so if you get error
 messages from iptables(8) etc., you can see which rule caused
 the error.
 
+=item B<--interactive>
+
+Apply the firewall rules and ask the user for confirmation.  Reverts
+to the previous ruleset if there is no valid user response within 30
+seconds.  This is useful for remote firewall administration: you can
+test the rules without fearing to lock yourself out.
+
 =item B<--help>
 
 Show a brief list of available commandline options.
