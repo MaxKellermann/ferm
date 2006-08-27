@@ -165,6 +165,55 @@ use vars qw(%deprecated_keywords %automod);
 # these hashes provide the Netfilter module definitions
 use vars qw(%proto_defs %match_defs %target_defs);
 
+#
+# This subsubsystem allows you to support (most) new netfilter modules
+# in ferm.  Add a call to one of the "add_XY_def()" functions below.
+#
+# Ok, now about the cryptic syntax: the function "add_XY_def()"
+# registers a new module.  There are three kinds of modules: protocol
+# module (e.g. TCP, ICMP), match modules (e.g. state, physdev) and
+# target modules (e.g. DNAT, MARK).
+#
+# The first parameter is always the module name which is passed to
+# iptables with "-p", "-m" or "-j" (depending on which kind of module
+# this is).
+#
+# After that, you add an encoded string for each option the module
+# supports.  This is where it becomes tricky.
+#
+# foo           defaults to an option with one argument (which may be a ferm
+#               array)
+#
+# foo*0         option without any arguments
+#
+# foo=s         one argument which must not be a ferm array ('s' stands for
+#               'scalar')
+#
+# to-source=a   one argument, may be a ferm array ('a'='array'); this forces
+#               ferm to accept arrays, even in a target declaration; example:
+#               to-source (1.2.3.4 5.6.7.8)  translates to:
+#               --to-source 1.2.3.4 --to-source 5.6.7.8
+#
+# ctstate=c     one argument, if it's an array, pass it to iptables as a
+#               single comma separated value; example:
+#                 ctstate (ESTABLISHED RELATED)  translates to:
+#                 --ctstate ESTABLISHED,RELATED
+#
+# foo=sac       three arguments: scalar, array, comma separated; you may
+#               concatenate more than one letter code after the '='
+#
+# foo&bar       one argument; call the perl function '&bar()' which parses
+#               the argument
+#
+# !foo          negation is allowed an the '!' is written before the keyword
+#
+# foo!          same as above, but '!' is after the keyword and before the
+#               parameters
+#
+# to:=to-destination    makes "to" an alias for "to-destination"; you have
+#                       to add a declaration for option "to-destination"
+#
+
 # add a module definition
 sub add_def {
     my $defs = shift;
