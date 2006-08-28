@@ -6,7 +6,7 @@
     Auke Kok <sofar@foo-projects.org>
     Max Kellermann <max@foo-projects.org>
 
-v1.1+cvs - 6 Jun 2005
+v1.2beta1 - 28 Aug 2006
   - perl strict mode
   - removed support for ipfwadm and ipchains
   - get a list of netfilter table names from /proc/net/ip_tables_names

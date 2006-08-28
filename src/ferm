@@ -34,6 +34,7 @@ use Getopt::Long;
 use vars qw($VERSION);
 
 $VERSION = '1.1+svn' . ('$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '');
+$VERSION = '1.2beta1';
 
 ## interface variables
 # %option = command line and other options
