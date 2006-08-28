@@ -311,15 +311,19 @@ add_target_def 'LOG', qw(log-level log-prefix),
   qw(log-tcp-sequence*0 log-tcp-options*0 log-ip-options*0 log-uid*0);
 add_target_def 'MARK', qw(set-mark);
 add_target_def 'MASQUERADE', qw(to-ports);
+add_target_def 'MIRROR';
 add_target_def 'NETMAP', qw(to);
 add_target_def 'NFQUEUE', qw(queue-num);
+add_target_def 'NOTRACK';
 add_target_def 'REDIRECT', qw(to-ports);
 add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SAME', qw(to nodst*0);
 add_target_def 'SNAT', qw(to-source=a to:=to-source);
+add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TOS', qw(set-tos&compat_tos_params);
+add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
 
@@ -1218,12 +1222,7 @@ sub is_netfilter_module_target {
     my $target = shift;
     die unless defined $target and length $target;
 
-    return $target =~ /(?:BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
-                         |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
-                         |MIRROR|NETMAP|NFQUEUE|REDIRECT|REJECT|ROUTE
-                         |SAME|SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
-                         |TARPIT|NOTRACK
-                       )/x;
+    return exists $target_defs{$target};
 }
 
 sub is_netfilter_builtin_chain {
