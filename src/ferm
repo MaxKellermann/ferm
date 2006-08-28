@@ -517,7 +517,7 @@ if ($option{fast}) {
 
 # ask user, and rollback if there is no confirmation
 
-confirm_rules() or rollback();
+confirm_rules() or rollback() if $option{interactive};
 
 exit 0;
 
