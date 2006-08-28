@@ -101,12 +101,14 @@ comment
 dir pol reqid spi proto mode tunnel-src tunnel-dst
 dst-len
 fragid fraglen
+dccp-option
 EOT
 
 my %p1c = parse_table(<<EOT);
 state
 source-ports destination-ports ports
 dst-opts
+dccp-types
 EOT
 
 my %p1multi = parse_table(<<EOT);
@@ -140,6 +142,7 @@ genre realm chunk-types
 tcp-flags tcp-option
 dst-len
 fragid fraglen
+dccp-types dccp-option
 );
 
 sub is_netfilter_core_target {

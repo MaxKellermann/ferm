@@ -259,6 +259,7 @@ sub add_target_def {
     add_def(\%target_defs, @_);
 }
 
+add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
 add_proto_def 'icmp', qw(icmp-type!);
 add_proto_def 'icmpv6', qw(icmpv6-type!);
 add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
@@ -1469,7 +1470,8 @@ sub tables {
         }
 
         # special case: --dport and --sport for TCP/UDP
-        if ($rule{proto} eq 'tcp' or $rule{proto} eq 'udp') {
+        if ($rule{proto} eq 'tcp' or $rule{proto} eq 'udp' or
+            $rule{proto} eq 'dccp') {
             shell_append_option(\$rr, { params => 1,
                                         negation => 1,
                                       }, 'dport', $rule{dport})
@@ -2419,7 +2421,7 @@ sub enter {
 
             if ($keyword =~ /^[sd]port$/) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
-                  unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array $proto;
+                  unless defined $proto and grep { /^(?:tcp|udp|dccp)$/ } to_array $proto;
 
                 $current->{$keyword} = getvalues(undef, undef,
                                                  allow_negation => 1);

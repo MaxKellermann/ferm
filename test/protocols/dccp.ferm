@@ -1,0 +1,7 @@
+chain INPUT proto dccp {
+    sport 1234 dport 5678 ACCEPT;
+    dccp-types (DATA CLOSEREQ) DROP;
+    dccp-types ! (RESET SYNC) REJECT;
+    dccp-option 100 ACCEPT;
+    dccp-option ! 99 DROP;
+}
