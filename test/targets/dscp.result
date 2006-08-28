@@ -1,0 +1,1 @@
+iptables -A INPUT -j DSCP --set-dscp 2 --set-dscp-class 3
