@@ -13,7 +13,7 @@ v1.1+cvs - 6 Jun 2005
   - error messages go to STDERR
   - full support for the match extensions: recent, comment, conntrack,
     addrtype, ah, owner, time, dscp, ecn, helper, iprange, iplimit, length,
-    multiport, physdev, policy, realm, tcpmss, dst
+    multiport, physdev, policy, realm, tcpmss, dst, frag
   - full support for the targets: BALANCE, CLASSIFY, CONNMARK, NETMAP, ROUTE,
     SNAT, TARPIT
   - implemented variables and functions with 'def'
