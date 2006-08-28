@@ -121,6 +121,7 @@ EOT
 
 my %p2c = parse_table(<<EOT);
 tcp-flags
+chunk-types
 EOT
 
 my @pre_negated = qw(fragment connbytes connlimit-above

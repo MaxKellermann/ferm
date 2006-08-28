@@ -16,7 +16,7 @@ v1.1+cvs - 6 Jun 2005
     multiport, physdev, policy, realm, tcpmss, dst, frag
   - full support for the targets: BALANCE, CLASSIFY, CONNMARK, NETMAP, ROUTE,
     SNAT, TARPIT, NFQUEUE, SAME, DSCP
-  - support the protocols: dccp
+  - support the protocols: dccp, sctp
   - implemented variables and functions with 'def'
     * variables and functions are local to their containing block
   - stricter syntax checks, e.g.:

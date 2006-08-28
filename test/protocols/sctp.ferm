@@ -1,0 +1,5 @@
+chain INPUT proto sctp {
+    sport 1234 dport 5678 ACCEPT;
+    chunk-types any (DATA INIT) DROP;
+    chunk-types all DATA:Be ACCEPT;
+}

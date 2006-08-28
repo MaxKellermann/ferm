@@ -1,0 +1,3 @@
+iptables -A INPUT -p sctp -m sctp --sport 1234 --dport 5678 -j ACCEPT
+iptables -A INPUT -p sctp -m sctp --chunk-types any DATA,INIT -j DROP
+iptables -A INPUT -p sctp -m sctp --chunk-types all DATA:Be -j ACCEPT
