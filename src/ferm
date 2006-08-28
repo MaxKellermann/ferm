@@ -1211,7 +1211,7 @@ sub is_netfilter_core_target {
     my $target = shift;
     die unless defined $target and length $target;
 
-    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE)$/;
+    return $target =~ /^(?:ACCEPT|DROP|RETURN|QUEUE)$/;
 }
 
 sub is_netfilter_module_target {
