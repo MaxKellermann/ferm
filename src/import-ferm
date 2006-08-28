@@ -54,6 +54,7 @@ log-tcp-sequence log-tcp-options log-ip-options log-uid
 continue tee
 strict next
 fragres fragfirst fragmore fraglast
+nodst
 EOT
 
 my %p1 = parse_table(<<EOT);

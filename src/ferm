@@ -316,6 +316,7 @@ add_target_def 'NFQUEUE', qw(queue-num);
 add_target_def 'REDIRECT', qw(to-ports);
 add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
+add_target_def 'SAME', qw(to nodst*0);
 add_target_def 'SNAT', qw(to-source=a to:=to-source);
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TOS', qw(set-tos&compat_tos_params);
@@ -1219,8 +1220,8 @@ sub is_netfilter_module_target {
 
     return $target =~ /(?:BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
                          |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
-                         |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
-                         |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
+                         |MIRROR|NETMAP|NFQUEUE|REDIRECT|REJECT|ROUTE
+                         |SAME|SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
                          |TARPIT|NOTRACK
                        )/x;
 }

@@ -15,7 +15,7 @@ v1.1+cvs - 6 Jun 2005
     addrtype, ah, owner, time, dscp, ecn, helper, iprange, iplimit, length,
     multiport, physdev, policy, realm, tcpmss, dst, frag
   - full support for the targets: BALANCE, CLASSIFY, CONNMARK, NETMAP, ROUTE,
-    SNAT, TARPIT, NFQUEUE
+    SNAT, TARPIT, NFQUEUE, SAME
   - support the protocols: dccp
   - implemented variables and functions with 'def'
     * variables and functions are local to their containing block
