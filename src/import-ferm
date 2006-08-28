@@ -104,6 +104,7 @@ dst-len
 fragid fraglen
 dccp-option
 queue-num
+set-dscp set-dscp-class
 EOT
 
 my %p1c = parse_table(<<EOT);

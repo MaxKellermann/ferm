@@ -307,6 +307,7 @@ add_target_def 'BALANCE', qw(to-destination to:=to-destination);
 add_target_def 'CLASSIFY', qw(set-class);
 add_target_def 'CONNMARK', qw(set-mark save-mark*0 restore-mark*0 mask);
 add_target_def 'DNAT', qw(to-destination to:=to-destination);
+add_target_def 'DSCP', qw(set-dscp set-dscp-class);
 add_target_def 'LOG', qw(log-level log-prefix),
   qw(log-tcp-sequence*0 log-tcp-options*0 log-ip-options*0 log-uid*0);
 add_target_def 'MARK', qw(set-mark);
