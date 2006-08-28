@@ -5,7 +5,7 @@
 TOPDIR = .
 include $(TOPDIR)/config.mk
 
-VERSION := $(shell perl src/ferm --version | awk '{print $$2}' | head -1 | tr -d ',')
+VERSION := $(shell $(PERL) src/ferm --version | awk '{print $$2}' | head -1 | tr -d ',')
 
 DISTDIR = build/ferm-$(VERSION)
 
@@ -59,26 +59,26 @@ IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 $(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
 $(STAMPDIR)/%.OLD: % $(OLD_FERM) test/canonical.pl
 	@mkdir -p $(dir $@)
-	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else perl $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
+	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else $(PERL) $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
 	if test -n "$(PATCHFILE)"; then patch -i$(PATCHFILE) $@.tmp1; fi
-	perl test/canonical.pl <$@.tmp1 >$@.tmp2
+	$(PERL) test/canonical.pl <$@.tmp1 >$@.tmp2
 	@mv $@.tmp2 $@
 
 $(STAMPDIR)/%.NEW: % $(NEW_FERM) test/canonical.pl
 	@mkdir -p $(dir $@)
-	perl $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
-	perl test/canonical.pl <$@.tmp1 >$@.tmp2
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
+	$(PERL) test/canonical.pl <$@.tmp1 >$@.tmp2
 	-mv $@.tmp2 $@
 
 $(STAMPDIR)/%.SAVE: % $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
 $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
-	perl src/import-ferm $< >$@
+	$(PERL) src/import-ferm $< >$@
 
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
-	perl $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
 %.check: %.OLD %.NEW
 	diff -u $^
