@@ -98,11 +98,13 @@ set-tos
 ttl-set ttl-dec ttl-inc
 comment
 dir pol reqid spi proto mode tunnel-src tunnel-dst
+dst-len
 EOT
 
 my %p1c = parse_table(<<EOT);
 state
 source-ports destination-ports ports
+dst-opts
 EOT
 
 my %p1multi = parse_table(<<EOT);
@@ -134,6 +136,7 @@ icmp-type icmpv6-type
 mac-source source-ports destination-ports ports
 genre realm chunk-types
 tcp-flags tcp-option
+dst-len
 );
 
 sub is_netfilter_core_target {

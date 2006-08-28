@@ -271,6 +271,7 @@ add_match_def 'connmark', qw(mark);
 add_match_def 'conntrack', qw(ctstate=c ctproto ctorigsrc! ctorigdst!),
   qw(ctreplsrc! ctrepldst! ctstatus ctexpire=s);
 add_match_def 'dscp', qw(dscp dscp-class);
+add_match_def 'dst', qw(dst-len!=s dst-opts=c);
 add_match_def 'ecn', qw(ecn-tcp-cwr*0 ecn-tcp-ece*0 ecn-ip-ect);
 add_match_def 'esp', qw(espspi!);
 add_match_def 'helper', qw(helper);
