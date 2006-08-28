@@ -84,7 +84,7 @@ while (<>) {
         s/-f\b/--fragment/g;
 
         # evaluate options with zero, one, two parameters
-        s/(?:(!)\s*)?--(syn|clamp-mss-to-pmtu|set|rcheck|log-tcp-sequence|log-tcp-options|log-ip-options|continue|save-mark|restore-mark|fragment|ecn-tcp-cwr|ecn-tcp-ece|physdev-is-(?:in|out|bridged)|strict|next|frag(res|first|more|last)|nodst)(?:\s|$)/$item->{$2} = $1; ''/eg;
+        s/(?:(!)\s*)?--(syn|clamp-mss-to-pmtu|set|rcheck|log-tcp-sequence|log-tcp-options|log-ip-options|continue|save-mark|restore-mark|fragment|ecn-tcp-cwr|ecn-tcp-ece|physdev-is-(?:in|out|bridged)|strict|next|frag(res|first|more|last)|nodst|ecn-tcp-remove)(?:\s|$)/$item->{$2} = $1; ''/eg;
         s/--(tcp-flags)\s+(?:(\!)\s+)?(\S+)\s+(\S+)/$item->{$1} = [ $2, $3, $4 ]; ''/eg;
         s/(?:(!)\s*)?--(iplimit-above|src-range|dst-range)\s+(\S+)/$item->{$2} = [ $1, $2 ]; ''/eg;
         s/--(\w[-\w]*)\s+(!)?\s*(".*?"|'.*?'|\S+)/$item->{$1} = (defined $2 ? "$2\t" : "") . shell_unescape($3); ''/eg;
