@@ -509,13 +509,11 @@ save_previous() if $option{interactive};
 # and execute all generated rules
 my $status;
 
-if ($option{fast}) {
-    while (my ($domain, $rules) = each %rules) {
-        my $s = execute_fast($domain, rules_to_save($rules));
-        $status = $s if defined $s;
-    }
-} else {
-    execute();
+while (my ($domain, $rules) = each %rules) {
+    my $s = $option{fast}
+      ? execute_fast($domain, rules_to_save($rules))
+        : execute_slow($domain, $rules);
+    $status = $s if defined $s;
 }
 
 if (defined $status) {
@@ -2481,7 +2479,7 @@ sub check {
     }
 }
 
-sub execute_domain {
+sub execute_slow {
     my ($domain, $rules) = @_;
 
     my $status;
@@ -2516,19 +2514,6 @@ sub execute_domain {
     }
 
     return $status;
-}
-
-sub execute {
-    my $status;
-
-    while (my ($domain, $rules) = each %rules) {
-        my $s = execute_domain($domain, $rules);
-        $status = $s
-          if defined $s;
-    }
-
-    exit $status
-      if defined $status;
 }
 
 sub rules_to_save {
