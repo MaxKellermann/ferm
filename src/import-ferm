@@ -102,6 +102,7 @@ dir pol reqid spi proto mode tunnel-src tunnel-dst
 dst-len
 fragid fraglen
 dccp-option
+queue-num
 EOT
 
 my %p1c = parse_table(<<EOT);

@@ -1,0 +1,3 @@
+chain INPUT {
+    NFQUEUE queue-num 65535;
+}
