@@ -507,12 +507,20 @@ check();
 save_previous() if $option{interactive};
 
 # and execute all generated rules
+my $status;
+
 if ($option{fast}) {
     while (my ($domain, $rules) = each %rules) {
-        execute_fast($domain, rules_to_save($rules));
+        my $s = execute_fast($domain, rules_to_save($rules));
+        $status = $s if defined $s;
     }
 } else {
     execute();
+}
+
+if (defined $status) {
+    rollback() if $option{interactive};
+    exit $status;
 }
 
 # ask user, and rollback if there is no confirmation
@@ -2595,11 +2603,19 @@ sub execute_fast {
     my $restore = "/sbin/${domain}tables-restore";
 
     local *RESTORE;
-    open RESTORE, "|$restore"
-      or die "Failed to run $restore: $!";
+    unless (open RESTORE, "|$restore") {
+        print STDERR "Failed to run $restore: $!\n";
+        return 1;
+    }
+
     print RESTORE $save;
-    close RESTORE
-      or die "Failed to run $restore: $!";
+
+    unless (close RESTORE) {
+        print STDERR "Failed to run $restore\n";
+        return $? >> 8;
+    }
+
+    return;
 }
 
 sub save_previous {
