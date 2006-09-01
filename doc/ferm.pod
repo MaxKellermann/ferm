@@ -1138,6 +1138,12 @@ in the firewall file options section.
 Do not execute the iptables(8) commands, but skip instead. This way
 you can parse your data, use B<--lines> to view the output.
 
+=item B<--flush>
+
+Clears the firewall rules and sets the policy of all chains to ACCEPT.
+B<ferm> needs a configuration file for that to determine which domains
+and tables are affected.
+
 =item B<--lines>
 
 Show the firewall lines that were generated from the rules. They

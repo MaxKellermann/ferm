@@ -383,7 +383,7 @@ sub compat_tos_params {
 
 # Get command line stuff
 {
-    my ($opt_noexec, $opt_lines, $opt_interactive,
+    my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
@@ -393,6 +393,7 @@ sub compat_tos_params {
                             'no_auto_abbrev');
 
     GetOptions('noexec|n' => \$opt_noexec,
+               'flush|F' => \$opt_flush,
                'lines|l' => \$opt_lines,
                'interactive|i' => \$opt_interactive,
                'verbose|v' => \$opt_verbose,
@@ -422,6 +423,7 @@ sub compat_tos_params {
     };
 
     $option{'noexec'} = (defined $opt_noexec);
+    $option{flush} = defined $opt_flush;
     $option{'lines'} = (defined $opt_lines);
     $option{interactive} = (defined $opt_interactive);
     $option{'automod'} = (defined $opt_automod);
@@ -1377,6 +1379,8 @@ sub tables {
         reset_domain_or_table($domain, $table);
         $table_info->{reset} = 1;
     }
+
+    return if $option{flush};
 
     # iptables, for 2.3/2.4 kernels
     my $rr = "";
@@ -2689,6 +2693,7 @@ B<ferm> I<options> I<inputfiles>
 =head1 OPTIONS
 
  -n, --noexec      Do not execute the rules, just simulate
+ -F, --flush       Flush all netfilter tables managed by ferm
  -l, --lines       Show all rules that were created
  -i, --interactive Interactive mode: revert if user does not confirm
  --test            Test mode; ignore host specific configuration.
