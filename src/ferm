@@ -55,9 +55,6 @@ use vars qw($script %oldvars %rules @stack $auto_chain);
 # - chains{$table}{$chain}: ferm state information about the chains
 use vars qw(%domains);
 
-## functions
-use subs qw(initialize_netfilter open_script read_header prepare_tokens);
-
 ## constants
 use vars qw(%deprecated_keywords %automod);
 
@@ -488,7 +485,7 @@ sub compat_tos_params {
     }
 }
 
-&initialize_netfilter;
+initialize_netfilter();
 
 unless (@ARGV == 1) {
     require Pod::Usage;
@@ -497,7 +494,7 @@ unless (@ARGV == 1) {
 
 push @stack, {};
 open_script($ARGV[0]);
-read_header;
+read_header();
 
 # option checks
 if (defined $domains{ip}{location}) {
