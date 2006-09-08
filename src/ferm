@@ -1222,7 +1222,7 @@ sub shell_append {
     my $ref = shift;
 
     foreach (@_) {
-        $$ref .= shell_escape($_) . ' ';
+        $$ref .= ' ' . shell_escape($_);
     }
 }
 
@@ -1335,9 +1335,8 @@ sub tables {
 
     return if $option{flush};
 
-    my $rr = '';
-    shell_append(\$rr, $domain_info->{tools}{tables},
-                 '-t', $table);
+    my $rr = shell_escape($domain_info->{tools}{tables});
+    shell_append(\$rr, '-t', $table);
 
     # should we set a policy?
     if (exists $chain_info->{set_policy}) {
