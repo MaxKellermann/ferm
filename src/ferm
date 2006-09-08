@@ -2566,6 +2566,21 @@ sub rules_to_save {
     return $result;
 }
 
+sub restore_domain {
+    my ($domain, $save) = @_;
+
+    my $path = $domains{$domain}{tools}{'tables-restore'};
+
+    local *RESTORE;
+    open RESTORE, "|$path"
+      or die "Failed to run $path: $!\n";
+
+    print RESTORE $save;
+
+    close RESTORE
+      or die "Failed to run $path\n";
+}
+
 sub execute_fast {
     my ($domain, $save) = @_;
 
@@ -2574,19 +2589,12 @@ sub execute_fast {
 
     return if $option{noexec};
 
-    my $restore = $domains{$domain}{tools}{'tables-restore'};
-
-    local *RESTORE;
-    unless (open RESTORE, "|$restore") {
-        print STDERR "Failed to run $restore: $!\n";
+    eval {
+        restore_domain($domain, $save);
+    };
+    if ($@) {
+        print STDERR $@;
         return 1;
-    }
-
-    print RESTORE $save;
-
-    unless (close RESTORE) {
-        print STDERR "Failed to run $restore\n";
-        return $? >> 8;
     }
 
     return;
@@ -2606,34 +2614,11 @@ sub rollback {
               if length $reset_chain;
         }
 
-        my $path = $domains{$domain}{tools}{'tables-restore'};
-        local *RESTORE;
-        unless (open RESTORE, "|$path") {
-            print STDERR "failed to run $path: $!";
-            $error = 1;
-            next;
-        }
-        print RESTORE $reset;
-        unless (close RESTORE) {
-            print STDERR "failed to run $path: $!";
-            $error = 1;
-            next;
-        }
+        restore_domain($domain, $reset);
 
         next unless defined $domains{$domain}{previous};
 
-        local *RESTORE;
-        unless (open RESTORE, "|$path") {
-            print STDERR "failed to run $path: $!";
-            $error = 1;
-            next;
-        }
-        print RESTORE $domains{$domain}{previous};
-        unless (close RESTORE) {
-            print STDERR "failed to run $path: $!";
-            $error = 1;
-            next;
-        }
+        restore_domain($domain, $domains{$domain}{previous});
     }
 
     print STDERR "\nFirewall rules rolled back.\n" unless $error;
