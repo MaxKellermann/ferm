@@ -588,11 +588,14 @@ sub initialize_netfilter {
 
   DOMAIN:
     foreach my $domain (qw(ip ip6)) {
+        if ($option{test}) {
+             $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
+             next;
+        }
+
         foreach my $tool (@tools) {
             my $path = "/sbin/${domain}${tool}";
-            if ($option{test}) {
-                $path = "${domain}${tool}";
-            } elsif (not -x $path) {
+            unless (-x $path) {
                 $domains{$domain}{unavailable} = "$path not found";
                 next DOMAIN;
             }
@@ -600,28 +603,26 @@ sub initialize_netfilter {
             $domains{$domain}{tools}{$tool} = $path;
         }
 
-        unless ($option{test}) {
-            local *SAVE;
-            if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
-                my $save = '';
+        local *SAVE;
+        if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
+            my $save = '';
 
-                my $table;
-                while (<SAVE>) {
-                    $save .= $_ if $option{interactive};
+            my $table;
+            while (<SAVE>) {
+                $save .= $_ if $option{interactive};
 
-                    if (/^\*(\w+)/) {
-                        $table = $1;
-                        push @{$domains{$domain}{tables_names}}, $table;
-                    } elsif (defined $table and /^:(\w+)\s+(\S+)/
-                             and $2 ne '-') {
-                        push @{$domains{$domain}{tables}{$table}{builtin_chains}}, $1;
-                    }
+                if (/^\*(\w+)/) {
+                    $table = $1;
+                    push @{$domains{$domain}{tables_names}}, $table;
+                } elsif (defined $table and /^:(\w+)\s+(\S+)/
+                         and $2 ne '-') {
+                    push @{$domains{$domain}{tables}{$table}{builtin_chains}}, $1;
                 }
-
-                # may be used later for rollback
-                $domains{$domain}{previous} = $save
-                   if $option{interactive};
             }
+
+            # may be used later for rollback
+            $domains{$domain}{previous} = $save
+              if $option{interactive};
         }
     }
 }
