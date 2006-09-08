@@ -1335,18 +1335,15 @@ sub tables {
 
     return if $option{flush};
 
-    # iptables, for 2.3/2.4 kernels
-    my $rr = "";
-    my $rrr = "";
-
-    # pre-setup rrr for creation of chains
-    $rrr .= "$domain_info->{tools}{tables} -t " . $rule{'table'} . " ";
+    my $rr = '';
+    shell_append(\$rr, $domain_info->{tools}{tables},
+                 '-t', $table);
 
     # should we set a policy?
     if (exists $chain_info->{set_policy}) {
         my $policy = $chain_info->{policy};
 
-        push @{$rules{$domain}}, $rrr . "-P $chain $policy\n";
+        push @{$rules{$domain}}, "$rr -P $chain $policy\n";
 
         delete $chain_info->{set_policy};
     }
@@ -1359,7 +1356,7 @@ sub tables {
     # check if the chain is already defined
     unless (exists $chain_info->{was_created} or
             is_netfilter_builtin_chain($table, $chain)) {
-        push @{$rules{$domain}}, $rrr . "-N $chain\n";
+        push @{$rules{$domain}}, "$rr -N $chain\n";
         $chain_info->{was_created} = 1;
     }
 
@@ -1369,17 +1366,13 @@ sub tables {
         not is_netfilter_core_target($action) and
         not is_netfilter_module_target($action) and
         not exists $domain_info->{chains}{$table}{$action}{was_created}) {
-        push @{$rules{$domain}}, $rrr . "-N $action\n";
+        push @{$rules{$domain}}, "$rr -N $action\n";
         $domain_info->{chains}{$table}{$action}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
     return
       unless $rule{has_rule};
-
-    shell_append(\$rr, $domain_info->{tools}{tables});
-
-    shell_append(\$rr, '-t', $table);
 
     shell_append(\$rr, '-A', $chain);
 
