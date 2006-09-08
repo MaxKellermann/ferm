@@ -2169,8 +2169,7 @@ sub enter {
                     foreach my $table (to_array $tables) {
                         foreach my $chain (to_array $chains) {
                             error("cannot set the policy for non-builtin chain '$chain'")
-                              unless grep { $_ eq $chain }
-                                qw(INPUT FORWARD OUTPUT PREROUTING POSTROUTING);
+                              unless is_netfilter_builtin_chain($table, $chain);
 
                             if (exists $domains{$domain}{chains}{$table}{$chain}{policy}) {
                                 warning('policy for this chain is specified for the second time');
