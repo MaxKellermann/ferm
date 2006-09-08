@@ -1814,6 +1814,7 @@ sub enter {
                 my $has_rule = find_option(\@fw, 'has_rule');
                 my $action = find_option(\@fw, 'action');
                 my $policy = find_option(\@fw, 'policy');
+                my $chain = find_option(\@fw, 'chain');
 
                 if ($has_rule and not defined $action) {
                     # something is wrong when a rule was specifiedd,
@@ -1827,6 +1828,8 @@ sub enter {
                         error('No action defined');
                     }
                 }
+
+                error('No chain defined') unless defined $chain;
 
                 $current->{script} = { filename => $script->{filename},
                                        line => $script->{line},
@@ -2149,14 +2152,14 @@ sub enter {
                 next;
             }
 
-            error('Chain and table must be specified')
-              unless defined find_option(\@fw, 'chain');
-
             # policy for built-in chain
             if ($keyword eq 'policy') {
                 my $domains = find_option(\@fw, 'domain');
                 my $tables = find_option(\@fw, 'table');
                 my $chains = find_option(\@fw, 'chain');
+
+                error('Chain must be specified')
+                  unless defined $chains;
 
                 my $policy = uc getvar();
                 error("Invalid policy target: $policy")

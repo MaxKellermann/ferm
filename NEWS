@@ -12,6 +12,7 @@ v1.2beta2 - not yet released
   - read iptables-save in initialize_netfilter()
   - option --location is deprecated
   - whitespace fix in import-ferm
+  - allow late chain/table specification again
 
 v1.2beta1 - 28 Aug 2006
   - perl strict mode
