@@ -1283,9 +1283,8 @@ sub tables {
     return if $option{flush};
 
     my $table = $rule{table};
+    $domain_info->{tables}{$table}{dummy};
     my $table_info = $domain_info->{tables}{$table};
-    $table_info = $domain_info->{tables}{$table} = {}
-      unless defined $table_info;
 
     my $chain = $rule{chain};
     $table_info->{chains}{$chain}{dummy};
