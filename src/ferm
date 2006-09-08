@@ -614,6 +614,7 @@ sub initialize_netfilter {
                 if (/^\*(\w+)/) {
                     $table = $1;
                     push @{$domains{$domain}{tables_names}}, $table;
+                    $domains{$domain}{tables}{$table}{builtin_chains} = [];
                 } elsif (defined $table and /^:(\w+)\s+(\S+)/
                          and $2 ne '-') {
                     push @{$domains{$domain}{tables}{$table}{builtin_chains}}, $1;
@@ -1248,49 +1249,28 @@ sub extract_negation {
         : $_;
 }
 
-# reset a netfilter table, clearing all rules and custom chains
-sub reset_table {
+# reset a netfilter domain: set all policies to ACCEPT, clear all
+# rules, delete custom chains
+sub reset_domain {
     my $domain = shift;
-    my $table = shift;
+    my $domain_info = $domains{$domain};
 
-    my $path = $domains{$domain}{tools}{tables};
+    return unless exists $domain_info->{tables_names};
+    return if $domain_info->{reset};
 
-    if (exists $domains{$domain}{tables}{$table} &&
-        exists $domains{$domain}{tables}{$table}{builtin_chains}) {
-        my $chains = $domains{$domain}{tables}{$table}{builtin_chains};
+    my $path = $domain_info->{tools}{tables};
 
+    foreach my $table (@{$domain_info->{tables_names}}) {
+        my $chains = $domain_info->{tables}{$table}{builtin_chains};
         foreach my $chain (@$chains) {
             push @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
         }
+
+        push @{$rules{$domain}}, "$path -t $table -F\n";
+        push @{$rules{$domain}}, "$path -t $table -X\n";
     }
 
-    push @{$rules{$domain}}, "$path -t $table -F\n";
-    push @{$rules{$domain}}, "$path -t $table -X\n";
-}
-
-# reset a netfilter domain or table, depending on how sure we are
-# which table exist
-sub reset_domain_or_table {
-    my $domain = shift;
-    my $table = shift;
-
-    unless (exists $domains{$domain}{tables_names}) {
-        # we don't know for sure which tables exist; reset only tables
-        # which are being referenced
-
-        reset_table($domain, $table);
-    } else {
-        # we have an authoritative list of tables; reset all of them
-        # now
-
-        foreach my $table2 (@{$domains{$domain}{tables_names}}) {
-            reset_table($domain, $table2);
-            $domains{$domain}{tables}{$table2}{reset} = 1;
-        }
-
-        reset_table($domain, $table)
-          unless $domains{$domain}{tables}{$table}{reset};
-    }
+    $domain_info->{reset} = 1;
 }
 
 # convert an internal rule structure into an iptables call
@@ -1300,6 +1280,9 @@ sub tables {
 
     my $domain = $rule{domain};
     my $domain_info = $domains{$domain};
+
+    reset_domain($domain) unless $domain_info->{reset};
+    return if $option{flush};
 
     my $table = $rule{table};
     my $table_info = $domain_info->{tables}{$table};
@@ -1312,13 +1295,6 @@ sub tables {
       unless defined $chain_info;
 
     my $action = $rule{action};
-
-    unless ($table_info->{reset}) {
-        reset_domain_or_table($domain, $table);
-        $table_info->{reset} = 1;
-    }
-
-    return if $option{flush};
 
     my $rr = shell_escape($domain_info->{tools}{tables});
     shell_append(\$rr, '-t', $table);
