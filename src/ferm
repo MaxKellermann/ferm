@@ -593,6 +593,11 @@ sub initialize_netfilter {
              next;
         }
 
+        if (exists $option{domain} and $domain ne $option{domain}) {
+            $domains{$domain}{unavailable} = 'disabled';
+            next;
+        }
+
         foreach my $tool (@tools) {
             my $path = "/sbin/${domain}${tool}";
             unless (-x $path) {
