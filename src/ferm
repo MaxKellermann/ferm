@@ -2630,6 +2630,11 @@ sub confirm_rules {
 
     my $line = '';
     STDIN->sysread($line, 3);
+
+    eval {
+        require POSIX;
+        POSIX::tcflush(*STDIN, 2);
+    };
     print STDERR "$@" if $@;
 
     $SIG{ALRM} = 'DEFAULT';
