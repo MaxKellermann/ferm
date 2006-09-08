@@ -608,7 +608,9 @@ sub initialize_netfilter {
     foreach my $domain (qw(ip ip6)) {
         foreach my $tool (@tools) {
             my $path = "/sbin/${domain}${tool}";
-            unless ($option{test} or -x $path) {
+            if ($option{test}) {
+                $path = "${domain}${tool}";
+            } elsif (not -x $path) {
                 $domains{$domain}{unavailable} = "$path not found";
                 next DOMAIN;
             }
