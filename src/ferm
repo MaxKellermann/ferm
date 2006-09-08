@@ -582,24 +582,6 @@ sub warning {
       . (shift) . "\n";
 }
 
-# read words from a file, one per line
-sub read_file_words {
-    my $filename = shift;
-
-    local *FILE;
-    open FILE, $filename
-      or return;
-
-    my @words;
-
-    while (<FILE>) {
-        push @words, $1
-          if /(\w+)/;
-    }
-
-    return \@words;
-}
-
 # initialize data structures for netfilter support
 sub initialize_netfilter {
     my @tools = qw(tables tables-save tables-restore);
