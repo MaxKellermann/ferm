@@ -2594,9 +2594,33 @@ sub execute_fast {
 sub rollback {
     my $error;
     foreach my $domain (keys %rules) {
-        next unless defined $domains{$domain}{previous};
+        my $reset = '';
+        while (my ($table, $table_info) = each %{$domains{$domain}{tables}}) {
+            my $reset_chain = '';
+            foreach my $chain (keys %{$domains{$domain}{chains}{$table}}) {
+                next unless is_netfilter_builtin_chain($table, $chain);
+                $reset_chain .= ":${chain} ACCEPT [0:0]\n";
+            }
+            $reset .= "*${table}\n${reset_chain}COMMIT\n"
+              if length $reset_chain;
+        }
 
         my $path = $domains{$domain}{tools}{'tables-restore'};
+        local *RESTORE;
+        unless (open RESTORE, "|$path") {
+            print STDERR "failed to run $path: $!";
+            $error = 1;
+            next;
+        }
+        print RESTORE $reset;
+        unless (close RESTORE) {
+            print STDERR "failed to run $path: $!";
+            $error = 1;
+            next;
+        }
+
+        next unless defined $domains{$domain}{previous};
+
         local *RESTORE;
         unless (open RESTORE, "|$path") {
             print STDERR "failed to run $path: $!";
