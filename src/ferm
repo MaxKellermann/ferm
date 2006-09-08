@@ -607,16 +607,16 @@ sub initialize_netfilter {
         if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
             my $save = '';
 
-            my $table;
+            my $table_info;
             while (<SAVE>) {
                 $save .= $_ if $option{interactive};
 
                 if (/^\*(\w+)/) {
-                    $table = $1;
-                    $domains{$domain}{tables}{$table}{builtin_chains} = [];
-                } elsif (defined $table and /^:(\w+)\s+(\S+)/
+                    my $table = $1;
+                    $table_info = $domains{$domain}{tables}{$table} ||= {};
+                } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
                          and $2 ne '-') {
-                    push @{$domains{$domain}{tables}{$table}{builtin_chains}}, $1;
+                    $table_info->{chains}{$1}{builtin} = 1;
                 }
             }
 
@@ -1259,8 +1259,8 @@ sub reset_domain {
     my $path = $domain_info->{tools}{tables};
 
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
-        my $chains = $table_info->{builtin_chains};
-        foreach my $chain (@$chains) {
+        while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
+            next unless $chain_info->{builtin};
             push @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
         }
 
