@@ -51,7 +51,6 @@ use vars qw($script %oldvars %rules @stack $auto_chain);
 ## netfilter variables
 # %domains = state information about all domains ("ip" and "ip6")
 # - enabled: is this domain enabled? (i.e. one or more rules present)
-# - location: frontend executable (iptables, ip6tables)
 # - chains{$table}{$chain}: ferm state information about the chains
 use vars qw(%domains);
 
@@ -474,15 +473,8 @@ sub compat_tos_params {
       if defined $opt_flushchains;
     print STDERR "Warning: ignoring the obsolete --createchains option\n"
       if defined $opt_createchains;
-
-    if (defined $opt_location) {
-        my $domain = $option{domain} || 'ip';
-
-        $domains{$domain}{location} = $opt_location;
-        if ( ! -X $domains{$domain}{location}) {
-            mydie("Specified location is not executable or does not exist");
-        }
-    }
+    print STDERR "Warning: ignoring the obsolete --location option\n"
+      if defined $opt_location;
 }
 
 initialize_netfilter();
@@ -495,18 +487,6 @@ unless (@ARGV == 1) {
 push @stack, {};
 open_script($ARGV[0]);
 read_header();
-
-# option checks
-if (defined $domains{ip}{location}) {
-    mydie("Specified location is not executable or does not exist")
-      unless -X $domains{ip}{location};
-} else {
-    # set a default location
-    $domains{ip}{location} = 'iptables';
-}
-
-$domains{ip6}{location} = 'ip6tables'
-  unless defined $domains{ip6}{location};
 
 # parse all input recursively
 enter(0);
@@ -1288,17 +1268,19 @@ sub reset_table {
     my $domain = shift;
     my $table = shift;
 
+    my $path = $domains{$domain}{tools}{tables};
+
     if (exists $domains{$domain}{tables}{$table} &&
         exists $domains{$domain}{tables}{$table}{builtin_chains}) {
         my $chains = $domains{$domain}{tables}{$table}{builtin_chains};
 
         foreach my $chain (@$chains) {
-            push @{$rules{$domain}}, "$domains{$domain}{location} -t $table -P $chain ACCEPT\n";
+            push @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
         }
     }
 
-    push @{$rules{$domain}}, "$domains{$domain}{location} -t $table -F\n";
-    push @{$rules{$domain}}, "$domains{$domain}{location} -t $table -X\n";
+    push @{$rules{$domain}}, "$path -t $table -F\n";
+    push @{$rules{$domain}}, "$path -t $table -X\n";
 }
 
 # reset a netfilter domain or table, depending on how sure we are
@@ -1333,7 +1315,6 @@ sub tables {
 
     my $domain = $rule{domain};
     my $domain_info = $domains{$domain};
-    die unless $domain_info and $domain_info->{location};
 
     my $table = $rule{table};
     my $table_info = $domain_info->{tables}{$table};
@@ -1359,7 +1340,7 @@ sub tables {
     my $rrr = "";
 
     # pre-setup rrr for creation of chains
-    $rrr .= "$domain_info->{location} -t " . $rule{'table'} . " ";
+    $rrr .= "$domain_info->{tools}{tables} -t " . $rule{'table'} . " ";
 
     # should we set a policy?
     if (exists $chain_info->{set_policy}) {
@@ -1396,7 +1377,7 @@ sub tables {
     return
       unless $rule{has_rule};
 
-    shell_append(\$rr, $domain_info->{location});
+    shell_append(\$rr, $domain_info->{tools}{tables});
 
     shell_append(\$rr, '-t', $table);
 
@@ -2656,8 +2637,6 @@ B<ferm> I<options> I<inputfiles>
  -h, --help        Look at this text
  --use [kernel firewall program]
                    Obsolete option, only iptables is supported
- --location /path/to/iptables
-                   Specify the location and name of the kernel program
  --fast            Generate an iptables-save file, used by iptables-restore
  --domain {ip|ip6} Handle only the specified domain
 

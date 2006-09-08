@@ -1166,11 +1166,6 @@ Show a brief list of available commandline options.
 
 Shows the version number of the program.
 
-=item B<--location [/path/to/filename]>
-
-Explicitly define the exact name and location of the
-kernel backend program, for the paranoid people out there.
-
 =item B<--fast>
 
 Enable fast mode: ferm generates an iptables-save(8) file, and
