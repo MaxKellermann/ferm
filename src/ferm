@@ -613,7 +613,6 @@ sub initialize_netfilter {
 
                 if (/^\*(\w+)/) {
                     $table = $1;
-                    push @{$domains{$domain}{tables_names}}, $table;
                     $domains{$domain}{tables}{$table}{builtin_chains} = [];
                 } elsif (defined $table and /^:(\w+)\s+(\S+)/
                          and $2 ne '-') {
@@ -1255,13 +1254,12 @@ sub reset_domain {
     my $domain = shift;
     my $domain_info = $domains{$domain};
 
-    return unless exists $domain_info->{tables_names};
     return if $domain_info->{reset};
 
     my $path = $domain_info->{tools}{tables};
 
-    foreach my $table (@{$domain_info->{tables_names}}) {
-        my $chains = $domain_info->{tables}{$table}{builtin_chains};
+    while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
+        my $chains = $table_info->{builtin_chains};
         foreach my $chain (@$chains) {
             push @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
         }
