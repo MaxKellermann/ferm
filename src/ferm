@@ -622,12 +622,6 @@ sub read_file_words {
 
 # initialize data structures for netfilter support
 sub initialize_netfilter {
-    my %chains = ( filter => [qw(INPUT FORWARD OUTPUT)],
-                   nat => [qw(PREROUTING POSTROUTING OUTPUT)],
-                   mangle => [qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING)],
-                   raw => [qw(PREROUTING OUTPUT)],
-                 );
-
     my @tools = qw(tables tables-save tables-restore);
 
   DOMAIN:
@@ -663,12 +657,6 @@ sub initialize_netfilter {
                 # may be used later for rollback
                 $domains{$domain}{previous} = $save
                    if $option{interactive};
-            }
-        }
-
-        unless (defined $domains{$domain}{tables_names}) {
-            while (my ($table, $chains) = each %chains) {
-                $domains{$domain}{tables}{$table}{builtin_chains} = $chains;
             }
         }
     }
