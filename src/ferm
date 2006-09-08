@@ -1288,9 +1288,8 @@ sub tables {
       unless defined $table_info;
 
     my $chain = $rule{chain};
-    my $chain_info = $domain_info->{chains}{$table}{$chain};
-    $chain_info = $domain_info->{chains}{$table}{$chain} = {}
-      unless defined $chain_info;
+    $table_info->{chains}{$chain}{dummy};
+    my $chain_info = $table_info->{chains}{$chain};
 
     my $action = $rule{action};
 
@@ -1323,9 +1322,9 @@ sub tables {
         $action ne 'NOP' and
         not is_netfilter_core_target($action) and
         not is_netfilter_module_target($action) and
-        not exists $domain_info->{chains}{$table}{$action}{was_created}) {
+        not exists $table_info->{chains}{$action}{was_created}) {
         push @{$rules{$domain}}, "$rr -N $action\n";
-        $domain_info->{chains}{$table}{$action}{was_created} = 1;
+        $table_info->{chains}{$action}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
@@ -2141,15 +2140,18 @@ sub enter {
 
                 foreach my $domain (to_array $domains) {
                     foreach my $table (to_array $tables) {
+                        $domains{$domain}{tables}{$table}{chains}{dummy};
+                        my $chains_info = $domains{$domain}{tables}{$table}{chains};
+
                         foreach my $chain (to_array $chains) {
                             error("cannot set the policy for non-builtin chain '$chain'")
                               unless is_netfilter_builtin_chain($table, $chain);
 
-                            if (exists $domains{$domain}{chains}{$table}{$chain}{policy}) {
+                            if (exists $chains_info->{$chain}{policy}) {
                                 warning('policy for this chain is specified for the second time');
                             } else {
-                                $domains{$domain}{chains}{$table}{$chain}{policy} = $policy;
-                                $domains{$domain}{chains}{$table}{$chain}{set_policy} = 1;
+                                $chains_info->{$chain}{policy} = $policy;
+                                $chains_info->{$chain}{set_policy} = 1;
                             }
                         }
                     }
@@ -2373,8 +2375,8 @@ sub enter {
 
 sub check {
     while (my ($domain_name, $domain) = each %domains) {
-        while (my ($table_name, $chains) = each %{$domain->{chains}}) {
-            while (my ($chain_name, $chain) = each %$chains) {
+        while (my ($table_name, $table_info) = each %{$domain->{tables}}) {
+            while (my ($chain_name, $chain) = each %{$table_info->{chains}}) {
                 warning("chain $chain_name (domain $domain_name, table $table_name) was referenced, but not declared")
                   if $chain->{was_created} and not $chain->{non_empty};
             }
@@ -2520,7 +2522,7 @@ sub rollback {
         my $reset = '';
         while (my ($table, $table_info) = each %{$domains{$domain}{tables}}) {
             my $reset_chain = '';
-            foreach my $chain (keys %{$domains{$domain}{chains}{$table}}) {
+            foreach my $chain (keys %{$table_info->{chains}{$table}}) {
                 next unless is_netfilter_builtin_chain($table, $chain);
                 $reset_chain .= ":${chain} ACCEPT [0:0]\n";
             }
