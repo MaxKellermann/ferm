@@ -2566,10 +2566,6 @@ sub execute_fast {
 }
 
 sub save_previous {
-    # POSIX is needed later, in &confirm_rules() - prepare here to
-    # ensure POSIX is available
-    require POSIX;
-
     foreach my $domain (keys %rules) {
         my $save = "/sbin/${domain}tables-save";
         mydie("need $save in interactive mode") unless -x $save;
@@ -2619,9 +2615,9 @@ sub confirm_rules {
         . "Please type 'yes' to confirm:\n";
     STDOUT->flush();
 
-    POSIX::tcflush(*STDIN, 2);
     my $line = '';
     STDIN->sysread($line, 3);
+    print STDERR "$@" if $@;
 
     $SIG{ALRM} = 'DEFAULT';
 
