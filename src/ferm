@@ -639,14 +639,6 @@ sub initialize_netfilter {
 
     foreach my $domain (qw(ip ip6)) {
         unless ($option{test}) {
-            # read tables_matches
-            $domains{$domain}{tables_matches}
-              = read_file_words("/proc/net/${domain}_tables_matches");
-
-            # read tables_targets
-            $domains{$domain}{tables_targets}
-              = read_file_words("/proc/net/${domain}_tables_targets");
-
             # read tables_names
             $domains{$domain}{tables_names}
               = read_file_words("/proc/net/${domain}_tables_names");
@@ -661,30 +653,6 @@ sub initialize_netfilter {
             $domains{$domain}{tables}{$table}{builtin_chains} = $chains;
         }
     }
-}
-
-# determines whether a netfilter match module is available
-sub netfilter_match_available {
-    my ($domain, $match) = @_;
-
-    die unless exists $domains{$domain};
-
-    return 1 if $option{test};
-    return 1 unless defined $domains{$domain}{tables_matches};
-
-    return grep { $_ eq $match } @{$domains{$domain}{tables_matches}};
-}
-
-# determines whether a netfilter target module is available
-sub netfilter_target_available {
-    my ($domain, $match) = @_;
-
-    die unless exists $domains{$domain};
-
-    return 1 if $option{test};
-    return 1 unless defined $domains{$domain}{tables_targets};
-
-    return grep { $_ eq $match } @{$domains{$domain}{tables_targets}};
 }
 
 # split the an input string into words and delete comments
@@ -2193,13 +2161,6 @@ sub enter {
                 $current->{domain} = $domain = 'ip'
                   unless defined $domain;
 
-                foreach my $domain2 (to_array $domain) {
-                    foreach my $table (to_array $current->{table}) {
-                        warn("Table '$table' does not exist in domain $domain2")
-                          unless grep { $_ eq $table } @{$domains{$domain2}{tables_names}};
-                    }
-                }
-
                 next;
             }
 
@@ -2329,11 +2290,6 @@ sub enter {
                 my $domains = find_option(\@fw, 'domain');
 
                 foreach my $module (to_array getvalues) {
-                    foreach my $domain (to_array $domains) {
-                        warn("Module '$module' unavailable in domain '$domain'")
-                          unless netfilter_match_available($domain, $module);
-                    }
-
                     $current->{modules}{$module} = 1;
                     $modules{$module} = 1;
                 }
@@ -2382,12 +2338,6 @@ sub enter {
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
-
-                my $domains = find_option(\@fw, 'domain');
-                foreach my $domain (to_array $domains) {
-                    error("Target '$keyword' unavailable in domain '$domain'")
-                      unless netfilter_target_available($domain, $keyword);
-                }
 
                 if ($keyword eq 'TCPMSS') {
                     my $protos = find_option(\@fw, 'proto');

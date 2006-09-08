@@ -8,6 +8,7 @@
 
 v1.2beta2 - not yet released
   - added --flush
+  - don't check available netfilter modules
 
 v1.2beta1 - 28 Aug 2006
   - perl strict mode
