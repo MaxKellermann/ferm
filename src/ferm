@@ -644,8 +644,6 @@ sub initialize_netfilter {
             $domains{$domain}{tools}{$tool} = $path;
         }
 
-        $domains{$domain}{available} = 1;
-
         unless ($option{test}) {
             local *SAVE;
             if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
@@ -2172,7 +2170,10 @@ sub enter {
 
                 foreach my $domain (to_array $current->{domain}) {
                     error("Domain '$domain' is not supported")
-                      unless exists $domains{$domain}{location};
+                      unless exists $domains{$domain};
+                    error("Domain '$domain' is not available: "
+                          . $domains{$domain}{unavailable})
+                      if exists $domains{$domain}{unavailable};
                 }
 
                 next;
