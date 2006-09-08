@@ -1439,29 +1439,6 @@ sub mkrules {
     # compile the list hashes into rules
     my $fw = shift;
 
-    if (exists $option{domain}) {
-        my $found;
-        foreach my $i (0 .. @$fw - 1) {
-            next unless exists $fw->[$i]{domain};
-
-            my @domains = to_array $fw->[$i]{domain};
-            if (grep { $_ eq $option{domain} } @domains) {
-                # copy @$fw and limit to the selected domain
-                $fw = [ @$fw ];
-                $fw->[$i] = {%{$fw->[$i]}};
-                $fw->[$i]{domain} = $option{domain};
-
-                $found = 1;
-                last;
-            } else {
-                # wrong domain - skip
-                return;
-            }
-        }
-
-        die unless $found;
-    }
-
     # pack the data in a handy format (list-of-hashes with one kw
     # per level, so we can recurse...
     my @fr;
@@ -1546,6 +1523,24 @@ sub find_option {
     return unless defined $item;
 
     return $item->{$key};
+}
+
+sub filter_domains {
+    my $domains = shift;
+    my $result = [];
+
+    foreach my $domain (to_array $domains) {
+        error("Domain '$domain' is not supported")
+          unless exists $domains{$domain};
+        next if exists $option{domain}
+          and $domain ne $option{domain};
+        error("Domain '$domain' is not available: "
+              . $domains{$domain}{unavailable})
+          if exists $domains{$domain}{unavailable};
+        push @$result, $domain;
+    }
+
+    return @$result == 1 ? $result->[0] : $result;
 }
 
 # parse tokens from builtin match modules
@@ -2077,15 +2072,9 @@ sub enter {
             if ($keyword eq 'domain') {
                 error('Domain is already specified')
                   if exists $current->{domain};
-                $current->{domain} = $stack[0]{auto}{DOMAIN} = getvalues();
 
-                foreach my $domain (to_array $current->{domain}) {
-                    error("Domain '$domain' is not supported")
-                      unless exists $domains{$domain};
-                    error("Domain '$domain' is not available: "
-                          . $domains{$domain}{unavailable})
-                      if exists $domains{$domain}{unavailable};
-                }
+                $current->{domain} = $stack[0]{auto}{DOMAIN}
+                  = filter_domains(getvalues());
 
                 next;
             }
@@ -2096,7 +2085,7 @@ sub enter {
                 $current->{table} = $stack[0]{auto}{TABLE} = getvalues();
 
                 my $domain = find_option(\@fw, 'domain');
-                $current->{domain} = $domain = 'ip'
+                $current->{domain} = $domain = filter_domains('ip')
                   unless defined $domain;
 
                 next;
