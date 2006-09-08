@@ -628,7 +628,6 @@ print "# http://ferm.foo-projects.org/\n";
 write_line qw(domain ip {);
 
 while (<>) {
-    chomp;
     if (/^(?:#.*)?$/) {
         # empty or comment
     } elsif (/^\*(\w+)$/) {
@@ -644,7 +643,7 @@ while (<>) {
         # built-in chain
         die unless defined $table;
         write_line('chain', $1, 'policy', $2, ';');
-    } elsif (s/^-A (\S+) //) {
+    } elsif (s/^-A (\S+)\s+//) {
         # a rule
         unless (defined $chain) {
             flush;
@@ -679,7 +678,7 @@ while (<>) {
         }
         delete $line{cur};
         push @rules, \%line;
-    } elsif ($_ eq 'COMMIT') {
+    } elsif ($_ =~ /^COMMIT/) {
         flush;
 
         if (defined $chain) {
