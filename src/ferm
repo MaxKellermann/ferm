@@ -1283,12 +1283,10 @@ sub tables {
     return if $option{flush};
 
     my $table = $rule{table};
-    $domain_info->{tables}{$table}{dummy};
-    my $table_info = $domain_info->{tables}{$table};
+    my $table_info = $domain_info->{tables}{$table} ||= {};
 
     my $chain = $rule{chain};
-    $table_info->{chains}{$chain}{dummy};
-    my $chain_info = $table_info->{chains}{$chain};
+    my $chain_info = $table_info->{chains}{$chain} ||= {};
 
     my $action = $rule{action};
 
@@ -2139,8 +2137,7 @@ sub enter {
 
                 foreach my $domain (to_array $domains) {
                     foreach my $table (to_array $tables) {
-                        $domains{$domain}{tables}{$table}{chains}{dummy};
-                        my $chains_info = $domains{$domain}{tables}{$table}{chains};
+                        my $chains_info = $domains{$domain}{tables}{$table}{chains} ||= {};
 
                         foreach my $chain (to_array $chains) {
                             error("cannot set the policy for non-builtin chain '$chain'")
