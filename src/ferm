@@ -517,11 +517,7 @@ enter(0);
 # check consistency
 check();
 
-# save existing rules for rollback
-
-save_previous() if $option{interactive};
-
-# and execute all generated rules
+# execute all generated rules
 my $status;
 
 while (my ($domain, $rules) = each %rules) {
@@ -637,20 +633,53 @@ sub initialize_netfilter {
 
     my @default_ip_tables = qw(filter nat mangle raw);
 
+    my @tools = qw(tables tables-save tables-restore);
+
+  DOMAIN:
     foreach my $domain (qw(ip ip6)) {
+        foreach my $tool (@tools) {
+            my $path = "/sbin/${domain}${tool}";
+            unless ($option{test} or -x $path) {
+                $domains{$domain}{unavailable} = "$path not found";
+                next DOMAIN;
+            }
+
+            $domains{$domain}{tools}{$tool} = $path;
+        }
+
+        $domains{$domain}{available} = 1;
+
         unless ($option{test}) {
-            # read tables_names
-            $domains{$domain}{tables_names}
-              = read_file_words("/proc/net/${domain}_tables_names");
+            local *SAVE;
+            if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
+                my $save = '';
+
+                my $table;
+                while (<SAVE>) {
+                    $save .= $_ if $option{interactive};
+
+                    if (/^\*(\w+)/) {
+                        $table = $1;
+                        push @{$domains{$domain}{tables_names}}, $table;
+                    } elsif (defined $table and /^:(\w+)\s+(\S+)/
+                             and $2 ne '-') {
+                        push @{$domains{$domain}{tables}{$table}{builtin_chains}}, $1;
+                    }
+                }
+
+                # may be used later for rollback
+                $domains{$domain}{previous} = $save
+                   if $option{interactive};
+            }
         }
 
         unless (defined $domains{$domain}{tables_names}) {
             $domains{$domain}{tables_names} = \@default_ip_tables;
             $domains{$domain}{tables_names_guessed} = 1;
-        }
 
-        while (my ($table, $chains) = each %chains) {
-            $domains{$domain}{tables}{$table}{builtin_chains} = $chains;
+            while (my ($table, $chains) = each %chains) {
+                $domains{$domain}{tables}{$table}{builtin_chains} = $chains;
+            }
         }
     }
 }
@@ -2547,7 +2576,7 @@ sub execute_fast {
 
     return if $option{noexec};
 
-    my $restore = "/sbin/${domain}tables-restore";
+    my $restore = $domains{$domain}{tools}{'tables-restore'};
 
     local *RESTORE;
     unless (open RESTORE, "|$restore") {
@@ -2565,34 +2594,21 @@ sub execute_fast {
     return;
 }
 
-sub save_previous {
-    foreach my $domain (keys %rules) {
-        my $save = "/sbin/${domain}tables-save";
-        mydie("need $save in interactive mode") unless -x $save;
-
-        my $restore = "/sbin/${domain}tables-restore";
-        mydie("need $restore in interactive mode") unless -x $restore;
-
-        $domains{$domain}{programs}{save} = $save;
-        $domains{$domain}{programs}{restore} = $restore;
-        $domains{$domain}{previous} = `$save`;
-        mydie("failed to run $save")
-          if $? or not $domains{$domain}{previous};
-    }
-}
-
 sub rollback {
     my $error;
     foreach my $domain (keys %rules) {
+        next unless defined $domains{$domain}{previous};
+
+        my $path = $domains{$domain}{tools}{'tables-restore'};
         local *RESTORE;
-        unless (open RESTORE, "|$domains{$domain}{programs}{restore}") {
-            print STDERR "failed to run $domains{$domain}{programs}{restore}: $!";
+        unless (open RESTORE, "|$path") {
+            print STDERR "failed to run $path: $!";
             $error = 1;
             next;
         }
         print RESTORE $domains{$domain}{previous};
         unless (close RESTORE) {
-            print STDERR "failed to run $domains{$domain}{programs}{restore}: $!";
+            print STDERR "failed to run $path: $!";
             $error = 1;
             next;
         }
