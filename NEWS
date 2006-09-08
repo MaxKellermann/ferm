@@ -11,6 +11,7 @@ v1.2beta2 - not yet released
   - don't check available netfilter modules
   - read iptables-save in initialize_netfilter()
   - option --location is deprecated
+  - whitespace fix in import-ferm
 
 v1.2beta1 - 28 Aug 2006
   - perl strict mode
