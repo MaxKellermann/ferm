@@ -2527,10 +2527,10 @@ sub rollback {
               if length $reset_chain;
         }
 
-        restore_domain($domain, $reset);
-
-        restore_domain($domain, $domains{$domain}{previous})
+        $reset .= $domains{$domain}{previous}
           if defined $domains{$domain}{previous};
+
+        restore_domain($domain, $reset);
     }
 
     print STDERR "\nFirewall rules rolled back.\n" unless $error;
