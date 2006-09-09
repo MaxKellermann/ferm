@@ -137,7 +137,7 @@ Getting a firewall working with ferm on your system
 
 	- test the ferm config file
 
-	Make sure the firewall behaves as you want it to! Be carefull
+	Make sure the firewall behaves as you want it to! Be careful
 	with this!!!
 
 	- install it on the system
