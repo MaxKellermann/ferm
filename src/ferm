@@ -452,7 +452,7 @@ sub compat_tos_params {
     $option{fast} = 1 if defined $opt_fast;
 
     if (defined $opt_shell) {
-        $option{$_} = 1 foreach qw(shell fast lines noexec);
+        $option{$_} = 1 foreach qw(shell fast lines);
     }
 
     $option{domain} = $opt_domain if defined $opt_domain;

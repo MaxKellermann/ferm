@@ -1178,7 +1178,7 @@ with this option due to quoting bugs.
 =item B<--shell>
 
 Generate a shell script which calls iptables-restore(8) and prints it.
-No rules are being applied.  Implies --fast --lines --noexec.
+No rules are being applied.  Implies --fast --lines.
 
 =item B<--domain {ip|ip6}>
 
