@@ -53,7 +53,7 @@ use vars qw($script %oldvars %rules @stack $auto_chain);
 
 ## netfilter variables
 # %domains = state information about all domains ("ip" and "ip6")
-# - unavailable: if present, is a string why this domain isn't available
+# - initialized: domain initialization is done
 # - tools: hash providing the paths of the domain's tools
 # - previous: save file of the previous ruleset, for rollback
 # - reset: has this domain already been reset?
@@ -457,8 +457,11 @@ sub compat_tos_params {
     }
 
     if (defined $opt_domain) {
-        unless ($opt_domain =~ /^ip6?$/) {
-            print STDERR "Invalid domain '$opt_domain'\n";
+        eval {
+            initialize_domain($opt_domain);
+        };
+        if ($@) {
+            print STDERR $@;
             exit 1;
         }
 
@@ -486,8 +489,6 @@ sub compat_tos_params {
     print STDERR "Warning: ignoring the obsolete --location option\n"
       if defined $opt_location;
 }
-
-initialize_netfilter();
 
 unless (@ARGV == 1) {
     require Pod::Usage;
@@ -592,59 +593,53 @@ sub warning {
       . (shift) . "\n";
 }
 
-# initialize data structures for netfilter support
-sub initialize_netfilter {
+sub initialize_domain {
+    my $domain = shift;
+
+    return if exists $domains{$domain}{initialized};
+
+    die "Invalid domain '$domain'\n" unless $domain =~ /^ip6?$/;
+
     my @tools = qw(tables tables-save tables-restore);
 
-  DOMAIN:
-    foreach my $domain (qw(ip ip6)) {
-        if ($option{test}) {
-            # short circuit in test mode
-            $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
-            next;
-        }
-
-        if (exists $option{domain} and $domain ne $option{domain}) {
-            # disable this domain when --domain was specified
-            $domains{$domain}{unavailable} = 'disabled';
-            next;
-        }
-
-        # determine the location of this domain's tools
-        foreach my $tool (@tools) {
-            my $path = "/sbin/${domain}${tool}";
-            unless (-x $path) {
-                $domains{$domain}{unavailable} = "$path not found";
-                next DOMAIN;
-            }
-
-            $domains{$domain}{tools}{$tool} = $path;
-        }
-
-        # make tables-save tell us about the state of this domain
-        # (which tables and chains do exist?), also remember the old
-        # save data which may be used later by the rollback function
-        local *SAVE;
-        if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
-            my $save = '';
-
-            my $table_info;
-            while (<SAVE>) {
-                $save .= $_;
-
-                if (/^\*(\w+)/) {
-                    my $table = $1;
-                    $table_info = $domains{$domain}{tables}{$table} ||= {};
-                } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
-                         and $2 ne '-') {
-                    $table_info->{chains}{$1}{builtin} = 1;
-                }
-            }
-
-            # for rollback
-            $domains{$domain}{previous} = $save;
-        }
+    if ($option{test}) {
+        $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
+        $domains{$domain}{initialized} = 1;
+        return;
     }
+
+    # determine the location of this domain's tools
+    foreach my $tool (@tools) {
+        my $path = "/sbin/${domain}${tool}";
+        die "$path not found\n" unless -x $path;
+        $domains{$domain}{tools}{$tool} = $path;
+    }
+
+    # make tables-save tell us about the state of this domain
+    # (which tables and chains do exist?), also remember the old
+    # save data which may be used later by the rollback function
+    local *SAVE;
+    if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
+        my $save = '';
+
+        my $table_info;
+        while (<SAVE>) {
+            $save .= $_;
+
+            if (/^\*(\w+)/) {
+                my $table = $1;
+                $table_info = $domains{$domain}{tables}{$table} ||= {};
+            } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
+                     and $2 ne '-') {
+                $table_info->{chains}{$1}{builtin} = 1;
+            }
+        }
+
+        # for rollback
+        $domains{$domain}{previous} = $save;
+    }
+
+    $domains{$domain}{initialized} = 1;
 }
 
 # split the an input string into words and delete comments
@@ -1550,13 +1545,14 @@ sub filter_domains {
     my $result = [];
 
     foreach my $domain (to_array $domains) {
-        error("Domain '$domain' is not supported")
-          unless exists $domains{$domain};
         next if exists $option{domain}
           and $domain ne $option{domain};
-        error("Domain '$domain' is not available: "
-              . $domains{$domain}{unavailable})
-          if exists $domains{$domain}{unavailable};
+
+        eval {
+            initialize_domain($domain);
+        };
+        error($@) if $@;
+
         push @$result, $domain;
     }
 
