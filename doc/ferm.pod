@@ -1172,6 +1172,9 @@ Enable fast mode: ferm generates an iptables-save(8) file, and
 installs it with iptables-restore(8). This is much faster, because
 ferm calls iptables(8) once for every rule by default.
 
+Watch out for iptables versions older than 1.3, they might not work
+with this option due to quoting bugs.
+
 =item B<--domain {ip|ip6}>
 
 Handle only the specified domain. B<ferm> output may be empty if the
