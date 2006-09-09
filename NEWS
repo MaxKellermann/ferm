@@ -8,6 +8,7 @@
 
 v1.2beta2 - not yet released
   - added --flush
+  - added --shell which generates a shell script
   - don't check available netfilter modules
   - read iptables-save in initialize_netfilter()
   - option --location is deprecated

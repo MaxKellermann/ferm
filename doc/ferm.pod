@@ -1175,6 +1175,11 @@ ferm calls iptables(8) once for every rule by default.
 Watch out for iptables versions older than 1.3, they might not work
 with this option due to quoting bugs.
 
+=item B<--shell>
+
+Generate a shell script which calls iptables-restore(8) and prints it.
+No rules are being applied.  Implies --fast --lines --noexec.
+
 =item B<--domain {ip|ip6}>
 
 Handle only the specified domain. B<ferm> output may be empty if the

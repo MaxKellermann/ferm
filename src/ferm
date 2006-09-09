@@ -393,7 +393,8 @@ sub compat_tos_params {
         $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
         $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
-        $opt_version, $opt_use, $opt_test, $opt_fast, $opt_domain);
+        $opt_version, $opt_use, $opt_test, $opt_fast, $opt_shell,
+        $opt_domain);
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
                             'no_auto_abbrev');
@@ -415,6 +416,7 @@ sub compat_tos_params {
                'use=s' => \$opt_use,
                test => \$opt_test,
                fast => \$opt_fast,
+               shell => \$opt_shell,
                'domain=s' => \$opt_domain,
               );
 
@@ -447,13 +449,19 @@ sub compat_tos_params {
     mydie('ferm interactive mode not possible: /dev/stdout is not a tty')
       if $option{interactive} and not -t STDOUT;
 
-    if (defined $opt_fast) {
+    if (defined $opt_fast or defined $opt_shell) {
         unless ($option{noexec} or -x '/sbin/iptables-restore') {
             print STDERR "Error: '/sbin/iptables-restore' not found\n";
             exit 1;
         }
 
         $option{fast} = 1;
+
+        if (defined $opt_shell) {
+            $option{shell} = 1;
+            $option{lines} = 1;
+            $option{noexec} = 1;
+        }
     }
 
     if (defined $opt_domain) {
@@ -2501,8 +2509,13 @@ sub restore_domain {
 sub execute_fast {
     my ($domain, $save) = @_;
 
-    print $save
-      if $option{lines};
+    if ($option{lines}) {
+        print "$domains{$domain}{tools}{'tables-restore'} <<EOT\n"
+          if $option{shell};
+        print $save;
+        print "EOT\n"
+          if $option{shell};
+    }
 
     return if $option{noexec};
 
@@ -2596,6 +2609,7 @@ B<ferm> I<options> I<inputfiles>
  --use [kernel firewall program]
                    Obsolete option, only iptables is supported
  --fast            Generate an iptables-save file, used by iptables-restore
+ --shell           Generate a shell script which calls iptables-restore
  --domain {ip|ip6} Handle only the specified domain
 
 =cut
