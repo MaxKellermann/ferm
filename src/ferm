@@ -51,8 +51,15 @@ use vars qw($script %oldvars %rules @stack $auto_chain);
 
 ## netfilter variables
 # %domains = state information about all domains ("ip" and "ip6")
-# - enabled: is this domain enabled? (i.e. one or more rules present)
-# - chains{$table}{$chain}: ferm state information about the chains
+# - unavailable: if present, is a string why this domain isn't available
+# - tools: hash providing the paths of the domain's tools
+# - previous: save file of the previous ruleset, for rollback
+# - reset: has this domain already been reset?
+# - tables{$name}: ferm state information about tables
+#   - chains{$chain}: ferm state information about the chains
+#     - builtin: whether this is a built-in chain
+#     - was_created: custom chain has been created
+#     - non_empty: are there rules for this chain?
 use vars qw(%domains);
 
 ## constants
