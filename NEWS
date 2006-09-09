@@ -14,6 +14,7 @@ v1.2beta2 - not yet released
   - whitespace fix in import-ferm
   - allow late chain/table specification again
   - set a second alarm in the confirmation dialog
+  - enable rollback feature even in non-interactive mode
 
 v1.2beta1 - 28 Aug 2006
   - perl strict mode

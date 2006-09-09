@@ -513,7 +513,7 @@ while (my ($domain, $rules) = each %rules) {
 }
 
 if (defined $status) {
-    rollback() if $option{interactive};
+    rollback();
     exit $status;
 }
 
@@ -622,7 +622,7 @@ sub initialize_netfilter {
 
             my $table_info;
             while (<SAVE>) {
-                $save .= $_ if $option{interactive};
+                $save .= $_;
 
                 if (/^\*(\w+)/) {
                     my $table = $1;
@@ -634,8 +634,7 @@ sub initialize_netfilter {
             }
 
             # may be used later for rollback
-            $domains{$domain}{previous} = $save
-              if $option{interactive};
+            $domains{$domain}{previous} = $save;
         }
     }
 }
@@ -2530,9 +2529,8 @@ sub rollback {
 
         restore_domain($domain, $reset);
 
-        next unless defined $domains{$domain}{previous};
-
-        restore_domain($domain, $domains{$domain}{previous});
+        restore_domain($domain, $domains{$domain}{previous})
+          if defined $domains{$domain}{previous};
     }
 
     print STDERR "\nFirewall rules rolled back.\n" unless $error;
