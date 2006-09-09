@@ -33,7 +33,9 @@ use Getopt::Long;
 
 use vars qw($DATE $VERSION);
 
+# subversion keyword magic
 $DATE = '$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '';
+
 $VERSION = '1.2beta1';
 $VERSION .= '+svn' . $DATE;
 
@@ -597,15 +599,18 @@ sub initialize_netfilter {
   DOMAIN:
     foreach my $domain (qw(ip ip6)) {
         if ($option{test}) {
-             $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
-             next;
+            # short circuit in test mode
+            $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
+            next;
         }
 
         if (exists $option{domain} and $domain ne $option{domain}) {
+            # disable this domain when --domain was specified
             $domains{$domain}{unavailable} = 'disabled';
             next;
         }
 
+        # determine the location of this domain's tools
         foreach my $tool (@tools) {
             my $path = "/sbin/${domain}${tool}";
             unless (-x $path) {
@@ -616,6 +621,9 @@ sub initialize_netfilter {
             $domains{$domain}{tools}{$tool} = $path;
         }
 
+        # make tables-save tell us about the state of this domain
+        # (which tables and chains do exist?), also remember the old
+        # save data which may be used later by the rollback function
         local *SAVE;
         if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
             my $save = '';
@@ -633,7 +641,7 @@ sub initialize_netfilter {
                 }
             }
 
-            # may be used later for rollback
+            # for rollback
             $domains{$domain}{previous} = $save;
         }
     }
