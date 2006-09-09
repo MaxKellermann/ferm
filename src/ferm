@@ -2537,12 +2537,15 @@ sub alrm_handler {
 
 sub confirm_rules {
     $SIG{ALRM} = \&alrm_handler;
-    alarm(30);
+
+    alarm(5);
 
     print "\n"
       . "ferm has applied the new firewall rules.\n"
         . "Please type 'yes' to confirm:\n";
     STDOUT->flush();
+
+    alarm(30);
 
     my $line = '';
     STDIN->sysread($line, 3);
