@@ -2119,7 +2119,7 @@ sub enter {
                       and warning('Please write built-in chain names in upper case');
                 }
 
-                $current->{domain} = 'ip'
+                $current->{domain} = filter_domains('ip')
                   unless defined find_option(\@fw, 'domain');
                 $current->{table} = 'filter'
                   unless defined find_option(\@fw, 'table');
