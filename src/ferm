@@ -450,11 +450,6 @@ sub compat_tos_params {
       if $option{interactive} and not -t STDOUT;
 
     if (defined $opt_fast or defined $opt_shell) {
-        unless ($option{noexec} or -x '/sbin/iptables-restore') {
-            print STDERR "Error: '/sbin/iptables-restore' not found\n";
-            exit 1;
-        }
-
         $option{fast} = 1;
 
         if (defined $opt_shell) {
