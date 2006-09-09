@@ -11,7 +11,7 @@ v1.2beta2 - not yet released
   - added --shell which generates a shell script
   - don't check available netfilter modules
   - read iptables-save in initialize_netfilter()
-  - option --location is deprecated, ferm now calls the /sbin/iptables
+  - option --location is deprecated, ferm now calls /sbin/iptables
   - whitespace fix in import-ferm
   - allow late chain/table specification again
   - set a second alarm in the confirmation dialog
