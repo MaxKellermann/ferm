@@ -712,7 +712,7 @@ B<import-ferm> I<inputfile> > ferm.conf
 
 =head1 DESCRIPTION
 
-This script helps you with porting an existing firewall configuration
+This script helps you with porting an existing IPv4 firewall configuration
 to ferm.  It reads a file generated with B<iptables-save> from a file
 or from standard input, and tries to suggest a ferm configuration file.
 
