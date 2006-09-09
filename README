@@ -104,11 +104,6 @@ Basic use of ferm
 
 		ferm /etc/ferm/ferm.conf
 
-	Note that some system scripts remove any PATH settings and
-	ferm might want to know the location of the iptables or ipchains
-	binaries and might not find them, which results in more
-	trouble or no firewall at all.
-
 
 Getting a firewall working with ferm on your system
 
