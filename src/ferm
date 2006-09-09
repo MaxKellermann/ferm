@@ -455,17 +455,7 @@ sub compat_tos_params {
         $option{$_} = 1 foreach qw(shell fast lines noexec);
     }
 
-    if (defined $opt_domain) {
-        eval {
-            initialize_domain($opt_domain);
-        };
-        if ($@) {
-            print STDERR $@;
-            exit 1;
-        }
-
-        $option{domain} = $opt_domain;
-    }
+    $option{domain} = $opt_domain if defined $opt_domain;
 
     print STDERR "Warning: --automod is deprecated\n"
       if defined $opt_automod;
