@@ -69,9 +69,9 @@ Basic use of ferm
 	firewall-rules. Look at the examples for a good idea.
 	To install a firewall, create an appropriate firewall
 	file that suits your needs, store it into a good spot
-	like /etc/firewall.conf and execute:
+	like /etc/ferm/ferm.conf and execute:
 
-		/sbin/ferm /etc/firewall.conf
+		ferm /etc/ferm/ferm.conf
 
 	ferm will read the file, translate it into your
 	[ipchains|iptables|ipfwadm] rules, and install these
@@ -83,7 +83,7 @@ Basic use of ferm
 
 	- testing a firewall.conf file:
 
-		/usr/sbin/ferm --lines --noexec /etc/firewall.conf
+		ferm --lines --noexec /etc/ferm/ferm.conf
 
 	This way, the actual firewall is not implemented, but the
 	resulting rules are printed so you may check them. Add
@@ -91,7 +91,7 @@ Basic use of ferm
 
 	- implementing a ferm setup manually:
 
-		/usr/sbin/ferm --lines --noexec /etc/firewall.conf
+		ferm --lines --noexec /etc/ferm/ferm.conf
 
 	This way, you may check any iptables generated errors and
 	check again rules are implemented correctly. It is
@@ -103,7 +103,7 @@ Basic use of ferm
 	a wrong configuration may lead to terrible things. The
 	line you need to insert will look like this:
 
-		/usr/sbin/ferm /etc/firewall.conf
+		ferm /etc/ferm/ferm.conf
 
 	Note that some system scripts remove any PATH settings and
 	ferm might want to know the location of the iptables or ipchains
