@@ -40,10 +40,10 @@ Installing ferm
 
 	# make install
 
-	The package does not need to be compiled, just make sure
-	you have perl (which is present in any base linux system)
-	and either ipchains, ipfwadm or iptables, and the according
-	firewall enabled kernel installed.
+	The package does not need to be compiled, just make sure you
+	have perl (which is present in any base linux system) and
+	iptables (including iptables-save and iptables-restore), and
+	the a kernel supporting netfilter.
 
 	Run the make install install script as root to install the
 	package in it's best location, so it can be reached from
@@ -73,11 +73,10 @@ Basic use of ferm
 
 		ferm /etc/ferm/ferm.conf
 
-	ferm will read the file, translate it into your
-	[ipchains|iptables|ipfwadm] rules, and install these
-	into the kernel firewalling system! Read the manual and
-	the examples to get the idea about the syntax of the
-	firewall files.
+	ferm will read the file, translate it into netfilter rules,
+	and install these into the kernel.  Read the manual and the
+	examples to get the idea about the syntax of the firewall
+	files.
 
 	Generally, ferm will be called in 2 ways:
 
