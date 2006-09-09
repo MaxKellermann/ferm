@@ -31,10 +31,11 @@ use strict;
 use IO::File;
 use Getopt::Long;
 
-use vars qw($VERSION);
+use vars qw($DATE $VERSION);
 
-$VERSION = '1.1+svn' . ('$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '');
+$DATE = '$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '';
 $VERSION = '1.2beta1';
+$VERSION .= '+svn' . $DATE;
 
 ## interface variables
 # %option = command line and other options
