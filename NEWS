@@ -8,6 +8,7 @@
 
 
 v1.2beta3 - not yet released
+  - import-ferm runs iptables-save if no input file is provided
 
 
 v1.2beta2 - 9 Sep 2006

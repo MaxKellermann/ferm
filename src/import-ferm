@@ -616,8 +616,10 @@ if (grep { $_ eq '-h' || $_ eq '--help' } @ARGV) {
                           -verbose => 99);
 }
 
-if ((@ARGV == 0 && -t STDIN) ||
-    grep { /^-./ } @ARGV) {
+if (@ARGV == 0 && -t STDIN) {
+    open STDIN, "/sbin/iptables-save|"
+      or die "Failed run to /sbin/iptables-save: $!";
+} elsif (grep { /^-./ } @ARGV) {
     require Pod::Usage;
     Pod::Usage::pod2usage(-exitstatus => 1,
                           -verbose => 99);
