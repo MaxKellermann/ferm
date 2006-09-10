@@ -6,6 +6,10 @@
     Auke Kok <sofar@foo-projects.org>
     Max Kellermann <max@foo-projects.org>
 
+
+v1.2beta3 - not yet released
+
+
 v1.2beta2 - 9 Sep 2006
   - added --flush
   - added --shell which generates a shell script
@@ -16,6 +20,7 @@ v1.2beta2 - 9 Sep 2006
   - allow late chain/table specification again
   - set a second alarm in the confirmation dialog
   - enable rollback feature even in non-interactive mode
+
 
 v1.2beta1 - 28 Aug 2006
   - perl strict mode
