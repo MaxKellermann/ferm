@@ -611,6 +611,16 @@ Check connection tracking information.
 
 Type "iptables -m conntrack -h" for details.
 
+=item B<dccp>
+
+Check DCCP (Datagram Congestion Control Protocol) specific attributes.
+This module is automatically loaded when you use "protocol dccp".
+
+    proto dccp sport 1234 dport 2345 ACCEPT;
+    proto dccp dccp-types (SYNCACK ACK) ACCEPT;
+    proto dccp dccp-types !REQUEST DROP;
+    proto dccp dccp-option 2 ACCEPT;
+
 =item B<dscp>
 
 Match the 6 bit DSCP field within the TOS field.
@@ -758,6 +768,16 @@ a match module, it has target-like behaviour when using the "set"
 keyword.
 
 L<http://snowman.net/projects/ipt_recent/>
+
+=item B<sctp>
+
+Check SCTP (Stream Control Transmission Protocol) specific attributes.
+This module is automatically loaded when you use "protocol sctp".
+
+    proto sctp sport 1234 dport 2345 ACCEPT;
+    proto sctp chunk-types only DATA:Be ACCEPT;
+    proto sctp chunk-types any (INIT INIT_ACK) ACCEPT;
+    proto sctp chunk-types !all (HEARTBEAT) ACCEPT;
 
 =item B<state>
 
