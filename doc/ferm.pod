@@ -1225,6 +1225,8 @@ iptables and perl 5.6
 
 Bugs? What bugs?
 
+If you find a bug, please tell us: ferm@foo-projects.org
+
 =head1 COPYRIGHT
 
 Copyright (C) 2001-2006 Auke Kok <sofar@foo-projects.org>, Max
