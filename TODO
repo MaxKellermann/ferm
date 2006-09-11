@@ -6,6 +6,8 @@ Roadmap for ferm 1.2
 --------------------
 
 * RPM packages; make RedHat, SuSE etc. ship them
+* support more netfilter modules, e.g. SECMARK, quota, statistic, and
+  all those IPv6 modules
 
 
 Roadmap for ferm 1.3
@@ -19,4 +21,4 @@ Roadmap for ferm 2.0
 
 * support tc (traffic control)
 * remove support for legacy 1.1 syntax
-* remove support for obsolete netfilter modules: dst, frag, iplimit
+* remove support for obsolete netfilter modules: dst, frag, iplimit, mport
