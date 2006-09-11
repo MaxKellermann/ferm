@@ -494,14 +494,6 @@ And some examples of valid ports/ranges:
     dport 0:1023 ACCEPT; # equivalent to :1023
     dport 1023:65535 ACCEPT;
 
-=item B<icmp-type [type]>
-
-To specify an icmp message type. Only available after "protocol icmp".
-
-Can be numbers, but refer to the manual of the kernel program to
-retreive a list, for iptables use "iptables -p icmp C<-h>". Examples:
-ping, pong.
-
 =item B<syn>
 
 Specify that the SYN flag in a tcp package should be matched,
@@ -652,6 +644,15 @@ may be specified with "-portnr".
 
     mod helper helper irc ACCEPT;
     mod helper helper ftp-21 ACCEPT;
+
+=item B<icmp>
+
+Check ICMP specific attributes.  This module is automatically loaded
+when you use "protocol icmp".
+
+    proto icmp icmp-type echo-request ACCEPT;
+
+Use "iptables -p icmp C<-h>" to obtain a list of valid ICMP types.
 
 =item B<iprange>
 
