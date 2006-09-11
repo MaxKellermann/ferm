@@ -18,3 +18,5 @@ Roadmap for ferm 2.0
 --------------------
 
 * support tc (traffic control)
+* remove support for legacy 1.1 syntax
+* remove support for obsolete netfilter modules: dst, frag, iplimit
