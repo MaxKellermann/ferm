@@ -579,6 +579,14 @@ Checks the SPI header in an AH packet.
     mod ah ahspi 0x101;
     mod ah ahspi ! 0x200:0x2ff;
 
+=item B<comment>
+
+Adds a comment of up to 256 characters to a rule, without an effect.
+Note that unlike ferm comments ('#'), this one will show up in
+"iptables -L".
+
+    mod comment comment "This is my comment." ACCEPT;
+
 =item B<connmark>
 
 Check the mark field associated with the connection, set by the
@@ -740,6 +748,23 @@ Check the link-layer packet type.
     mod pkttype pkt-type unicast;
     mod pkttype pkt-type broadcase;
     mod pkttype pkt-type multicast;
+
+=item B<policy>
+
+Matches IPsec policy being applied to this packet.
+
+    mod policy dir out pol ipsec ACCEPT;
+    mod policy strict reqid 23 spi 0x10 proto ah ACCEPT;
+    mod policy mode tunnel tunnel-src 192.168.1.2 ACCEPT;
+    mod policy mode tunnel tunnel-dst 192.168.2.1 ACCEPT;
+    mod policy strict next reqid 24 spi 0x11 ACCEPT;
+
+=item B<psd>
+
+Detect TCP/UDP port scans.
+
+    mod psd psd-weight-threshold 21 psd-delay-threshold 300
+      psd-lo-ports-weight 3 psd-hi-ports-weight 1 DROP;
 
 =item B<random>
 
