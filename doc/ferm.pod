@@ -780,6 +780,8 @@ This module is automatically loaded when you use "protocol sctp".
     proto sctp chunk-types any (INIT INIT_ACK) ACCEPT;
     proto sctp chunk-types !all (HEARTBEAT) ACCEPT;
 
+Use "iptables -p sctp C<-h>" to obtain a list of valid chunk types.
+
 =item B<state>
 
 Checks the connection tracking state.
