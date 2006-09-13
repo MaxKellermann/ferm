@@ -1174,19 +1174,6 @@ the new syntax:
 
 =head1 OPTIONS
 
-Options can be specified with the "option" keyword, which
-can be defined anywhere within the document. Although
-that may be fine, you almost allways want to define
-them at the beginning of your document, because the
-behaviour changes at the moment they are specified.
-
-All options can also be specified on the command line, which
-has a few more available. The equivalent for the commandline
-options that are also available in the firewall file is mentioned
-in the firewall file options section.
-
-=head2 Command line options
-
 =over 12
 
 =item B<--noexec>
