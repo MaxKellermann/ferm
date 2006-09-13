@@ -53,6 +53,14 @@ commonly used structures and functions.
 
 B<ferm>, pronounced "firm", stands for "For Easy Rule Making".
 
+
+=head1 CAUTION
+
+This manual page does I<not> indend to teach you how firewalling works
+and how to write good rules.  There is already enough documentation on
+this topic.
+
+
 =head1 INTRODUCTION
 
 Let's start with a simple example:
@@ -1239,23 +1247,6 @@ domain is not configured in the input file.
 =head1 SEE ALSO
 
 iptables(8)
-
-
-=head1 NOTES
-
-A good firewall is not the only step in security, even the
-firewall may be insecure, or someone breaks into your house
-and steals the hard disk out of your PC. Do not rely on this
-firewall tool for the use of mission critical or confidential
-data. It is not fit for such a purpose!
-
-Instead, use this tool to expand your current use of iptables(8)
-and routing, create a flexible firewall and look out for
-anything suspicious. Be careful with open ports and servers,
-always get the latest, patched versions. Read more about
-firewalls before experimenting, you are warned! You might
-also read the COPYING file provided with the package or
-visit www.gnu.org to find more about the license.
 
 
 =head1 REQUIREMENTS
