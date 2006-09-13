@@ -1,163 +1,131 @@
-
-        README for ferm
+ferm README
+===========
 
         Auke Kok <sofar@foo-projects.org>
         Max Kellermann <max@foo-projects.org>
 
 
-Contents:
-
-	- Description
-	- Installing ferm
-	- Uninstalling ferm
-	- Basic use of ferm
-	- Getting a firewall working with ferm on your system
-	- Package contents
-
-
 Description
+-----------
 
-        ferm is a frontend for iptables. It reads the rules from
-        a structured configuration file and calls iptables(8) to
-        insert them into the running kernel.
+ferm is a frontend for iptables. It reads the rules from a structured
+configuration file and calls iptables(8) to insert them into the
+running kernel.
 
-        ferm's goal is to make firewall rules easy to write and
-        easy to read. It tries to reduce the tedious task of writing
-        down rules, thus enabling the firewall administrator to spend
-        more time on developing good rules than the proper
-        implementation of the rule.
+ferm's goal is to make firewall rules easy to write and easy to
+read. It tries to reduce the tedious task of writing down rules, thus
+enabling the firewall administrator to spend more time on developing
+good rules than the proper implementation of the rule.
 
-        To achieve this, ferm uses a simple but powerful configuration
-        language, which allows variables, functions, arrays,
-        blocks. It also allows you to include other files, allowing
-        you to create libraries of commonly used structures and
-        functions.
+To achieve this, ferm uses a simple but powerful configuration
+language, which allows variables, functions, arrays, blocks. It also
+allows you to include other files, allowing you to create libraries of
+commonly used structures and functions.
 
-        ferm, pronounced "firm", stands for "For Easy Rule Making".
+ferm, pronounced "firm", stands for "For Easy Rule Making".
 
 
 Installing ferm
+---------------
 
-	# make install
+  make install
 
-	The package does not need to be compiled, just make sure you
-	have perl (which is present in any base linux system) and
-	iptables (including iptables-save and iptables-restore), and
-	the a kernel supporting netfilter.
+The package does not need to be compiled, just make sure you have perl
+(which is present in any base linux system) and iptables (including
+iptables-save and iptables-restore), and the a kernel supporting
+netfilter.
 
-	Run the make install install script as root to install the
-	package in it's best location, so it can be reached from
-	the command line when called. The manual page will also
-	be installed.
+Run the make install install script as root to install the package in
+it's best location, so it can be reached from the command line when
+called. The manual page will also be installed.
 
-	That's all!
+That's all!
 
 
 Uninstalling ferm
+-----------------
 
-	# make uninstall
+  make uninstall
 
-	Ferm can now be quickly removed from the system by issuing
-	a "make uninstall" command (as root, of course). This
-	will not remove any configuration files of course!
+Ferm can now be quickly removed from the system by issuing a "make
+uninstall" command (as root, of course). This will not remove any
+configuration files of course!
 
 
 Basic use of ferm
+-----------------
 
-	ferm is designed to parse structured firewall files, 
-	merely it's own language (quite C-like) to describe
-	firewall-rules. Look at the examples for a good idea.
-	To install a firewall, create an appropriate firewall
-	file that suits your needs, store it into a good spot
-	like /etc/ferm/ferm.conf and execute:
+ferm is designed to parse structured firewall files, merely it's own
+language (quite C-like) to describe firewall-rules. Look at the
+examples for a good idea.  To install a firewall, create an
+appropriate firewall file that suits your needs, store it into a good
+spot like /etc/ferm/ferm.conf and execute:
 
-		ferm /etc/ferm/ferm.conf
+  ferm /etc/ferm/ferm.conf
 
-	ferm will read the file, translate it into netfilter rules,
-	and install these into the kernel.  Read the manual and the
-	examples to get the idea about the syntax of the firewall
-	files.
+ferm will read the file, translate it into netfilter rules, and
+install these into the kernel.  Read the manual and the examples to
+get the idea about the syntax of the firewall files.
 
-	Generally, ferm will be called in 2 ways:
+Generally, ferm will be called in 2 ways:
 
-	- testing a firewall.conf file:
+- testing a firewall.conf file:
 
-		ferm --lines --noexec /etc/ferm/ferm.conf
+  ferm --lines --noexec /etc/ferm/ferm.conf
 
-	This way, the actual firewall is not implemented, but the
-	resulting rules are printed so you may check them. Add
-	-d or -v for even more information.
+This way, the actual firewall is not implemented, but the resulting
+rules are printed so you may check them. Add -d or -v for even more
+information.
 
-	- implementing a ferm setup manually:
+- implementing a ferm setup manually:
 
-		ferm --lines --noexec /etc/ferm/ferm.conf
+  ferm --lines --noexec /etc/ferm/ferm.conf
 
-	This way, you may check any iptables generated errors and
-	check again rules are implemented correctly. It is
-	advisable to carefully check the output.
+This way, you may check any iptables generated errors and check again
+rules are implemented correctly. It is advisable to carefully check
+the output.
 
-	When you are satisfied with the generated rules, feel free
-	to insert ferm into an rc.d script or even an ip-up ppp
-	script. Make sure you are satisfied with the setup because
-	a wrong configuration may lead to terrible things. The
-	line you need to insert will look like this:
+When you are satisfied with the generated rules, feel free to insert
+ferm into an rc.d script or even an ip-up ppp script. Make sure you
+are satisfied with the setup because a wrong configuration may lead to
+terrible things. The line you need to insert will look like this:
 
-		ferm /etc/ferm/ferm.conf
+  ferm /etc/ferm/ferm.conf
 
 
 Getting a firewall working with ferm on your system
+---------------------------------------------------
 
-	First, get to know ferm, read the previous section and toy 
-	around with some examples. Ferm is really simple, but still
-	people e-mail me questions that are answered in the man-page.
-	
-	It is a requirement that you get some basic knowledge of
-	networking before experimenting with ferm. I cannot stress
-	that enough. There are many introductions available on
-	the internet that explain the way the internet is constructed
-	and what all those protocols are and how they work.
+First, get to know ferm, read the previous section and toy around with
+some examples. Ferm is really simple, but still people e-mail me
+questions that are answered in the man-page.
 
-	Also you should be comfortable as root modifying your system
-	setup and editing some textfiles. Ferm may require you to
-	use text-editors and plain old point and click do not work 
-	with ferm.
+It is a requirement that you get some basic knowledge of networking
+before experimenting with ferm. I cannot stress that enough. There are
+many introductions available on the internet that explain the way the
+internet is constructed and what all those protocols are and how they
+work.
 
-	Okay, you've not ran away crying or screaming, good, now do
-	this:
+Also you should be comfortable as root modifying your system setup and
+editing some textfiles. Ferm may require you to use text-editors and
+plain old point and click do not work with ferm.
 
-	- make a ferm config file (or even more!)
+Okay, you've not ran away crying or screaming, good, now do this:
 
-	Read the examples and compile a firewall that suits your needs,
-	add or remove items at will and test it thoroughly
+- make a ferm config file (or even more!)
 
-	- test the ferm config file
+Read the examples and compile a firewall that suits your needs, add or
+remove items at will and test it thoroughly
 
-	Make sure the firewall behaves as you want it to! Be careful
-	with this!!!
+- test the ferm config file
 
-	- install it on the system
+Make sure the firewall behaves as you want it to! Be careful with
+this!!!
 
-	Execute ferm manually or put it in an rc.d boot script, a ppp
-	script or wherever you see fit. You might have more that one
-	script (like the author).
+- install it on the system
 
-	That's it! 
+Execute ferm manually or put it in an rc.d boot script, a ppp script
+or wherever you see fit. You might have more that one script (like the
+author).
 
-	
-Package Contents
-	
-	* README	This file
-	* AUTHORS	List of people who worked on the project
-	* COPYING	Copy of the GPL
-	* NEWS          A list of changes in the development of ferm
-	* src/ferm      The program
-	* doc/ferm.pod  The pod (perl doc format) file
-	* doc/ferm.1    The man page
-        * doc/ferm.txt  The man page as plain text
-	* doc/ferm.html	The man page as html file
-	* examples/*	Some examples
-	* Makefile	Installation Makefile
-
-
---
-Auke Kok <sofar@foo-projects.org>
+That's it! 
