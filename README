@@ -52,80 +52,22 @@ uninstall" command (as root, of course). This will not remove any
 configuration files of course!
 
 
-Basic use of ferm
------------------
+Getting started
+---------------
 
-ferm is designed to parse structured firewall files, merely it's own
-language (quite C-like) to describe firewall-rules. Look at the
-examples for a good idea.  To install a firewall, create an
-appropriate firewall file that suits your needs, store it into a good
-spot like /etc/ferm/ferm.conf and execute:
+The ferm(1) manpage provides extensive documentation about the ferm
+syntax.  To get started, try one of the example files, and modify it
+for your needs.
 
-  ferm /etc/ferm/ferm.conf
+If your machine is already firewalled and you wish to switch to ferm,
+the "import-ferm" script comes handy.  It converts the current
+firewall rules to a ferm configuration file:
 
-ferm will read the file, translate it into netfilter rules, and
-install these into the kernel.  Read the manual and the examples to
-get the idea about the syntax of the firewall files.
+  import-ferm >/etc/ferm/ferm.conf
 
-Generally, ferm will be called in 2 ways:
-
-- testing a firewall.conf file:
-
-  ferm --lines --noexec /etc/ferm/ferm.conf
-
-This way, the actual firewall is not implemented, but the resulting
-rules are printed so you may check them. Add -d or -v for even more
-information.
-
-- implementing a ferm setup manually:
-
-  ferm --lines --noexec /etc/ferm/ferm.conf
-
-This way, you may check any iptables generated errors and check again
-rules are implemented correctly. It is advisable to carefully check
-the output.
-
-When you are satisfied with the generated rules, feel free to insert
-ferm into an rc.d script or even an ip-up ppp script. Make sure you
-are satisfied with the setup because a wrong configuration may lead to
-terrible things. The line you need to insert will look like this:
+After that, let ferm install the new ruleset:
 
   ferm /etc/ferm/ferm.conf
 
-
-Getting a firewall working with ferm on your system
----------------------------------------------------
-
-First, get to know ferm, read the previous section and toy around with
-some examples. Ferm is really simple, but still people e-mail me
-questions that are answered in the man-page.
-
-It is a requirement that you get some basic knowledge of networking
-before experimenting with ferm. I cannot stress that enough. There are
-many introductions available on the internet that explain the way the
-internet is constructed and what all those protocols are and how they
-work.
-
-Also you should be comfortable as root modifying your system setup and
-editing some textfiles. Ferm may require you to use text-editors and
-plain old point and click do not work with ferm.
-
-Okay, you've not ran away crying or screaming, good, now do this:
-
-- make a ferm config file (or even more!)
-
-Read the examples and compile a firewall that suits your needs, add or
-remove items at will and test it thoroughly
-
-- test the ferm config file
-
-Make sure the firewall behaves as you want it to! Be careful with
-this!!!
-
-- install it on the system
-
-Execute ferm manually or put it in an rc.d boot script, a ppp script
-or wherever you see fit. You might have more that one script (like the
-author).
-
-That's it! 
+Be careful, don't lock youself out of remote machines!  Use the
+interactive mode (--interactive, -i) often!
