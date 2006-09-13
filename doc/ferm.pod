@@ -1251,7 +1251,7 @@ data. It is not fit for such a purpose!
 
 Instead, use this tool to expand your current use of iptables(8)
 and routing, create a flexible firewall and look out for
-anything suspicious. Be carefull with open ports and servers,
+anything suspicious. Be careful with open ports and servers,
 always get the latest, patched versions. Read more about
 firewalls before experimenting, you are warned! You might
 also read the COPYING file provided with the package or
