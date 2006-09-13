@@ -708,14 +708,19 @@ import-ferm - import existing firewall rules into ferm
 
 =head1 SYNOPSIS
 
+B<import-ferm> > ferm.conf
+
 iptables-save | B<import-ferm> > ferm.conf
 
 B<import-ferm> I<inputfile> > ferm.conf
 
 =head1 DESCRIPTION
 
-This script helps you with porting an existing IPv4 firewall configuration
-to ferm.  It reads a file generated with B<iptables-save> from a file
-or from standard input, and tries to suggest a ferm configuration file.
+This script helps you with porting an existing IPv4 firewall
+configuration to ferm.  It reads a file generated with
+B<iptables-save>, and tries to suggest a ferm configuration file.
+
+If no input file was specified on the command line, B<import-ferm>
+runs F<iptables-save>.
 
 =cut
