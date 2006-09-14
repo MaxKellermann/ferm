@@ -286,6 +286,7 @@ add_match_def 'ecn', qw(ecn-tcp-cwr*0 ecn-tcp-ece*0 ecn-ip-ect);
 add_match_def 'esp', qw(espspi!);
 add_match_def 'eui64';
 add_match_def 'frag', qw(fragid! fraglen! fragres*0 fragmore*0 fragfirst*0 fraglast*0);
+add_match_def 'fuzzy', qw(lower-limit=s upper-limit=s);
 add_match_def 'helper', qw(helper);
 add_match_def 'length', qw(length);
 add_match_def 'iprange', qw(!src-range !dst-range);

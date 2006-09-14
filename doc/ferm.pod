@@ -697,6 +697,12 @@ Matches the Fragment header (ip6).
     mod frag fragmore ACCEPT;
     mod frag fraglast ACCEPT;
 
+=item B<fuzzy>
+
+"This module matches a rate limit based on a fuzzy logic controller [FLC]."
+
+    mod fuzzy lower-limit 10 upper-limit 20 ACCEPT;
+
 =item B<helper>
 
 Checks which conntrack helper module tracks this connection.  The port

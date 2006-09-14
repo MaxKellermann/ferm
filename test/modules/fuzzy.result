@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m fuzzy --lower-limit 10 --upper-limit 20 -j ACCEPT

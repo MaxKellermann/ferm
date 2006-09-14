@@ -109,6 +109,7 @@ queue-num
 set-dscp set-dscp-class
 quota
 condition
+lower-limit upper-limit
 EOT
 
 my %p1c = parse_table(<<EOT);

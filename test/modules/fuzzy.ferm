@@ -1,0 +1,3 @@
+table filter chain INPUT mod fuzzy {
+    lower-limit 10 upper-limit 20 ACCEPT;
+}
