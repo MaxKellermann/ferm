@@ -711,6 +711,15 @@ Matches the Hop-by-Hop Options header (ip6).
     mod hbh hbh-len !8 ACCEPT;
     mod hbh hbh-opts (1:4 2:8) ACCEPT;
 
+=item B<hl>
+
+Matches the Hop Limit field (ip6).
+
+    mod hl hl-eq (8 10) ACCEPT;
+    mod hl hl-eq !5 ACCEPT;
+    mod hl hl-gt 15 ACCEPT;
+    mod hl hl-lt 2 ACCEPT;
+
 =item B<helper>
 
 Checks which conntrack helper module tracks this connection.  The port

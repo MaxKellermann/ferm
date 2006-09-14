@@ -111,6 +111,7 @@ quota
 condition
 lower-limit upper-limit
 hbh-len hbh-opts
+hl-eq hl-lt hl-gt
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -154,6 +155,7 @@ dst-len hbh-len
 fragid fraglen
 dccp-types dccp-option
 condition
+hl-eq
 );
 
 sub is_netfilter_core_target {

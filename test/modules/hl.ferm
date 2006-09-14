@@ -1,0 +1,6 @@
+table filter chain INPUT mod hl {
+    hl-eq (8 10) ACCEPT;
+    hl-eq !5 ACCEPT;
+    hl-gt 15 DROP;
+    hl-lt 2 REJECT;
+}
