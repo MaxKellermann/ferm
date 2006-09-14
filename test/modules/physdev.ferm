@@ -1,7 +1,12 @@
 table filter chain INPUT mod physdev {
     physdev-in (eth0 ppp0) DROP;
+    physdev-in !eth1 ACCEPT;
     physdev-out ppp1 ACCEPT;
+    physdev-out !ppp2 ACCEPT;
     physdev-is-in DROP;
+    !physdev-is-in ACCEPT;
     physdev-is-out ACCEPT;
+    !physdev-is-out DROP;
     physdev-is-bridged REJECT;
+    !physdev-is-bridged ACCEPT;
 }

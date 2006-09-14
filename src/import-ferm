@@ -136,6 +136,7 @@ my @pre_negated = qw(fragment connbytes connlimit-above
 rr ts ra any-opt
 set rcheck update remove seconds hitcount
 syn mss
+physdev-is-in physdev-is-out physdev-is-bridged
 );
 
 my @mix_negated = qw(
@@ -160,6 +161,7 @@ condition
 hl-eq
 header
 length
+physdev-in physdev-out
 );
 
 sub is_netfilter_core_target {
