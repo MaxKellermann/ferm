@@ -900,6 +900,13 @@ Change the destination address of the packet.
     DNAT to 10.0.0.4:1024-2048;
     DNAT to 10.0.1.1-10.0.1.20;
 
+=item B<ECN>
+
+This target allows to selectively work around known ECN blackholes.
+It can only be used in the mangle table.
+
+    ECN ecn-tcp-remove;
+
 =item B<LOG>
 
 Log all packets that match this rule in the kernel log. Be carefull
