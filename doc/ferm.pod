@@ -774,6 +774,12 @@ Detect TCP/UDP port scans.
     mod psd psd-weight-threshold 21 psd-delay-threshold 300
       psd-lo-ports-weight 3 psd-hi-ports-weight 1 DROP;
 
+=item B<quota>
+
+Implements network quotas by decrementing a byte counter with each packet.
+
+    mod quota quota 65536 ACCEPT;
+
 =item B<random>
 
 Match a random percentage of all packets.

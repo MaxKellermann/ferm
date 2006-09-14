@@ -302,6 +302,7 @@ add_match_def 'policy',
   qw(dir pol strict*0 reqid spi proto mode tunnel-src tunnel-dst next*0);
 add_match_def 'psd', qw(psd-weight-threshold psd-delay-threshold),
   qw(psd-lo-ports-weight psd-hi-ports-weight);
+add_match_def 'quota', qw(quota=s);
 add_match_def 'random', qw(average);
 add_match_def 'realm', qw(realm!);
 add_match_def 'recent', qw(name=s !set*0 !rcheck*0 !update*0 !seconds !hitcount rttl*0);

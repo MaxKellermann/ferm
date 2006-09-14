@@ -8,6 +8,8 @@
 
 
 v1.2.1 - not yet released
+  - support netfilter modules
+    - quota
   - added missing documentation
     * target ECN
 
