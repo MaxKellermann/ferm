@@ -15,7 +15,7 @@ v1.2.1 - not yet released
     * target ECN
     * match modules: dst, eui64, frag
   - disabled array after ttl-lt, ttl-gt
-  - allow "length", "physdev" negation
+  - allow "length", "physdev", "tos" negation
   - translate sports, dports to source-ports, destination-ports in import-ferm
 
 

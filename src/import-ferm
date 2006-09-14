@@ -143,6 +143,7 @@ my @mix_negated = qw(
 iplimit-above
 src-range dst-range
 realm
+tos
 );
 
 my @negated = qw(

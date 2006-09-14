@@ -315,7 +315,7 @@ add_match_def 'recent', qw(name=s !set*0 !rcheck*0 !update*0 !seconds !hitcount 
 add_match_def 'state', qw(state=c);
 add_match_def 'tcpmss', qw(!mss);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
-add_match_def 'tos', qw(tos&compat_tos_params);
+add_match_def 'tos', qw(!tos&compat_tos_params);
 add_match_def 'ttl', qw(ttl-eq ttl-lt=s ttl-gt=s);
 
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
@@ -377,7 +377,9 @@ sub multiport_params {
 
 # parameter parser for ipt_tos
 sub compat_tos_params {
-    my $value = getvalues();
+    my $value = getvalues(undef, undef, allow_negation => 1);
+
+    return $value if ref $value and ref $value eq 'negated';
 
     # ferm 1.1 allowed some abbreviations.  It is this function's only
     # job to translate these deprecated keywords to the "real" ones.

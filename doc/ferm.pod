@@ -945,7 +945,8 @@ Type "iptables -m time -h" for details.
 
 Matches a packet on the specified TOS-value.
 
-    mod tos tos Minimize-Cost;
+    mod tos tos Minimize-Cost ACCEPT;
+    mod tos tos !Normal-Service ACCEPT;
 
 Type "iptables -m tos -h" for details.
 

@@ -4,4 +4,5 @@ table filter chain INPUT mod tos {
     tos Maximize-Reliability ACCEPT;
     tos Minimize-Cost ACCEPT;
     tos Normal-Service ACCEPT;
+    tos ! Normal-Service DROP;
 }
