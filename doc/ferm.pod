@@ -650,6 +650,14 @@ Match the 6 bit DSCP field within the TOS field.
     mod dscp dscp 11;
     mod dscp dscp-class AF41;
 
+=item B<dst>
+
+Matches the Destination Options header (ip6).
+
+    mod dst dst-len 8 ACCEPT;
+    mod dst dst-len !8 ACCEPT;
+    mod dst dst-opts (1:4 2:8) ACCEPT;
+
 =item B<ecn>
 
 Match the ECN bits of an IPv4 TCP header.
