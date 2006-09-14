@@ -1,0 +1,5 @@
+iptables -A INPUT -m rt --rt-type 2 --rt-len 20 -j ACCEPT
+iptables -A INPUT -m rt --rt-type ! 2 --rt-len ! 20 -j ACCEPT
+iptables -A INPUT -m rt --rt-segsleft 2:3 -j ACCEPT
+iptables -A INPUT -m rt --rt-segsleft ! 4:5 -j ACCEPT
+iptables -A INPUT -m rt --rt-0-res --rt-0-addrs ::1,::2 --rt-0-not-strict -j ACCEPT

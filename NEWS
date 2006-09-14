@@ -8,7 +8,8 @@
 
 
 v1.2.1 - not yet released
-  - support netfilter modules: condition, fuzzy, hbh, hl, ipv6header, quota
+  - support netfilter modules: condition, fuzzy, hbh, hl, ipv6header, rt,
+    quota
   - extended module support
     * ah now supports the IPv6 options
   - added missing documentation

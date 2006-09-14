@@ -1,0 +1,7 @@
+table filter chain INPUT mod rt {
+    rt-type 2 rt-len 20 ACCEPT;
+    rt-type !2 rt-len !20 ACCEPT;
+    rt-segsleft 2:3 ACCEPT;
+    rt-segsleft !4:5 ACCEPT;
+    rt-0-res rt-0-addrs (::1 ::2) rt-0-not-strict ACCEPT;
+}

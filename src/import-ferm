@@ -58,6 +58,7 @@ nodst
 ecn-tcp-remove
 ahres
 soft
+rt-0-res rt-0-not-strict
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -113,6 +114,7 @@ condition
 lower-limit upper-limit
 hbh-len hbh-opts
 hl-eq hl-lt hl-gt
+rt-type rt-segsleft rt-len
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -121,6 +123,7 @@ source-ports destination-ports ports
 dst-opts
 dccp-types
 header
+rt-0-addrs
 EOT
 
 my %p1multi = parse_table(<<EOT);
@@ -163,6 +166,7 @@ hl-eq
 header
 length
 physdev-in physdev-out
+rt-type rt-segsleft rt-len
 );
 
 sub is_netfilter_core_target {

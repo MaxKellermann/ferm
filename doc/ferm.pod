@@ -884,6 +884,16 @@ keyword.
 
 L<http://snowman.net/projects/ipt_recent/>
 
+=item B<rt>
+
+Match the IPv6 routing header (ip6 only).
+
+    mod rt rt-type 2 rt-len 20 ACCEPT;
+    mod rt rt-type !2 rt-len !20 ACCEPT;
+    mod rt rt-segsleft 2:3 ACCEPT;
+    mod rt rt-segsleft !4:5 ACCEPT;
+    mod rt rt-0-res rt-0-addrs (::1 ::2) rt-0-not-strict ACCEPT;
+
 =item B<sctp>
 
 Check SCTP (Stream Control Transmission Protocol) specific attributes.
