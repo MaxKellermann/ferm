@@ -1,0 +1,4 @@
+table filter chain INPUT mod condition {
+    condition (foo bar) ACCEPT;
+    condition !blarg DROP;
+}

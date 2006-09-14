@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -m condition --condition foo -j ACCEPT
+iptables -t filter -A INPUT -m condition --condition bar -j ACCEPT
+iptables -t filter -A INPUT -m condition --condition ! blarg -j DROP
