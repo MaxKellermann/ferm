@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.2.1 - not yet released
+
+
 v1.2 - 13 Sep 2006
   - import-ferm runs iptables-save if no input file is provided
 
