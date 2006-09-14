@@ -686,6 +686,17 @@ PREROUTING, INPUT and FORWARD chains."
 
     mod eui64 ACCEPT;
 
+=item B<frag>
+
+Matches the Fragment header (ip6).
+
+    mod frag fragid 123:456 ACCEPT;
+    mod frag fragid !123:456 ACCEPT;
+    mod frag fragres ACCEPT;
+    mod frag fragfirst ACCEPT;
+    mod frag fragmore ACCEPT;
+    mod frag fraglast ACCEPT;
+
 =item B<helper>
 
 Checks which conntrack helper module tracks this connection.  The port
