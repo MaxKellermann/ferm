@@ -57,6 +57,7 @@ fragres fragfirst fragmore fraglast
 nodst
 ecn-tcp-remove
 ahres
+soft
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -119,6 +120,7 @@ state
 source-ports destination-ports ports
 dst-opts
 dccp-types
+header
 EOT
 
 my %p1multi = parse_table(<<EOT);
@@ -156,6 +158,7 @@ fragid fraglen
 dccp-types dccp-option
 condition
 hl-eq
+header
 );
 
 sub is_netfilter_core_target {

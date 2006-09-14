@@ -1,0 +1,4 @@
+table filter chain INPUT mod ipv6header {
+    header !(hop frag) ACCEPT;
+    header (auth dst) soft ACCEPT;
+}

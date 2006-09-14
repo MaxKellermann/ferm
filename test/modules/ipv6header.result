@@ -1,0 +1,2 @@
+iptables -A INPUT -m ipv6header --header ! hop,frag -j ACCEPT
+iptables -A INPUT -m ipv6header --header auth,dst --soft -j ACCEPT
