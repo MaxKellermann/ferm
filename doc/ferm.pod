@@ -675,6 +675,17 @@ Checks the SPI header in an ESP packet.
     mod esp espspi 0x101;
     mod esp espspi ! 0x200:0x2ff;
 
+=item B<eui64>
+
+"This module matches the EUI-64 part of a stateless autoconfigured
+IPv6 address.  It compares the EUI-64 derived from the source MAC
+address in Ehternet frame with the lower 64 bits of the IPv6 source
+address.  But "Universal/Local" bit is not compared.  This module
+doesn't match other link layer frame, and is only valid in the
+PREROUTING, INPUT and FORWARD chains."
+
+    mod eui64 ACCEPT;
+
 =item B<helper>
 
 Checks which conntrack helper module tracks this connection.  The port

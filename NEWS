@@ -13,8 +13,7 @@ v1.2.1 - not yet released
     * ah now supports the IPv6 options
   - added missing documentation
     * target ECN
-    * match module dst
-
+    * match modules: dst, eui64
 
 v1.2 - 13 Sep 2006
   - import-ferm runs iptables-save if no input file is provided
