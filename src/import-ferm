@@ -110,6 +110,7 @@ set-dscp set-dscp-class
 quota
 condition
 lower-limit upper-limit
+hbh-len hbh-opts
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -149,7 +150,7 @@ icmp-type icmpv6-type
 mac-source source-ports destination-ports ports
 genre realm chunk-types
 tcp-flags tcp-option
-dst-len
+dst-len hbh-len
 fragid fraglen
 dccp-types dccp-option
 condition

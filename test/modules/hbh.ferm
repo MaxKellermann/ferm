@@ -1,0 +1,6 @@
+table filter chain INPUT mod hbh {
+    hbh-len 5 ACCEPT;
+    hbh-len !7 DROP;
+    hbh-opts 4:5 REJECT;
+    hbh-opts (6:7 8:9 10:11) ACCEPT;
+}

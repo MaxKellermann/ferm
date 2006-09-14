@@ -703,6 +703,14 @@ Matches the Fragment header (ip6).
 
     mod fuzzy lower-limit 10 upper-limit 20 ACCEPT;
 
+=item B<hbh>
+
+Matches the Hop-by-Hop Options header (ip6).
+
+    mod hbh hbh-len 8 ACCEPT;
+    mod hbh hbh-len !8 ACCEPT;
+    mod hbh hbh-opts (1:4 2:8) ACCEPT;
+
 =item B<helper>
 
 Checks which conntrack helper module tracks this connection.  The port
