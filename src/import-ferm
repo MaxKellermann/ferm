@@ -563,6 +563,9 @@ sub parse_option {
     my $cur = $line->{cur};
     die unless defined $cur;
 
+    $option = 'destination-ports' if $option eq 'dports';
+    $option = 'source-ports' if $option eq 'sports';
+
     if ($option eq 'p') {
         my $keyword = 'protocol';
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);

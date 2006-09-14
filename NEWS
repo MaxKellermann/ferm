@@ -16,6 +16,7 @@ v1.2.1 - not yet released
     * match modules: dst, eui64, frag
   - disabled array after ttl-lt, ttl-gt
   - allow "length", "physdev" negation
+  - translate sports, dports to source-ports, destination-ports in import-ferm
 
 
 v1.2 - 13 Sep 2006
