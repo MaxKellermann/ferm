@@ -159,6 +159,7 @@ dccp-types dccp-option
 condition
 hl-eq
 header
+length
 );
 
 sub is_netfilter_core_target {

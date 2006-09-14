@@ -15,6 +15,7 @@ v1.2.1 - not yet released
     * target ECN
     * match modules: dst, eui64, frag
   - disabled array after ttl-lt, ttl-gt
+  - allow "length" negation
 
 
 v1.2 - 13 Sep 2006

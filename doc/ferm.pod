@@ -757,6 +757,7 @@ Check the package length.
 
     mod length length 128; # exactly 128 bytes
     mod length length 512:768; # range
+    mod length length ! 256; # negated
 
 =item B<limit>
 
