@@ -6,14 +6,14 @@ Roadmap for ferm 1.2
 --------------------
 
 * RPM packages; make RedHat, SuSE etc. ship them
-* support more netfilter modules, e.g. SECMARK, quota, statistic, and
-  all those IPv6 modules
+* support more netfilter modules, e.g. SECMARK, quota
 
 
 Roadmap for ferm 1.3
 --------------------
 
 * support arptables and ebtables
+* import-ferm should use ferm's %XY_defs
 
 
 Roadmap for ferm 2.0
