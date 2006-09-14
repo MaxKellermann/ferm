@@ -1,0 +1,1 @@
+chain INPUT mod quota quota 1024 ACCEPT;
