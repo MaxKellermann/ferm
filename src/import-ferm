@@ -56,6 +56,7 @@ strict next
 fragres fragfirst fragmore fraglast
 nodst
 ecn-tcp-remove
+ahres
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -69,7 +70,7 @@ tcp-option mss set-mss
 ttl-set
 ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold
 src-type dst-type
-ahspi
+ahspi ahlen
 ctstate ctproto ctorigsrc ctorigdst ctreplsrc ctrepldst ctstatus ctexpire
 dscp dscp-class
 dstlimit
@@ -139,7 +140,7 @@ realm
 
 my @negated = qw(
 protocol saddr daddr interface outerface sport dport
-ahspi condition connrate
+ahspi ahlen condition connrate
 ctorigsrc ctorigdst ctreplsrc ctrepldst
 espspi src-cc dst-cc
 icmp-type icmpv6-type

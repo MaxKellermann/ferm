@@ -3,3 +3,6 @@ iptables -t filter -A INPUT -m ah -j DROP --ahspi ! 0x101
 iptables -t filter -A INPUT -m ah -j REJECT --ahspi 0x102
 iptables -t filter -A INPUT -m ah -j REJECT --ahspi 0x105
 iptables -t filter -A INPUT -m ah -j REJECT --ahspi 0x200:0x2ff
+iptables -t filter -A INPUT -m ah --ahlen 32 --ahres -j ACCEPT
+iptables -t filter -A INPUT -m ah --ahlen 16 --ahres -j ACCEPT
+iptables -t filter -A INPUT -m ah --ahlen ! 32 -j DROP

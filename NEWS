@@ -10,6 +10,8 @@
 v1.2.1 - not yet released
   - support netfilter modules
     - quota
+  - extended module support
+    - ah now supports the IPv6 options
   - added missing documentation
     * target ECN
 

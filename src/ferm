@@ -274,7 +274,7 @@ add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
 add_proto_def 'udp', qw();
 
 add_match_def 'addrtype', qw(src-type dst-type);
-add_match_def 'ah', qw(ahspi!);
+add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
 add_match_def 'comment', qw(comment=s);
 add_match_def 'connmark', qw(mark);
 add_match_def 'conntrack', qw(ctstate=c ctproto ctorigsrc! ctorigdst!),

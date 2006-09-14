@@ -587,6 +587,12 @@ Checks the SPI header in an AH packet.
     mod ah ahspi 0x101;
     mod ah ahspi ! 0x200:0x2ff;
 
+Additional arguments for IPv6:
+
+    mod ah ahlen 32 ACCEPT;
+    mod ah ahlen !32 ACCEPT;
+    mod ah ahres ACCEPT;
+
 =item B<comment>
 
 Adds a comment of up to 256 characters to a rule, without an effect.

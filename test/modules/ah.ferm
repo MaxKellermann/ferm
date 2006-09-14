@@ -2,4 +2,6 @@ table filter chain INPUT mod ah {
     ahspi 0x100 ACCEPT;
     ahspi !0x101 DROP;
     ahspi (0x102 0x105 0x200:0x2ff) REJECT;
+    ahlen (32 16) ahres ACCEPT;
+    ahlen !32 DROP;
 }
