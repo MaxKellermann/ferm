@@ -1,0 +1,5 @@
+chain INPUT {
+    HL hl-set 5;
+    HL hl-dec 2;
+    HL hl-inc 1;
+}

@@ -999,6 +999,14 @@ It can only be used in the mangle table.
 
     ECN ecn-tcp-remove;
 
+=item B<HL>
+
+Modify the IPv6 Hop Limit field (ip6/mangle only).
+
+    HL hl-set 5;
+    HL hl-dec 2;
+    HL hl-inc 1;
+
 =item B<LOG>
 
 Log all packets that match this rule in the kernel log. Be carefull

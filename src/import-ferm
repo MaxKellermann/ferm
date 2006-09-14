@@ -115,6 +115,7 @@ lower-limit upper-limit
 hbh-len hbh-opts
 hl-eq hl-lt hl-gt
 rt-type rt-segsleft rt-len
+hl-set hl-dec hl-inc
 EOT
 
 my %p1c = parse_table(<<EOT);
