@@ -632,6 +632,7 @@ sub initialize_domain {
             } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
                      and $2 ne '-') {
                 $table_info->{chains}{$1}{builtin} = 1;
+                $table_info->{has_builtin} = 1;
             }
         }
 
@@ -1274,7 +1275,9 @@ sub reset_domain {
     my @rules;
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
-            next unless $chain_info->{builtin};
+            next unless $chain_info->{builtin} or
+              (not $table_info->{has_builtin} and
+               is_netfilter_builtin_chain($table, $chain));
             push @rules, "$path -t $table -P $chain ACCEPT\n";
         }
 

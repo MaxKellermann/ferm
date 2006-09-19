@@ -11,6 +11,8 @@ v1.2.1 - not yet released
   - bugfix: reset domains after all rules were parsed and don't forget to
     reset a table; this bug only affects users who run ferm on a remote
     machine
+  - reset policy on all guessed built-in chains if no authoritative
+    information about built-in chains is available
   - support netfilter modules: condition, fuzzy, hbh, hl, ipv6header, rt,
     quota, HL
   - extended module support
