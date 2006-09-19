@@ -502,9 +502,6 @@ read_header();
 # parse all input recursively
 enter(0);
 
-# reset all referenced domains and tables
-reset_all();
-
 # check consistency
 check();
 
@@ -1270,26 +1267,22 @@ sub extract_negation {
 # rules, delete custom chains
 sub reset_domain {
     my $domain = shift;
-    my $domain_info = shift;
+    my $domain_info = $domains{$domain};
 
     my $path = $domain_info->{tools}{tables};
 
+    my @rules;
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
-        unshift @{$rules{$domain}},
-          "$path -t $table -F\n", "$path -t $table -X\n";
-
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
             next unless $chain_info->{builtin};
-            unshift @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
+            push @rules, "$path -t $table -P $chain ACCEPT\n";
         }
-    }
-}
 
-# reset all domains
-sub reset_all {
-    while (my ($domain, $domain_info) = each %domains) {
-        reset_domain($domain, $domain_info);
+        push @rules,
+          "$path -t $table -F\n", "$path -t $table -X\n";
     }
+
+    return @rules;
 }
 
 # convert an internal rule structure into an iptables call
@@ -1303,6 +1296,7 @@ sub tables {
     my $table = $rule{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
 
+    $rules{$domain} ||= [];
     return if $option{flush};
 
     my $chain = $rule{chain};
@@ -2394,7 +2388,7 @@ sub execute_slow {
     my ($domain, $rules) = @_;
 
     my $status;
-    foreach (@$rules) {
+    foreach (reset_domain($domain), @$rules) {
         my $script;
 
         if (ref) {
