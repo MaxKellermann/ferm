@@ -502,6 +502,9 @@ read_header();
 # parse all input recursively
 enter(0);
 
+# reset all referenced domains and tables
+reset_all();
+
 # check consistency
 check();
 
@@ -1267,23 +1270,26 @@ sub extract_negation {
 # rules, delete custom chains
 sub reset_domain {
     my $domain = shift;
-    my $domain_info = $domains{$domain};
-
-    return if $domain_info->{reset};
+    my $domain_info = shift;
 
     my $path = $domain_info->{tools}{tables};
 
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
+        unshift @{$rules{$domain}},
+          "$path -t $table -F\n", "$path -t $table -X\n";
+
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
             next unless $chain_info->{builtin};
-            push @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
+            unshift @{$rules{$domain}}, "$path -t $table -P $chain ACCEPT\n";
         }
-
-        push @{$rules{$domain}}, "$path -t $table -F\n";
-        push @{$rules{$domain}}, "$path -t $table -X\n";
     }
+}
 
-    $domain_info->{reset} = 1;
+# reset all domains
+sub reset_all {
+    while (my ($domain, $domain_info) = each %domains) {
+        reset_domain($domain, $domain_info);
+    }
 }
 
 # convert an internal rule structure into an iptables call
@@ -1294,11 +1300,10 @@ sub tables {
     my $domain = $rule{domain};
     my $domain_info = $domains{$domain};
 
-    reset_domain($domain) unless $domain_info->{reset};
-    return if $option{flush};
-
     my $table = $rule{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
+
+    return if $option{flush};
 
     my $chain = $rule{chain};
     my $chain_info = $table_info->{chains}{$chain} ||= {};
