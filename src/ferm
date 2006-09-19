@@ -1296,7 +1296,8 @@ sub tables {
     my $table = $rule{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
 
-    $rules{$domain} ||= [];
+    my $rules = $rules{$domain} ||= [];
+
     return if $option{flush};
 
     my $chain = $rule{chain};
@@ -1311,7 +1312,7 @@ sub tables {
     if (exists $chain_info->{set_policy}) {
         my $policy = $chain_info->{policy};
 
-        push @{$rules{$domain}}, "$rr -P $chain $policy\n";
+        push @$rules, "$rr -P $chain $policy\n";
 
         delete $chain_info->{set_policy};
     }
@@ -1324,7 +1325,7 @@ sub tables {
     # check if the chain is already defined
     unless (exists $chain_info->{was_created} or
             is_netfilter_builtin_chain($table, $chain)) {
-        push @{$rules{$domain}}, "$rr -N $chain\n";
+        push @$rules, "$rr -N $chain\n";
         $chain_info->{was_created} = 1;
     }
 
@@ -1334,7 +1335,7 @@ sub tables {
         not is_netfilter_core_target($action) and
         not is_netfilter_module_target($action) and
         not exists $table_info->{chains}{$action}{was_created}) {
-        push @{$rules{$domain}}, "$rr -N $action\n";
+        push @$rules, "$rr -N $action\n";
         $table_info->{chains}{$action}{was_created} = 1;
     }
 
@@ -1434,9 +1435,9 @@ sub tables {
 
     # this line is done
     $rr .= "\n";
-    push @{$rules{$domain}}, { rule => $rr,
-                               script => $rule{script},
-                             };
+    push @$rules, { rule => $rr,
+                    script => $rule{script},
+                  };
 };
 
 sub printrule {
