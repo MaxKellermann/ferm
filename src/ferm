@@ -1301,10 +1301,10 @@ sub tables {
 
     my $rules = $rules{$domain} ||= [];
 
-    return if $option{flush};
-
     my $chain = $rule{chain};
     my $chain_info = $table_info->{chains}{$chain} ||= {};
+
+    return if $option{flush};
 
     my $action = $rule{action};
 
