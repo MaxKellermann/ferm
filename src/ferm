@@ -426,6 +426,7 @@ sub compat_tos_params {
                'version|V' => \$opt_version,
                'use=s' => \$opt_use,
                test => \$opt_test,
+               remote => \$opt_test,
                fast => \$opt_fast,
                shell => \$opt_shell,
                'domain=s' => \$opt_domain,
@@ -2597,7 +2598,7 @@ B<ferm> I<options> I<inputfiles>
  -F, --flush       Flush all netfilter tables managed by ferm
  -l, --lines       Show all rules that were created
  -i, --interactive Interactive mode: revert if user does not confirm
- --test            Test mode; ignore host specific configuration.
+ --remote          Remote mode; ignore host specific configuration.
                    This implies --noexec and --lines.
  -V, --version     Show current version number
  -h, --help        Look at this text

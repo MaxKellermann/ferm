@@ -23,6 +23,7 @@ v1.2.1 - not yet released
   - disabled array after ttl-lt, ttl-gt
   - allow "length", "physdev", "tos" negation
   - translate sports, dports to source-ports, destination-ports in import-ferm
+  - added the "--remote" option
 
 
 v1.2 - 13 Sep 2006

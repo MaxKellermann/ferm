@@ -1235,6 +1235,20 @@ Ferm function make routine tasks quick and easy:
     &FORWARD_TCP(tcp, smtp, 192.168.1.3);
     &FORWARD_TCP((tcp udp), domain, 192.168.1.4);
 
+=head2 Remote B<ferm>
+
+If the target machine is not able to run B<ferm> for some reason
+(maybe an embedded device without Perl), you can edit the B<ferm>
+configuration file on another computer and let B<ferm> generate a
+shell script there.
+
+Example for OpenWRT:
+
+    ferm --remote --shell mywrt/ferm.conf >mywrt/firewall.user
+    chmod +x mywrt/firewall.user
+    scp mywrt/firewall.user mywrt.local.net:/etc/
+    ssh mywrt.local.net /etc/firewall.user
+
 =head1 TRANSITION FROM FERM 1.1
 
 ferm 1.2 aims to be 100% compatible with ferm 1.1, i.e. old
@@ -1329,6 +1343,11 @@ with this option due to quoting bugs.
 
 Generate a shell script which calls iptables-restore(8) and prints it.
 Implies --fast --lines.
+
+=item B<--remote>
+
+Generate rules for a remote machine.  Implies B<--noexec> and
+B<--lines>.  Can be combined with B<--shell>.
 
 =item B<--domain {ip|ip6}>
 
