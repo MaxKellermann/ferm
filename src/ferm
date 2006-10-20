@@ -1811,7 +1811,7 @@ sub enter {
                         warning('Using policy as action is deprecated');
                         $current->{action} = $policy;
                     } else {
-                        error('No action defined');
+                        error('No action defined; did you mean "NOP"?');
                     }
                 }
 
