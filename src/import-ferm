@@ -59,6 +59,7 @@ ecn-tcp-remove
 ahres
 soft
 rt-0-res rt-0-not-strict
+ashort
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -116,6 +117,7 @@ hbh-len hbh-opts
 hl-eq hl-lt hl-gt
 rt-type rt-segsleft rt-len
 hl-set hl-dec hl-inc
+aaddr aname
 EOT
 
 my %p1c = parse_table(<<EOT);

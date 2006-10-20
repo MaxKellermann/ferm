@@ -1,0 +1,5 @@
+mod account {
+    chain FORWARD aname mynetwork aaddr 192.168.0.0/24 NOP;
+    chain INPUT proto tcp dport 80 aname mywwwserver aaddr 192.168.0.0/24 ashort NOP;
+    chain OUTPUT proto tcp sport 80 aname mywwwserver aaddr 192.168.0.0/24 ashort NOP;
+}

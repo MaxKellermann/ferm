@@ -9,6 +9,7 @@
 
 v1.2.2 - not yet released
   - documentation: warn against using iptables 1.2 with import-ferm
+  - support netfilter modules: account
 
 
 v1.2.1 - 25 Sep 2006
