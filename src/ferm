@@ -212,7 +212,7 @@ use vars qw(%proto_defs %match_defs %target_defs);
 # foo&bar       one argument; call the perl function '&bar()' which parses
 #               the argument
 #
-# !foo          negation is allowed an the '!' is written before the keyword
+# !foo          negation is allowed and the '!' is written before the keyword
 #
 # foo!          same as above, but '!' is after the keyword and before the
 #               parameters
