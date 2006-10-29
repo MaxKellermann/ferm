@@ -571,6 +571,14 @@ modules which are currently supported.
 
 =over 8
 
+=item B<account>
+
+Account traffic for all hosts in defined network/netmask.  This is one
+of the match modules which behave like a target, i.e. you will mostly
+have to use the B<NOP> target.
+
+    mod account aname mynetwork aaddr 192.168.1.0/24 ashort NOP;
+
 =item B<addrtype>
 
 Check the address type; either source address or destination address.
