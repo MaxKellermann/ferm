@@ -7,9 +7,13 @@
     Max Kellermann <max@foo-projects.org>
 
 
-v1.2.2 - not yet released
-  - documentation: warn against using iptables 1.2 with import-ferm
+v1.2.2 - 15 Nov 2006
+  - documentation:
+    * warn against using iptables 1.2 with import-ferm
+    * extended the transition section in the manpage
   - support netfilter modules: account
+  - bugfix: don't clear variable value when used as parameter in
+    multiport/destination-ports (reported by Bill Goudie)
 
 
 v1.2.1 - 25 Sep 2006

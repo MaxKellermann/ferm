@@ -1275,6 +1275,17 @@ Support for these has been removed.
 All these options are always implied.  There is no option anymore to
 disable them.
 
+=item I<option automod>
+
+Automatic module loading is deprecated.  It still works for now, at
+least for modules which were already supported by ferm 1.1, but it is
+expected to be removed in ferm 1.3.
+
+=item I<option location>
+
+ferm assumes that the iptables utilities are always installed in
+/sbin.
+
 =item I<Chain policies>
 
 Chain policies should be written in a dedicated statement; ferm 1.1:
@@ -1298,6 +1309,36 @@ the new syntax:
 
  def $FOO = (http ssh);
  chain INPUT proto tcp dport $FOO ACCEPT;
+
+=item I<Arrays>
+
+Arrays used to be specified with commas separating the items.  In ferm
+1.2, you separate array items only by whitespace.
+
+=item I<Misc syntax changes>
+
+Other small syntax changes:
+
+=over
+
+=item *
+
+built-in target names must be upper case; chains are lower case
+
+=item *
+
+MASQUERADE, not MASQ
+
+=item *
+
+A lot of shortcuts are deprecated, since they are polluting the namespace, e.g. "mac", "tosrc".
+
+=item *
+
+"source addr $A port $B" is deprecated, use "sdaddr $A sport $B"
+instead.  The same for "destination".
+
+=back
 
 =back
 
