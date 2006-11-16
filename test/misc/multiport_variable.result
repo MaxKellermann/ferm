@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m multiport -p tcp --destination-ports 80,443 -j ACCEPT
+iptables -t filter -A OUTPUT -m multiport -p tcp --destination-ports 80,443 -j ACCEPT

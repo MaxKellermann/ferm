@@ -364,10 +364,11 @@ sub multiport_params {
                           allow_negation => 1,
                           allow_array_negation => 1);
     if (ref $value and ref $value eq 'ARRAY') {
+        my @value = @$value;
         my @params;
 
-        while (@$value) {
-            push @params, join(',', splice(@$value, 0, 15));
+        while (@value) {
+            push @params, join(',', splice(@value, 0, 15));
         }
 
         return @params == 1
