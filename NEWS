@@ -10,7 +10,7 @@
 v1.2.2 - not yet released
   - documentation:
     * warn against using iptables 1.2 with import-ferm
-    * mention "automod" deprecation
+    * extended the transition section in the manpage
   - support netfilter modules: account
   - bugfix: don't clear variable value when used as parameter in
     multiport/destination-ports (reported by Bill Goudie)
