@@ -2611,8 +2611,6 @@ B<ferm> I<options> I<inputfiles>
                    This implies --noexec and --lines.
  -V, --version     Show current version number
  -h, --help        Look at this text
- --use [kernel firewall program]
-                   Obsolete option, only iptables is supported
  --fast            Generate an iptables-save file, used by iptables-restore
  --shell           Generate a shell script which calls iptables-restore
  --domain {ip|ip6} Handle only the specified domain
