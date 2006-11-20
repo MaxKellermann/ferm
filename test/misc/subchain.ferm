@@ -1,5 +1,8 @@
 # test semi-automatic subchains
 table filter chain INPUT {
+    proto udp subchain "my-udp_subchain" {
+        daddr 192.168.1.0/24 ACCEPT;
+    }
     proto tcp subchain {
         dport (http https) ACCEPT;
         dport (445 137:139) TARPIT;

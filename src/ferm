@@ -2173,10 +2173,17 @@ sub enter {
                 error('No rule specified before "subchain"')
                   unless find_option(\@fw, 'has_rule');
 
-                my $subchain = 'ferm_auto_' . ++$auto_chain;
+                my $subchain;
                 $keyword = next_token();
 
-                error('"{" expected after "sub"')
+                if ($keyword =~ /^(["'])(.*)\1$/s) {
+                    $subchain = $2;
+                    $keyword = next_token();
+                } else {
+                    $subchain = 'ferm_auto_' . ++$auto_chain;
+                }
+
+                error('"{" or chain name expected after "sub"')
                   unless $keyword eq '{';
 
                 # create a deep copy of @fw, only containing values

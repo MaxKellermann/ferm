@@ -53,7 +53,7 @@ while (<>) {
             next;
         }
 
-        s/-([ALFZNXE])(?: (\w+))?/($command, $chain) = ($1, $2); ''/eg;
+        s/-([ALFZNXE])(?: ([-\w]+))?/($command, $chain) = ($1, $2); ''/eg;
 
         next if $command eq 'F' or $command eq 'X';
 

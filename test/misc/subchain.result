@@ -1,9 +1,12 @@
+iptables -t filter -N my-udp_subchain
+iptables -t filter -A my-udp_subchain -p udp -d 192.168.1.0/24 -j ACCEPT
 iptables -t filter -N ferm_auto_1
 iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport http -j ACCEPT 
 iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport https -j ACCEPT 
 iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport 445 -j TARPIT 
 iptables -t filter -A ferm_auto_1 -p tcp -m tcp --dport 137:139 -j TARPIT 
 iptables -t filter -A ferm_auto_1 -p tcp -j DROP 
+iptables -t filter -A INPUT -p udp -j my-udp_subchain
 iptables -t filter -A INPUT -p tcp -j ferm_auto_1 
 iptables -t filter -N ferm_auto_3
 iptables -t filter -A ferm_auto_3 -p tcp -m tcp --dport ssh -j ACCEPT 

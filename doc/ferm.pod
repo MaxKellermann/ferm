@@ -405,7 +405,7 @@ specified by the policy.
 To avoid ambiguity, always specify the policies of all predefined
 chains explicitly.
 
-=item B<subchain { ... }>
+=item B<subchain ["CHAIN-NAME"] { ... }>
 
 Works like the normal block operators (i.e. without the I<subchain>
 keyword), except that B<ferm> moves rules within the curly braces into
@@ -433,6 +433,13 @@ less CPU load:
          proto tcp dport (http https ssh) ACCEPT;
          proto udp dport domain ACCEPT;
      }
+ }
+
+Optionally, you may define the name of the sub chain:
+
+ saddr (1.2.3.4 2.3.4.5 3.4.5.6) subchain "foobar" {
+     proto tcp dport (http https ssh) ACCEPT;
+     proto udp dport domain ACCEPT;
  }
 
 You can achieve the same by explicitly declaring a custom chain, but
