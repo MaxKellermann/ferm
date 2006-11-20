@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.2.3 - not yet releases
+
+
 v1.2.2 - 15 Nov 2006
   - documentation:
     * warn against using iptables 1.2 with import-ferm
