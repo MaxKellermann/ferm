@@ -9,6 +9,8 @@
 
 v1.2.3 - not yet releases
   - subchains may be named
+  - documentation:
+    * targets MIRROR, NETMAP, NFQUEUE, NOTRACK, QUEUE
 
 
 v1.2.2 - 15 Nov 2006

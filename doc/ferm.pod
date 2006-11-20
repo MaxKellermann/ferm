@@ -1049,6 +1049,38 @@ connections should originate from.
     MASQUERADE;
     MASQUERADE to-ports 1234:2345;
 
+=item B<MIRROR>
+
+Experimental demonstration target which inverts the source and
+destination fields in the IP header.
+
+    MIRROR;
+
+=item B<NETMAP>
+
+Map a whole network onto another network in the B<nat> table.
+
+    NETMAP to 192.168.2.0/24;
+
+=item B<NOTRACK>
+
+Disable connection tracking for all packets matching that rule.
+
+    proto tcp dport (135:139 445) NOTRACK;
+
+=item B<NFQUEUE>
+
+Userspace queueing, requires nfnetlink_queue kernel support.
+
+    proto tcp dport ftp NFQUEUE queue-num 20;
+
+=item B<QUEUE>
+
+Userspace queueing, the predecessor to B<NFQUEUE>.  All packets go to
+queue 0.
+
+    proto tcp dport ftp QUEUE;
+
 =item B<REDIRECT to-ports [ports]>
 
 Transparent proxying: alter the destination IP of the packet to the
