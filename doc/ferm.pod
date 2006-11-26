@@ -405,7 +405,7 @@ specified by the policy.
 To avoid ambiguity, always specify the policies of all predefined
 chains explicitly.
 
-=item B<subchain { ... }>
+=item B<subchain ["CHAIN-NAME"] { ... }>
 
 Works like the normal block operators (i.e. without the I<subchain>
 keyword), except that B<ferm> moves rules within the curly braces into
@@ -433,6 +433,13 @@ less CPU load:
          proto tcp dport (http https ssh) ACCEPT;
          proto udp dport domain ACCEPT;
      }
+ }
+
+Optionally, you may define the name of the sub chain:
+
+ saddr (1.2.3.4 2.3.4.5 3.4.5.6) subchain "foobar" {
+     proto tcp dport (http https ssh) ACCEPT;
+     proto udp dport domain ACCEPT;
  }
 
 You can achieve the same by explicitly declaring a custom chain, but
@@ -1042,6 +1049,38 @@ connections should originate from.
     MASQUERADE;
     MASQUERADE to-ports 1234:2345;
 
+=item B<MIRROR>
+
+Experimental demonstration target which inverts the source and
+destination fields in the IP header.
+
+    MIRROR;
+
+=item B<NETMAP>
+
+Map a whole network onto another network in the B<nat> table.
+
+    NETMAP to 192.168.2.0/24;
+
+=item B<NOTRACK>
+
+Disable connection tracking for all packets matching that rule.
+
+    proto tcp dport (135:139 445) NOTRACK;
+
+=item B<NFQUEUE>
+
+Userspace queueing, requires nfnetlink_queue kernel support.
+
+    proto tcp dport ftp NFQUEUE queue-num 20;
+
+=item B<QUEUE>
+
+Userspace queueing, the predecessor to B<NFQUEUE>.  All packets go to
+queue 0.
+
+    proto tcp dport ftp QUEUE;
+
 =item B<REDIRECT to-ports [ports]>
 
 Transparent proxying: alter the destination IP of the packet to the
@@ -1402,6 +1441,10 @@ B<--lines>.  Can be combined with B<--shell>.
 
 Handle only the specified domain. B<ferm> output may be empty if the
 domain is not configured in the input file.
+
+=item B<--def '$name=value'>
+
+Override a variable defined in the configuration file.
 
 =back
 
