@@ -503,6 +503,7 @@ read_header();
 
 # parse all input recursively
 enter(0);
+die unless @stack == 1;
 
 # check consistency
 check();
