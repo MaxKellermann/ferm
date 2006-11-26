@@ -1442,6 +1442,10 @@ B<--lines>.  Can be combined with B<--shell>.
 Handle only the specified domain. B<ferm> output may be empty if the
 domain is not configured in the input file.
 
+=item B<--def '$name=value'>
+
+Override a variable defined in the configuration file.
+
 =back
 
 

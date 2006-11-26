@@ -399,6 +399,9 @@ sub compat_tos_params {
     return @value == 1 ? $value[0] : \@value;
 }
 
+# initialize stack: command line definitions
+unshift @stack, {};
+
 # Get command line stuff
 {
     my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
@@ -410,6 +413,18 @@ sub compat_tos_params {
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
                             'no_auto_abbrev');
+
+    sub opt_def {
+        my ($opt, $value) = @_;
+        die 'Invalid --def specification'
+          unless $value =~ /^\$?(\w+)=(.*)$/s;
+        my ($name, $unparsed_value) = ($1, $2);
+        my @tokens = &tokenize_string($unparsed_value);
+        my $value = getvalues(\&next_array_token, \@tokens);
+        die 'Extra tokens after --def'
+          if @tokens;
+        $stack[0]{vars}{$name} = $value;
+    }
 
     GetOptions('noexec|n' => \$opt_noexec,
                'flush|F' => \$opt_flush,
@@ -431,6 +446,7 @@ sub compat_tos_params {
                fast => \$opt_fast,
                shell => \$opt_shell,
                'domain=s' => \$opt_domain,
+               'def=s' => \&opt_def,
               );
 
     if (defined $opt_help) {
@@ -497,13 +513,13 @@ unless (@ARGV == 1) {
     Pod::Usage::pod2usage(-exitstatus => 1);
 }
 
-push @stack, {};
+unshift @stack, {};
 open_script($ARGV[0]);
 read_header();
 
 # parse all input recursively
 enter(0);
-die unless @stack == 1;
+die unless @stack == 2;
 
 # check consistency
 check();
@@ -1928,7 +1944,8 @@ sub enter {
                     error('";" expected after variable declaration')
                       unless defined $keyword and $keyword eq ';';
 
-                    $stack[0]{vars}{$name} = $value;
+                    $stack[0]{vars}{$name} = $value
+                      unless exists $stack[-1]{vars}{$name};
                 } elsif ($type eq '&') {
                     my $name = require_next_token();
                     error('invalid function name')
@@ -1997,7 +2014,8 @@ sub enter {
 
                     $function{tokens} = \@tokens;
 
-                    $stack[0]{functions}{$name} = \%function;
+                    $stack[0]{functions}{$name} = \%function
+                      unless exists $stack[-1]{functions}{$name};
                 } else {
                     error('"$" (variable) or "&" (function) expected');
                 }
@@ -2614,5 +2632,6 @@ B<ferm> I<options> I<inputfiles>
  --fast            Generate an iptables-save file, used by iptables-restore
  --shell           Generate a shell script which calls iptables-restore
  --domain {ip|ip6} Handle only the specified domain
+ --def '$name=v'   Override a variable
 
 =cut
