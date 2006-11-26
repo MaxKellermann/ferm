@@ -528,7 +528,8 @@ check();
 my $status;
 
 while (my ($domain, $rules) = each %rules) {
-    my $s = $option{fast}
+    my $s = $option{fast} &&
+      defined $domains{$domain}{tools}{'tables-restore'}
       ? execute_fast($domain, rules_to_save($rules))
         : execute_slow($domain, $rules);
     $status = $s if defined $s;
@@ -617,9 +618,11 @@ sub initialize_domain {
 
     return if exists $domains{$domain}{initialized};
 
-    die "Invalid domain '$domain'\n" unless $domain =~ /^ip6?$/;
+    die "Invalid domain '$domain'\n" unless $domain =~ /^(?:ip6?|arp|eb)$/;
 
-    my @tools = qw(tables tables-save tables-restore);
+    my @tools = qw(tables);
+    push @tools, qw(tables-save tables-restore)
+      if $domain =~ /^ip6?$/;
 
     if ($option{test}) {
         $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
@@ -638,7 +641,8 @@ sub initialize_domain {
     # (which tables and chains do exist?), also remember the old
     # save data which may be used later by the rollback function
     local *SAVE;
-    if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
+    if (exists $domains{$domain}{tools}{'tables-save'} and
+        open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
         my $save = '';
 
         my $table_info;
@@ -2556,6 +2560,11 @@ sub execute_fast {
 sub rollback {
     my $error;
     foreach my $domain (keys %rules) {
+        unless (defined $domains{$domain}{tools}{'tables-restore'}) {
+            print STDERR "Cannot rollback domain '$domain' because there is no ${domain}tables-restore\n";
+            next;
+        }
+
         my $reset = '';
         while (my ($table, $table_info) = each %{$domains{$domain}{tables}}) {
             my $reset_chain = '';
