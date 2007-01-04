@@ -1,4 +1,4 @@
-#!/usr/bin/ferm
+# -*- shell-script -*-
 #
 # Ferm example script
 #
