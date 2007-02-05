@@ -9,6 +9,7 @@
 
 v1.2.3 - not yet releases
   - subchains may be named
+  - don't copy module references to subchain (patch by Alex Metelka)
   - override variables on the command line with "--def"
   - documentation:
     * targets MIRROR, NETMAP, NFQUEUE, NOTRACK, QUEUE

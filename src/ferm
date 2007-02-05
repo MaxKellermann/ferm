@@ -2209,7 +2209,7 @@ sub enter {
                 my @fw2;
                 foreach my $fw (@fw) {
                     my $fw2 = {};
-                    foreach my $key (qw(domain table proto modules)) {
+                    foreach my $key (qw(domain table proto)) {
                         my $value = $fw->{$key};
                         next unless defined $value;
                         $value = ref $value
