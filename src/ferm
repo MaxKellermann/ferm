@@ -1403,20 +1403,29 @@ sub tables {
         $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
 
         if (exists $proto_defs{$proto}) {
-            shell_append(\$rr, '-m', $proto);
-
             my $def = $proto_defs{$proto};
             while (my ($keyword, $k) = each %{$def->{keywords}}) {
                 my $key = "protocol__${proto}__$keyword";
                 next unless exists $rule{$key};
                 my $value = $rule->{$key};
 
+                unless (exists $rule{modules}{$proto}) {
+                    shell_append(\$rr, '-m', $proto);
+                    $rule{modules}{$proto} = 1;
+                }
+
                 shell_append_option(\$rr, $k, $keyword, $value);
             }
         }
 
         # special case: --dport and --sport for TCP/UDP
-        if ($rule{proto} =~ /^(?:tcp|udp|dccp|sctp)$/) {
+        if ((exists $rule{dport} or exists $rule{sport}) and
+            $proto =~ /^(?:tcp|udp|dccp|sctp)$/) {
+            unless (exists $rule{modules}{$proto}) {
+                shell_append(\$rr, '-m', $proto);
+                $rule{modules}{$proto} = 1;
+            }
+
             shell_append_option(\$rr, { params => 1,
                                         negation => 1,
                                       }, 'dport', $rule{dport})
