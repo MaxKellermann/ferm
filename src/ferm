@@ -3,7 +3,7 @@
 #
 # ferm, a firewall setup program that makes firewall rules easy!
 #
-# Copyright (C) 2001-2006 Auke Kok, Max Kellermann
+# Copyright (C) 2001-2007 Auke Kok, Max Kellermann
 #
 # Comments, questions, greetings and additions to this program
 # may be sent to <ferm@foo-projects.org>
@@ -37,7 +37,7 @@ use vars qw($DATE $VERSION);
 $DATE = '$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '';
 
 $VERSION = '1.3.0';
-$VERSION .= '~svn' . $DATE;
+#$VERSION .= '~svn' . $DATE;
 
 ## interface variables
 # %option = command line and other options
