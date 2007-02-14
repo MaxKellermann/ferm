@@ -100,6 +100,8 @@ check: check-ferm check-import
 # distribution
 #
 
+.PHONY: dist
+
 build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
 	install -d -m 755 $(DISTDIR) $(DISTDIR)/src $(DISTDIR)/doc $(DISTDIR)/examples
@@ -136,6 +138,8 @@ uninstall:
 #
 # misc targets
 #
+
+.PHONY: www ftp pub
 
 www: dist
 	@echo "Publishing tarfiles in $(WEBDIR)..."
