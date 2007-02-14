@@ -7,7 +7,7 @@
     Max Kellermann <max@foo-projects.org>
 
 
-v1.2.3 - not yet releases
+v1.2.3 - 14 Feb 2007
   - subchains may be named
   - don't copy module references to subchain (patch by Alex Metelka)
   - override variables on the command line with "--def"
