@@ -139,6 +139,8 @@ uninstall:
 # misc targets
 #
 
+.PHONY: www ftp pub
+
 www: dist
 	@echo "Publishing tarfiles in $(WEBDIR)..."
 	rm -f $(WEBDIR)/$(notdir $(TARFILE))
