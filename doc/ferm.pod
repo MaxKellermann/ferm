@@ -766,6 +766,19 @@ Matches the IPv6 extension header (ip6).
     mod ipv6header header !(hop frag) ACCEPT;
     mod ipv6header header (auth dst) ACCEPT;
 
+=item B<hashlimit>
+
+Similar to 'mod limit', but adds the ability to add per-destination or
+per-port limits managed in a hash table.
+
+    mod hashlimit  hashlimit 10/minute  hashlimit-burst 30/minute
+      hashlimit-mode dstip  hashlimit-name foobar  ACCEPT;
+
+Possible values for hashlimit-mode: dstip dstport srcip srcport.
+
+There are more possible settings, type "iptables -m hashlimit -h" for
+documentation.
+
 =item B<length>
 
 Check the package length.

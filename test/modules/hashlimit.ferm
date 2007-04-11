@@ -1,0 +1,8 @@
+table filter chain INPUT mod hashlimit {
+    hashlimit 10/minute  hashlimit-burst 30/minute
+    hashlimit-mode dstip  hashlimit-name foobar
+    DROP;
+    hashlimit-htable-size 1024  hashlimit-htable-max 4096
+    hashlimit-htable-expire 600  hashlimit-htable-gcinterval 180
+    ACCEPT;
+}

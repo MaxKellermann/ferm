@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m hashlimit -j DROP --hashlimit 10/minute --hashlimit-burst 30/minute --hashlimit-mode dstip --hashlimit-name foobar
+iptables -t filter -A INPUT -m hashlimit -j ACCEPT --hashlimit-htable-size 1024 --hashlimit-htable-max 4096 --hashlimit-htable-expire 600 --hashlimit-htable-gcinterval 180

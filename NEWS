@@ -8,6 +8,7 @@
 
 
 v1.2.4 - not yet released
+  - support netfilter modules: hashlimit
 
 
 v1.2.3 - 14 Feb 2007
