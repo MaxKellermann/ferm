@@ -8,7 +8,9 @@
 
 
 v1.2.4 - not yet released
-  - support netfilter modules: hashlimit
+  - support netfilter modules:
+    * hashlimit
+    * ipset (patch by Martin Schuster)
 
 
 v1.2.3 - 14 Feb 2007

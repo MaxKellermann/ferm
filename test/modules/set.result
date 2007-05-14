@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m set --set foo src,src -j ACCEPT

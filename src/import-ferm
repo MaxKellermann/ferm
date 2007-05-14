@@ -139,6 +139,7 @@ EOT
 my %p2c = parse_table(<<EOT);
 tcp-flags
 chunk-types
+add-set del-set
 EOT
 
 my @pre_negated = qw(fragment connbytes connlimit-above
@@ -595,6 +596,8 @@ sub parse_option {
           unless exists $cur->{proto} and
             ($cur->{proto} eq $param or
              $cur->{proto} eq 'ipv6-icmp' and $param eq 'icmpv6');
+    } elsif ($option eq 'set' and exists $line->{mod}{set}) {
+        $cur->{$option} = fetch_two_tokens_comma($option, $tokens);
     } elsif (exists $p0{$option}) {
         my $keyword = $p0{$option};
         $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, undef);

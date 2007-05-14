@@ -1,0 +1,4 @@
+table filter chain INPUT {
+    proto tcp SET add-set foo (src dst);
+    proto udp SET del-set bar src;
+}
