@@ -11,6 +11,7 @@ v1.2.4 - not yet released
   - support netfilter modules:
     * hashlimit
     * ipset (patch by Martin Schuster)
+  - ignore empty lines in backticks result (reported by Martin Klozik)
 
 
 v1.2.3 - 14 Feb 2007

@@ -1100,7 +1100,7 @@ sub getvalues {
         $output =~ s/#.*//mg;
 
         # tokenize
-        my @tokens = split /\s+/, $output;
+        my @tokens = grep { length } split /\s+/s, $output;
 
         my @values;
         while (@tokens) {
