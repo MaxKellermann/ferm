@@ -1414,9 +1414,10 @@ sub tables {
                 next unless exists $rule{$key};
                 my $value = $rule->{$key};
 
-                unless (exists $rule{modules}{$proto}) {
-                    shell_append(\$rr, '-m', $proto);
-                    $rule{modules}{$proto} = 1;
+                my $module = $proto eq 'icmpv6' ? 'icmp6' : $proto;
+                unless (exists $rule{modules}{$module}) {
+                    shell_append(\$rr, '-m', $module);
+                    $rule{modules}{$module} = 1;
                 }
 
                 shell_append_option(\$rr, $k, $keyword, $value);
