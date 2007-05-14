@@ -1019,6 +1019,16 @@ you enabled them in your kernel:
 
 =over 8
 
+=item B<CONNMARK>
+
+Sets the netfilter mark value associated with a connection.
+
+    CONNMARK set-mark 42;
+    CONNMARK save-mark;
+    CONNMARK restore-mark;
+    CONNMARK save-mark mask 0x7fff;
+    CONNMARK restore-mark mask 0x8000;
+
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
 
 Change the destination address of the packet.
