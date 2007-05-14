@@ -13,6 +13,7 @@ v1.2.4 - not yet released
     * ipset (patch by Martin Schuster)
   - ignore empty lines in backticks result (reported by Martin Klozik)
   - the match module for protocol "icmpv6" is named "icmp6"
+  - implemented basic hooks (suggested by Joerg Jaspert)
   - documentation:
     * targets CONNMARK
 

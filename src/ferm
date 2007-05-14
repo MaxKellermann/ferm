@@ -43,6 +43,9 @@ $VERSION .= '~svn' . $DATE;
 # %option = command line and other options
 use vars qw(%option);
 
+## hooks
+use vars qw(@pre_hooks @post_hooks);
+
 ## parser variables
 # $script: current script file
 # %oldvars = ferm 1.1 compatibility variables, name => value
@@ -532,11 +535,21 @@ check();
 # execute all generated rules
 my $status;
 
+foreach my $cmd (@pre_hooks) {
+    print "$cmd\n" if $option{lines};
+    system($cmd) unless $option{noexec};
+}
+
 while (my ($domain, $rules) = each %rules) {
     my $s = $option{fast}
       ? execute_fast($domain, rules_to_save($rules))
         : execute_slow($domain, $rules);
     $status = $s if defined $s;
+}
+
+foreach my $cmd (@post_hooks) {
+    print "$cmd\n" if $option{lines};
+    system($cmd) unless $option{noexec};
 }
 
 if (defined $status) {
@@ -1858,6 +1871,30 @@ sub enter {
 
                 # and clean up variables set in this level
                 %$current = ();
+
+                next;
+            }
+
+            # hooks for custom shell commands
+            if ($keyword eq 'hook') {
+                error('"def" must be the first token in a command')
+                  if keys %$current;
+
+                my $position = getvar();
+                my $hooks;
+                if ($position eq 'pre') {
+                    $hooks = \@pre_hooks;
+                } elsif ($position eq 'post') {
+                    $hooks = \@post_hooks;
+                } else {
+                    error("Invalid hook position: '$position'");
+                }
+
+                push @$hooks, getvar();
+
+                $keyword = next_token();
+                error('";" expected after hook declaration')
+                  unless defined $keyword and $keyword eq ';';
 
                 next;
             }
