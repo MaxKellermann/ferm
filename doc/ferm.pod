@@ -921,6 +921,14 @@ This module is automatically loaded when you use "protocol sctp".
 
 Use "iptables -p sctp C<-h>" to obtain a list of valid chunk types.
 
+=item B<set>
+
+Checks the source or destination IP/Port/MAC against a set.
+
+    mod set set badguys src DROP;
+
+See L<http://ipset.netfilter.org/> for more information.
+
 =item B<state>
 
 Checks the connection tracking state.
@@ -1087,6 +1095,12 @@ Transparent proxying: alter the destination IP of the packet to the
 machine itself.
 
     proto tcp dport http REDIRECT to-ports 3128;
+
+=item B<SET [add-set|del-set] [setname] [flag(s)]>
+
+Add the IP to the specified set. See L<http://ipset.netfilter.org/>
+
+    proto icmp icmp-type echo-request SET add-set badguys src;
 
 =item B<SNAT to [ip-address|ip-range|ip-port-range]>
 

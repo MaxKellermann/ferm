@@ -1,0 +1,3 @@
+table filter chain INPUT mod set {
+    set foo (src src) ACCEPT;
+}

@@ -9,6 +9,11 @@
 v1.3.0 - not yet released
 
 
+v1.2.4 - not yet released
+  - support netfilter modules:
+    * ipset (patch by Martin Schuster)
+
+
 v1.2.3 - 14 Feb 2007
   - subchains may be named
   - don't copy module references to subchain (patch by Alex Metelka)
