@@ -118,6 +118,9 @@ hl-eq hl-lt hl-gt
 rt-type rt-segsleft rt-len
 hl-set hl-dec hl-inc
 aaddr aname
+hashlimit hashlimit-burst hashlimit-mode hashlimit-name
+hashlimit-htable-size hashlimit-htable-max
+hashlimit-htable-expire hashlimit-htable-gcinterval
 EOT
 
 my %p1c = parse_table(<<EOT);

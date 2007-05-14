@@ -11,6 +11,7 @@ v1.3.0 - not yet released
 
 v1.2.4 - not yet released
   - support netfilter modules:
+    * hashlimit
     * ipset (patch by Martin Schuster)
 
 
