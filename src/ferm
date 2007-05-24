@@ -37,7 +37,7 @@ use vars qw($DATE $VERSION);
 $DATE = '$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '';
 
 $VERSION = '1.2.4';
-$VERSION .= '~svn' . $DATE;
+#$VERSION .= '~svn' . $DATE;
 
 ## interface variables
 # %option = command line and other options
