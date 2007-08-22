@@ -8,7 +8,7 @@
 
 
 v1.2.5 - not yet released
-
+  - make --flush do something in fast mode (reported by Hans-Georg Bork)
 
 v1.2.4 - 24 May 2007
   - support netfilter modules:

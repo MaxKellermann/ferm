@@ -542,7 +542,7 @@ foreach my $cmd (@pre_hooks) {
 
 while (my ($domain, $rules) = each %rules) {
     my $s = $option{fast}
-      ? execute_fast($domain, rules_to_save($rules))
+      ? execute_fast($domain, rules_to_save($domain, $rules))
         : execute_slow($domain, $rules);
     $status = $s if defined $s;
 }
@@ -2506,13 +2506,13 @@ sub execute_slow {
 }
 
 sub rules_to_save {
-    my $rules = shift;
+    my ($domain, $rules) = @_;
 
     # parse the current ruleset, ignore -X and -F, handle policies and
     # custom chains
     my %policies;
     my %rules;
-    foreach my $rule (@$rules) {
+    foreach my $rule (reset_domain($domain), @$rules) {
         $rule = $rule->{rule}
           if ref $rule;
 
