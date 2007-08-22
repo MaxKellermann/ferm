@@ -43,6 +43,9 @@ $VERSION = '1.3.0';
 # %option = command line and other options
 use vars qw(%option);
 
+## hooks
+use vars qw(@pre_hooks @post_hooks);
+
 ## parser variables
 # $script: current script file
 # %oldvars = ferm 1.1 compatibility variables, name => value
@@ -532,12 +535,22 @@ check();
 # execute all generated rules
 my $status;
 
+foreach my $cmd (@pre_hooks) {
+    print "$cmd\n" if $option{lines};
+    system($cmd) unless $option{noexec};
+}
+
 while (my ($domain, $rules) = each %rules) {
     my $s = $option{fast} &&
       defined $domains{$domain}{tools}{'tables-restore'}
-      ? execute_fast($domain, rules_to_save($rules))
+      ? execute_fast($domain, rules_to_save($domain, $rules))
         : execute_slow($domain, $rules);
     $status = $s if defined $s;
+}
+
+foreach my $cmd (@post_hooks) {
+    print "$cmd\n" if $option{lines};
+    system($cmd) unless $option{noexec};
 }
 
 if (defined $status) {
@@ -1104,7 +1117,7 @@ sub getvalues {
         $output =~ s/#.*//mg;
 
         # tokenize
-        my @tokens = split /\s+/, $output;
+        my @tokens = grep { length } split /\s+/s, $output;
 
         my @values;
         while (@tokens) {
@@ -1418,9 +1431,10 @@ sub tables {
                 next unless exists $rule{$key};
                 my $value = $rule->{$key};
 
-                unless (exists $rule{modules}{$proto}) {
-                    shell_append(\$rr, '-m', $proto);
-                    $rule{modules}{$proto} = 1;
+                my $module = $proto eq 'icmpv6' ? 'icmp6' : $proto;
+                unless (exists $rule{modules}{$module}) {
+                    shell_append(\$rr, '-m', $module);
+                    $rule{modules}{$module} = 1;
                 }
 
                 shell_append_option(\$rr, $k, $keyword, $value);
@@ -1861,6 +1875,30 @@ sub enter {
 
                 # and clean up variables set in this level
                 %$current = ();
+
+                next;
+            }
+
+            # hooks for custom shell commands
+            if ($keyword eq 'hook') {
+                error('"def" must be the first token in a command')
+                  if keys %$current;
+
+                my $position = getvar();
+                my $hooks;
+                if ($position eq 'pre') {
+                    $hooks = \@pre_hooks;
+                } elsif ($position eq 'post') {
+                    $hooks = \@post_hooks;
+                } else {
+                    error("Invalid hook position: '$position'");
+                }
+
+                push @$hooks, getvar();
+
+                $keyword = next_token();
+                error('";" expected after hook declaration')
+                  unless defined $keyword and $keyword eq ';';
 
                 next;
             }
@@ -2472,13 +2510,13 @@ sub execute_slow {
 }
 
 sub rules_to_save {
-    my $rules = shift;
+    my ($domain, $rules) = @_;
 
     # parse the current ruleset, ignore -X and -F, handle policies and
     # custom chains
     my %policies;
     my %rules;
-    foreach my $rule (@$rules) {
+    foreach my $rule (reset_domain($domain), @$rules) {
         $rule = $rule->{rule}
           if ref $rule;
 

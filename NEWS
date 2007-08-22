@@ -9,10 +9,19 @@
 v1.3.0 - not yet released
 
 
-v1.2.4 - not yet released
+v1.2.5 - not yet released
+  - make --flush do something in fast mode (reported by Hans-Georg Bork)
+
+
+v1.2.4 - 24 May 2007
   - support netfilter modules:
     * hashlimit
     * ipset (patch by Martin Schuster)
+  - ignore empty lines in backticks result (reported by Martin Klozik)
+  - the match module for protocol "icmpv6" is named "icmp6"
+  - implemented basic hooks (suggested by Joerg Jaspert)
+  - documentation:
+    * targets CONNMARK
 
 
 v1.2.3 - 14 Feb 2007

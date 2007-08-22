@@ -583,7 +583,7 @@ sub parse_option {
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);
         # protocol implicitly loads the module
         unless (ref $param) {
-            my $mod = $param eq 'ipv6-icmp' ? 'icmpv6' : $param;
+            my $mod = $param eq 'ipv6-icmp' ? 'icmp6' : $param;
             delete $line->{mod}{$mod};
         }
         $cur->{proto} = $param;
@@ -595,7 +595,7 @@ sub parse_option {
         $line->{mod}{$param} = 1
           unless exists $cur->{proto} and
             ($cur->{proto} eq $param or
-             $cur->{proto} eq 'ipv6-icmp' and $param eq 'icmpv6');
+             $cur->{proto} =~ /^(ipv6-icmp|icmpv6)$/s and $param eq 'icmp6');
     } elsif ($option eq 'set' and exists $line->{mod}{set}) {
         $cur->{$option} = fetch_two_tokens_comma($option, $tokens);
     } elsif (exists $p0{$option}) {

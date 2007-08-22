@@ -1019,6 +1019,16 @@ you enabled them in your kernel:
 
 =over 8
 
+=item B<CONNMARK>
+
+Sets the netfilter mark value associated with a connection.
+
+    CONNMARK set-mark 42;
+    CONNMARK save-mark;
+    CONNMARK restore-mark;
+    CONNMARK save-mark mask 0x7fff;
+    CONNMARK restore-mark mask 0x8000;
+
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
 
 Change the destination address of the packet.
@@ -1289,6 +1299,16 @@ directory are included, sorted alphabetically:
 
     include 'ferm.d/';
 
+=head2 Hooks
+
+To run custom commands, you may install hooks:
+
+    hook pre "echo 0 >/proc/sys/net/ipv4/conf/eth0/forwarding";
+    hook post "echo 1 >/proc/sys/net/ipv4/conf/eth0/forwarding";
+
+The specified command is executed using the shell.  "pre" means run
+the command before applying the firewall rules, and "post" means run
+the command afterwards.  You may install any number of hooks.
 
 =head1 RECIPES
 
