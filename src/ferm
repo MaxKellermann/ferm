@@ -1416,6 +1416,18 @@ sub tables {
         shell_append(\$rr, '-f')
     }
 
+    if ($rule{domain_family} eq 'arp') {
+        foreach my $keyword (qw(source-mac destination-mac)) {
+            shell_append(\$rr, '--' . $keyword, extract_negation $rule{$keyword})
+              if defined $rule{$keyword};
+        }
+
+        foreach my $keyword (qw(h-length opcode h-type proto-type)) {
+            shell_append(\$rr, '--' . $keyword, $rule{$keyword})
+              if defined $rule{$keyword};
+        }
+    }
+
     #
     # match module options
     #
@@ -1615,9 +1627,9 @@ sub filter_domains {
 
 # parse tokens from builtin match modules
 sub parse_builtin_matches {
-    my ($current, $keyword, $negated_ref) = @_;
+    my ($current, $domain_family, $keyword, $negated_ref) = @_;
 
-    if ($keyword eq 'addr') {
+    if ($domain_family eq 'ip' and $keyword eq 'addr') {
         error("source/destination not declared")
           unless exists $current->{side};
         warning("'$keyword' is deprecated, please use 's$keyword' or 'd$keyword'");
@@ -1648,7 +1660,7 @@ sub parse_builtin_matches {
     }
 
     # miscelleanous switches
-    if ($keyword eq 'fragment') {
+    if ($domain_family eq 'ip' and $keyword eq 'fragment') {
         if ($$negated_ref) {
             $current->{$keyword} = 'unset';
             undef $$negated_ref;
@@ -1656,6 +1668,20 @@ sub parse_builtin_matches {
             $current->{$keyword} = 'set';
         }
         return 1;
+    }
+
+    # arptables
+
+    if ($domain_family eq 'arp') {
+        if ($keyword =~ /^(?:source|destination)-mac$/s) {
+            $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
+            return 1;
+        }
+
+        if ($keyword =~ /^(?:h-length|opcode|h-type|proto-type)/s) {
+            $current->{$keyword} = getvar();
+            return 1;
+        }
     }
 
     return;
@@ -1818,6 +1844,8 @@ sub enter {
 
     my $current = {};
     push @fw, $current;
+
+    my $domain_family = find_option(\@fw, 'domain_family');
 
     my %modules = map { $_->{modules} ? %{$_->{modules}} : () } @fw;
 
@@ -2169,8 +2197,20 @@ sub enter {
                 error('Domain is already specified')
                   if exists $current->{domain};
 
-                $current->{domain} = $stack[0]{auto}{DOMAIN}
-                  = filter_domains(getvalues());
+                my $domain = getvalues();
+                my $filtered_domain = filter_domains($domain);
+                unless (ref $domain) {
+                    $domain_family = $domain;
+                } elsif (@$domain == 0) {
+                    $domain_family = 'none';
+                } elsif (grep { not /^ip6?$/s } @$domain) {
+                    error('Cannot combine non-IP domains');
+                } else {
+                    $domain_family = 'ip';
+                }
+                $current->{domain_family} = $domain_family;
+
+                $current->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 
                 next;
             }
@@ -2328,7 +2368,7 @@ sub enter {
                 next;
             }
 
-            parse_builtin_matches($current, $keyword, \$negated)
+            parse_builtin_matches($current, $domain_family, $keyword, \$negated)
               and next;
 
             ###
