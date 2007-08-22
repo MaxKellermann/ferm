@@ -83,11 +83,11 @@ $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
-$(STAMPDIR)/%.check: %.OLD %.NEW
+$(STAMPDIR)/%.check: $(STAMPDIR)/%.OLD $(STAMPDIR)/%.NEW
 	diff -u $^
 	@touch $@
 
-%.check-import: %.SAVE %.SAVE2
+$(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
 	diff -u $^
 	@touch $@
 
