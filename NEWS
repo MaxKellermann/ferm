@@ -9,6 +9,9 @@
 
 v1.2.5 - not yet released
   - make --flush do something in fast mode (reported by Hans-Georg Bork)
+  - fix automatic protocol modules when used in an expanded array
+    (reported by Ralph Oesker)
+
 
 v1.2.4 - 24 May 2007
   - support netfilter modules:

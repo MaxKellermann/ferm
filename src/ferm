@@ -1385,10 +1385,13 @@ sub tables {
 
     shell_append(\$rr, '-A', $chain);
 
-    # modules
+    # modules; copy the hash because we might add automatic protocol
+    # modules later
+    my %modules;
     if (exists $rule{modules}) {
+        %modules = %{$rule{modules}};
         shell_append(\$rr, '-m', $_)
-          foreach keys %{$rule{modules}};
+          foreach keys %modules;
     }
 
     # general iptables options
@@ -1428,9 +1431,9 @@ sub tables {
                 my $value = $rule->{$key};
 
                 my $module = $proto eq 'icmpv6' ? 'icmp6' : $proto;
-                unless (exists $rule{modules}{$module}) {
+                unless (exists $modules{$module}) {
                     shell_append(\$rr, '-m', $module);
-                    $rule{modules}{$module} = 1;
+                    $modules{$module} = 1;
                 }
 
                 shell_append_option(\$rr, $k, $keyword, $value);
@@ -1440,9 +1443,9 @@ sub tables {
         # special case: --dport and --sport for TCP/UDP
         if ((exists $rule{dport} or exists $rule{sport}) and
             $proto =~ /^(?:tcp|udp|dccp|sctp)$/) {
-            unless (exists $rule{modules}{$proto}) {
+            unless (exists $modules{$proto}) {
                 shell_append(\$rr, '-m', $proto);
-                $rule{modules}{$proto} = 1;
+                $modules{$proto} = 1;
             }
 
             shell_append_option(\$rr, { params => 1,
