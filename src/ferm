@@ -1880,7 +1880,7 @@ sub enter {
 
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
-                error('"def" must be the first token in a command')
+                error('"hook" must be the first token in a command')
                   if keys %$current;
 
                 my $position = getvar();
