@@ -1938,9 +1938,12 @@ sub enter {
 
             # include another file
             if ($keyword eq 'include') {
-                my $files = getvalues;
+                my @files = collect_filenames to_array getvalues;
+                $keyword = next_token;
+                error('Missing ";" - "include FILENAME" must be the last command in a rule')
+                  unless defined $keyword and $keyword eq ';';
 
-                foreach my $filename (collect_filenames to_array $files) {
+                foreach my $filename (@files) {
                     # save old script, open new script
                     my $old_script = $script;
                     open_script($filename);
@@ -1970,10 +1973,6 @@ sub enter {
                     # restore old script
                     $script = $old_script;
                 }
-
-                $keyword = next_token;
-                error('Missing ";" - "include FILENAME" must be the last command in a rule')
-                  unless defined $keyword and $keyword eq ';';
 
                 next;
             }
