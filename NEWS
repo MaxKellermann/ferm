@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.2.6 - not yet released
+
+
 v1.2.5 - 14 Oct 2007
   - make --flush do something in fast mode (reported by Hans-Georg Bork)
   - fix automatic protocol modules when used in an expanded array
