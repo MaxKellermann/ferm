@@ -2004,7 +2004,7 @@ sub enter {
             }
 
             # include another file
-            if ($keyword eq 'include') {
+            if ($keyword eq '@include' or $keyword eq 'include') {
                 my @files = collect_filenames to_array getvalues;
                 $keyword = next_token;
                 error('Missing ";" - "include FILENAME" must be the last command in a rule')
@@ -2045,7 +2045,7 @@ sub enter {
             }
 
             # definition of a variable or function
-            if ($keyword eq 'def') {
+            if ($keyword eq '@def' or $keyword eq 'def') {
                 error('"def" must be the first token in a command')
                   if keys %$current;
 
