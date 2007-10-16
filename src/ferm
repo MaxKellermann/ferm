@@ -1195,6 +1195,38 @@ sub getvar {
     return $token;
 }
 
+# collect all tokens in a flat array reference until the end of the
+# command is reached
+sub collect_tokens {
+    my @level;
+    my @tokens;
+
+    while (1) {
+        my $keyword = next_token();
+        error('unexpected end of file within function/variable declaration')
+          unless defined $keyword;
+
+        if ($keyword =~ /^[\{\(]$/) {
+            push @level, $keyword;
+        } elsif ($keyword =~ /^[\}\)]$/) {
+            my $expected = $keyword;
+            $expected =~ tr/\}\)/\{\(/;
+            my $opener = pop @level;
+            error("unmatched '$keyword'")
+              unless defined $opener and $opener eq $expected;
+        } elsif ($keyword eq ';' and @level == 0) {
+            last;
+        }
+
+        push @tokens, $keyword;
+
+        last
+          if $keyword eq '}' and @level == 0;
+    }
+
+    return \@tokens;
+}
+
 
 # returns the specified value as an array. dereference arrayrefs
 sub to_array {
@@ -2038,35 +2070,9 @@ sub enter {
                     error('"=" expected')
                       unless $keyword eq '=';
 
-                    my @level;
-                    my @tokens;
-
-                    while (1) {
-                        $keyword = next_token();
-                        error('unexpected end of file within function/variable declaration')
-                          unless defined $keyword;
-
-                        if ($keyword =~ /^[\{\(]$/) {
-                            push @level, $keyword;
-                            $function{block} = 1
-                              if $keyword eq '{';
-                        } elsif ($keyword =~ /^[\}\)]$/) {
-                            my $expected = $keyword;
-                            $expected =~ tr/\}\)/\{\(/;
-                            my $opener = pop @level;
-                            error("unmatched '$keyword'")
-                              unless defined $opener and $opener eq $expected;
-                        } elsif ($keyword eq ';' and @level == 0) {
-                            last;
-                        }
-
-                        push @tokens, $keyword;
-
-                        last
-                          if $keyword eq '}' and @level == 0;
-                    }
-
-                    $function{tokens} = \@tokens;
+                    my $tokens = collect_tokens();
+                    $function{block} = 1 if grep { $_ eq '{' } @$tokens;
+                    $function{tokens} = $tokens;
 
                     $stack[0]{functions}{$name} = \%function
                       unless exists $stack[-1]{functions}{$name};
