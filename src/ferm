@@ -686,7 +686,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|@\w|#)/g) {
+    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|@\w+|#)/g) {
         last if $word eq '#';
         push @ret, $word;
     }
