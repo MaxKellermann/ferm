@@ -9,6 +9,7 @@
 
 v1.3.0 - not yet released
   - reserve tokens starting with "@" as ferm keywords
+  - implemented conditionals with @if/@else
 
 
 v1.2.5 - 14 Oct 2007

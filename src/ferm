@@ -1244,6 +1244,20 @@ sub to_array {
     }
 }
 
+# evaluate the specified value as bool
+sub eval_bool {
+    my $value = shift;
+    die if wantarray;
+    die if @_;
+    unless (ref $value) {
+        return $value;
+    } elsif (ref $value eq 'ARRAY') {
+        return @$value > 0;
+    } else {
+        die;
+    }
+}
+
 sub is_netfilter_core_target {
     my $target = shift;
     die unless defined $target and length $target;
@@ -1909,6 +1923,25 @@ sub enter {
                 # and clean up variables set in this level
                 %$current = ();
 
+                next;
+            }
+
+            # conditional expression
+            if ($keyword eq '@if') {
+                unless (eval_bool(getvalues)) {
+                    collect_tokens;
+                    my $token = peek_token();
+                    require_next_token() if $token and $token eq '@else';
+                }
+
+                next;
+            }
+
+            if ($keyword eq '@else') {
+                # hack: if this "else" has not been eaten by the "if"
+                # handler above, we believe it came from an if clause
+                # which evaluated "true" - remove the "else" part now.
+                collect_tokens;
                 next;
             }
 

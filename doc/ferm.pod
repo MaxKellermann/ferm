@@ -1299,6 +1299,32 @@ directory are included, sorted alphabetically:
 
     include 'ferm.d/';
 
+=head2 Conditionals
+
+The keyword B<@if> introduces a conditional expression:
+
+    @if $condition DROP;
+
+There is also B<@else>:
+
+    @if $condition DROP; @else REJECT;
+
+Note the semicolon before the B<@else>.
+
+It is possible to use curly braces after either B<@if> or B<@else>:
+
+    @if $condition {
+        MARK set-mark 2;
+        RETURN;
+    } @else {
+        MARK set-mark 3;
+    }
+
+Since the closing curly brace also finishes the command, there is no
+need for semicolon.
+
+There is no B<@elsif>, use B<@else @if> instead.
+
 =head2 Hooks
 
 To run custom commands, you may install hooks:
