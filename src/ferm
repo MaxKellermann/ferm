@@ -686,7 +686,7 @@ sub tokenize_string {
 
     my @ret;
 
-    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|#)/g) {
+    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|@\w|#)/g) {
         last if $word eq '#';
         push @ret, $word;
     }
@@ -1180,6 +1180,8 @@ sub getvalues {
         error("function calls are not allowed as keyword parameter");
     } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
         error('Syntax error');
+    } elsif ($token =~ /^@/) {
+        error("ferm keyword not allowed as keyword parameter");
     } else {
         return resolve_old_variable_refs($token);
     }
