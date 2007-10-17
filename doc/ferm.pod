@@ -1339,6 +1339,29 @@ The specified command is executed using the shell.  "pre" means run
 the command before applying the firewall rules, and "post" means run
 the command afterwards.  You may install any number of hooks.
 
+=head1 FUNCTIONS
+
+There are several built-in functions which you might find useful.
+
+=head2 @resolve((hostname1 hostname2 ...))
+
+Usually, host names are resolved by iptables.  To let ferm resolve
+host names, use the function @resolve:
+
+    saddr @resolve(my.host.foo) proto tcp dport ssh ACCEPT;
+    saddr @resolve((another.host.foo third.host.foo)) proto tcp dport openvpn ACCEPT;
+
+Note the double parentheses in the second line: the inner pair for
+creating a ferm list, and the outer pair as function parameter
+delimiters.
+
+This function currently only resolves B<A> records (i.e. IPv4
+addresses), rendering it useless for the I<ip6> domain.
+
+Be careful with resolved host names in firewall configuration.  DNS
+requests may block the firewall configuration for a long time, leaving
+the machine vulnerable, or they may fail.
+
 =head1 RECIPES
 
 The F<./examples/> directory contains numerous ferm configuration

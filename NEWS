@@ -18,6 +18,7 @@ v1.3.0 - not yet released
     - don't use IO::File
     - added simple Getopt::Long emulation
   - look for iptables in /usr/sbin, too
+  - added function @resolve which resolves host names to IPv4 addresses
 
 
 v1.2.5 - 14 Oct 2007

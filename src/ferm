@@ -1231,7 +1231,29 @@ sub getvalues {
     } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
         error('Syntax error');
     } elsif ($token =~ /^@/) {
-        error("ferm keyword not allowed as keyword parameter");
+        if ($token eq '@resolve') {
+            my @params = get_function_params();
+            error('Usage: @resolve((hostname ...))')
+              unless @params == 1;
+            eval { require Net::DNS; };
+            error('For the @resolve() function, you need the Perl library Net::DNS')
+              if $@;
+            my $type = 'A';
+            my $resolver = new Net::DNS::Resolver;
+            my @result;
+            foreach my $hostname (to_array($params[0])) {
+                $query = $resolver->search($hostname, $type);
+                error("DNS query for '$hostname' failed: " . $resolver->errorstring)
+                  unless $query;
+                foreach my $rr ($query->answer) {
+                    next unless $rr->type eq $type;
+                    push @result, $rr->address;
+                }
+            }
+            return \@result;
+        } else {
+            error("unknown ferm built-in function");
+        }
     } else {
         return resolve_old_variable_refs($token);
     }
