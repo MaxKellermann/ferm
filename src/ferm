@@ -374,7 +374,7 @@ sub multiport_params {
 
     my $proto = find_option($fw, 'proto');
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
-      unless defined $proto and grep { /^(?:tcp|udp)$/ } &to_array($proto);
+      unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array($proto);
 
     my $value = getvalues(undef, undef,
                           allow_negation => 1,
@@ -436,7 +436,7 @@ if ($has_getopt) {
         die 'Invalid --def specification'
           unless $value =~ /^\$?(\w+)=(.*)$/s;
         my ($name, $unparsed_value) = ($1, $2);
-        my @tokens = &tokenize_string($unparsed_value);
+        my @tokens = tokenize_string($unparsed_value);
         my $value = getvalues(\&next_array_token, \@tokens);
         die 'Extra tokens after --def'
           if @tokens;
