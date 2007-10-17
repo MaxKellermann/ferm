@@ -27,8 +27,18 @@
 
 # $Id$
 
-use strict;
-use Getopt::Long;
+BEGIN {
+    eval 'use strict;';
+    $has_strict = not $@;
+    if ($@) {
+        # we need no vars.pm if there is not even strict.pm
+        $INC{'vars.pm'} = 1;
+        *vars::import = sub {};
+    }
+
+    eval 'use Getopt::Long;';
+    $has_getopt = not $@;
+}
 
 use vars qw($DATE $VERSION);
 
@@ -410,7 +420,7 @@ sub compat_tos_params {
 unshift @stack, {};
 
 # Get command line stuff
-{
+if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
@@ -513,6 +523,30 @@ unshift @stack, {};
       if defined $opt_createchains;
     print STDERR "Warning: ignoring the obsolete --location option\n"
       if defined $opt_location;
+} else {
+    # tiny getopt emulation for microperl
+    my $filename;
+    foreach (@ARGV) {
+        if ($_ eq '--noexec' or $_ eq '-n') {
+            $option{noexec} = 1;
+        } elsif ($_ eq '--lines' or $_ eq '-l') {
+            $option{lines} = 1;
+        } elsif ($_ eq '--fast') {
+            $option{fast} = 1;
+        } elsif ($_ eq '--test') {
+            $option{noexec} = 1;
+            $option{lines} = 1;
+        } elsif ($_ eq '--shell') {
+            $option{$_} = 1 foreach qw(shell fast lines);
+        } elsif (/^-/) {
+            printf STDERR "Usage: ferm [--noexec] [--lines] [--fast] [--shell] FILENAME\n";
+            exit 1;
+        } else {
+            $filename = $_;
+        }
+    }
+    undef @ARGV;
+    push @ARGV, $filename;
 }
 
 unless (@ARGV == 1) {
@@ -520,8 +554,18 @@ unless (@ARGV == 1) {
     Pod::Usage::pod2usage(-exitstatus => 1);
 }
 
-open LINES, ">&STDOUT" if $option{lines};
-open STDOUT, ">&STDERR" if $option{shell};
+if ($has_strict) {
+    open LINES, ">&STDOUT" if $option{lines};
+    open STDOUT, ">&STDERR" if $option{shell};
+} else {
+    # microperl can't redirect file handles
+    *LINES = *STDOUT;
+
+    if ($option{fast} and not $option{noexec}) {
+        print STDERR "Sorry, ferm on microperl does not allow --fast without --noexec\n";
+        exit 1
+    }
+}
 
 unshift @stack, {};
 open_script($ARGV[0]);

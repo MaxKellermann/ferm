@@ -13,7 +13,10 @@ v1.3.0 - not yet released
   - added @include/@def as alias to include/def
   - redirect STDOUT into STDERR --shell mode; this way, iptables warnings
     are separated from the ferm shell script output
-  - don't use IO::File
+  - microperl compatiblity:
+    - don't require strict.pm / vars.pm
+    - don't use IO::File
+    - added simple Getopt::Long emulation
 
 
 v1.2.5 - 14 Oct 2007
