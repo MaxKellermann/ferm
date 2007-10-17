@@ -693,7 +693,8 @@ sub initialize_domain {
 
     # determine the location of this domain's tools
     foreach my $tool (@tools) {
-        my $path = "/sbin/${domain}${tool}";
+        my $path = "/usr/sbin/${domain}${tool}";
+        $path = "/sbin/${domain}${tool}" unless -x $path;
         die "$path not found\n" unless -x $path;
         $domains{$domain}{tools}{$tool} = $path;
     }

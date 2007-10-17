@@ -17,6 +17,7 @@ v1.3.0 - not yet released
     - don't require strict.pm / vars.pm
     - don't use IO::File
     - added simple Getopt::Long emulation
+  - look for iptables in /usr/sbin, too
 
 
 v1.2.5 - 14 Oct 2007
