@@ -28,7 +28,7 @@
 # $Id$
 
 BEGIN {
-    eval 'use strict;';
+    eval { require strict; import strict; };
     $has_strict = not $@;
     if ($@) {
         # we need no vars.pm if there is not even strict.pm
@@ -36,7 +36,7 @@ BEGIN {
         *vars::import = sub {};
     }
 
-    eval 'use Getopt::Long;';
+    eval { require Getopt::Long; import Getopt::Long; };
     $has_getopt = not $@;
 }
 
