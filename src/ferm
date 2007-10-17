@@ -28,7 +28,6 @@
 # $Id$
 
 use strict;
-use IO::File;
 use Getopt::Long;
 
 use vars qw($DATE $VERSION);
@@ -713,7 +712,8 @@ sub read_header {
     die if @$tokens;
 
     while (1) {
-        my $line = $script->{handle}->getline;
+        my $handle = $script->{handle};
+        my $line = <$handle>;
         return unless defined $line;
 
         $script->{line} ++;
@@ -787,7 +787,8 @@ sub prepare_tokens {
     die unless ref $tokens eq 'ARRAY';
 
     while (@$tokens == 0) {
-        my $line = $script->{handle}->getline;
+        my $handle = $script->{handle};
+        my $line = <$handle>;
         return unless defined $line;
 
         $script->{line} ++;
@@ -810,9 +811,10 @@ sub open_script {
           if $s->{filename} eq $filename;
     }
 
-    my $handle = new IO::File($filename);
-    mydie("Failed to open $filename: $!")
-      unless defined $handle;
+    local *FILE;
+    open FILE, "<$filename"
+      or mydie("Failed to open $filename: $!");
+    my $handle = *FILE;
 
     $script = { filename => $filename,
                 handle => $handle,
