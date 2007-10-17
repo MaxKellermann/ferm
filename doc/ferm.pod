@@ -1177,9 +1177,9 @@ give a network interface a meaningful name.
 
 To set variables, write:
 
-    def $DEV_INTERNET = eth0;
-    def $PORTS = (http ftp);
-    def $MORE_PORTS = ($PORTS 8080);
+    @def $DEV_INTERNET = eth0;
+    @def $PORTS = (http ftp);
+    @def $MORE_PORTS = ($PORTS 8080);
 
 In the real ferm code, variables are used like any other keyword
 parameter:
@@ -1192,10 +1192,10 @@ Note that variables can only be used in keyword parameters
 
 Variables are only valid in the current block:
 
-    def $DEV_INTERNET = eth1;
+    @def $DEV_INTERNET = eth1;
     chain INPUT {
         proto tcp {
-            def $DEV_INTERNET = ppp0;
+            @def $DEV_INTERNET = ppp0;
             interface $DEV_INTERNET dport http ACCEPT;
         }
         interface $DEV_INTERNET DROP;
@@ -1243,10 +1243,10 @@ The current netfilter chain.
 Functions are similar to variables, except that they may have
 parameters, and they provide ferm commands, not values.
 
-    def &FOO() = proto (tcp udp) dport domain;
+    @def &FOO() = proto (tcp udp) dport domain;
     &FOO() ACCEPT;
 
-    def &TCP_TUNNEL($port, $dest) = {
+    @def &TCP_TUNNEL($port, $dest) = {
         table filter chain FORWARD interface ppp0 proto tcp dport $port daddr $dest outerface eth0 ACCEPT;
         table nat chain PREROUTING interface ppp0 proto tcp dport $port daddr 1.2.3.4 DNAT to $dest;
     }
@@ -1260,14 +1260,14 @@ command in a ferm rule, i.e. it must be followed by ';'. The '&FOO()'
 example does not contain a block, thus you may write 'ACCEPT' after
 the call. To circumvent this, you can reorder the keywords:
 
-    def &IPSEC() = { proto (esp ah); proto udp dport 500; }
+    @def &IPSEC() = { proto (esp ah); proto udp dport 500; }
     ACCEPT &IPSEC();
 
 =head2 Backticks
 
 With backticks, you may use the output of an external command:
 
-    def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
+    @def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
     chain INPUT proto tcp saddr $DNSSERVERS ACCEPT;
 
 The command is executed with the shell (F</bin/sh>), just like
@@ -1279,9 +1279,9 @@ of values, separated by whitespace.
 
 =head2 Includes
 
-The B<include> keyword allows you to include external files:
+The B<@include> keyword allows you to include external files:
 
-    include 'vars.ferm';
+    @include 'vars.ferm';
 
 The file name is relative to the calling file, e.g. when including
 from F</etc/ferm/ferm.conf>, the above statement includes
@@ -1291,13 +1291,13 @@ included file are still available in the calling file.
 B<include> works within a block:
 
     chain INPUT {
-        include 'input.ferm';
+        @include 'input.ferm';
     }
 
 If you specify a directory (with a trailing '/'), all files in this
 directory are included, sorted alphabetically:
 
-    include 'ferm.d/';
+    @include 'ferm.d/';
 
 =head2 Conditionals
 
@@ -1349,7 +1349,7 @@ samples, recipes and tricks.
 
 Ferm function make routine tasks quick and easy:
 
-    def &FORWARD_TCP($proto, $port, $dest) = {
+    @def &FORWARD_TCP($proto, $port, $dest) = {
         table filter chain FORWARD interface $DEV_WORLD outerface $DEV_DMZ daddr $dest proto $proto dport $port ACCEPT;
         table nat chain PREROUTING interface $DEV_WORLD daddr $HOST_STATIC proto $proto dport $port DNAT to $dest;
     }
@@ -1422,7 +1422,7 @@ The concept of variables has been overhauled in ferm 1.2; you can now
 declare functions which take parameters.  Besides that, you should use
 the new syntax:
 
- def $FOO = (http ssh);
+ @def $FOO = (http ssh);
  chain INPUT proto tcp dport $FOO ACCEPT;
 
 =item I<Arrays>
