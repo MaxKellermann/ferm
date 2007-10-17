@@ -40,6 +40,8 @@ BEGIN {
     $has_getopt = not $@;
 }
 
+use vars qw($has_strict $has_getopt);
+
 use vars qw($DATE $VERSION);
 
 # subversion keyword magic
@@ -1242,7 +1244,7 @@ sub getvalues {
             my $resolver = new Net::DNS::Resolver;
             my @result;
             foreach my $hostname (to_array($params[0])) {
-                $query = $resolver->search($hostname, $type);
+                my $query = $resolver->search($hostname, $type);
                 error("DNS query for '$hostname' failed: " . $resolver->errorstring)
                   unless $query;
                 foreach my $rr ($query->answer) {
