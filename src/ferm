@@ -1247,6 +1247,35 @@ sub getvar {
     return $token;
 }
 
+sub get_function_params {
+    my $token = next_token();
+    error('function name must be followed by "()"')
+      unless defined $token and $token eq '(';
+
+    $token = peek_token();
+    if ($token eq ')') {
+        require_next_token;
+        return;
+    }
+
+    my @params;
+
+    while (1) {
+        if (@params > 0) {
+            $token = require_next_token();
+            last
+              if $token eq ')';
+
+            error('"," expected')
+              unless $token eq ',';
+        }
+
+        push @params, getvalues(undef, undef, @_);
+    }
+
+    return @params;
+}
+
 # collect all tokens in a flat array reference until the end of the
 # command is reached
 sub collect_tokens {
@@ -2186,35 +2215,10 @@ sub enter {
                 error("no such function: \&$name")
                   unless defined $function;
 
-                my $token = next_token();
-                error('function name must be followed by "()"')
-                  unless defined $token and $token eq '(';
-
                 my $paramdef = $function->{params};
                 die unless defined $paramdef;
-                my @params;
 
-                $token = peek_token();
-                if ($token eq ')') {
-                    # eat the ')'
-                    require_next_token
-                } else {
-                    # parse parameter list
-
-                    while (1) {
-                        if (@params > 0) {
-                            $token = require_next_token();
-                            last
-                              if $token eq ')';
-
-                            error('"," expected')
-                              unless $token eq ',';
-                        }
-
-                        push @params, getvalues(undef, undef,
-                                                allow_negation => 1);
-                    }
-                }
+                my @params = get_function_params(allow_negation => 1);
 
                 error("Wrong number of parameters for function '\&$name': "
                       . @$paramdef . " expected, " . @params . " given")
