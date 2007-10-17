@@ -4,7 +4,7 @@
 # ferm 1.2.1 used to clear variables when used as parameter in
 # multiport.
 
-def $PORTS = (80 443);
+@def $PORTS = (80 443);
 
 table filter {
   chain INPUT {
