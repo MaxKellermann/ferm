@@ -1,0 +1,10 @@
+iptables -t filter -A INPUT -j MARK --set-mark 1
+iptables -t filter -A INPUT -j MARK --set-mark 2
+iptables -t filter -A INPUT -j MARK --set-mark 5
+iptables -t filter -A INPUT -j MARK --set-mark 7
+iptables -t filter -A INPUT -j MARK --set-mark 8
+iptables -t filter -A INPUT -j MARK --set-mark 11
+iptables -t filter -A INPUT -j MARK --set-mark 13
+iptables -t filter -A INPUT -j MARK --set-mark 14
+iptables -t filter -A INPUT -j LOG
+iptables -t filter -A INPUT -j ACCEPT
