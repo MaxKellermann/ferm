@@ -797,7 +797,7 @@ sub read_header {
             warning('"set" is deprecated, please use "def $NAME = VALUE;"');
 
             if (@line and $line[0] eq ',') {
-                warning('Arrays without parantheses are deprecated');
+                warning('Arrays without parentheses are deprecated');
 
                 $value = [ $value ]
                   unless ref $value;
@@ -1194,7 +1194,7 @@ sub getvalues {
 
         return bless [ $token ], 'negated';
     } elsif ($token =~ /^.+,.+$/) {
-        warning('Arrays within a string are deprecated, please use parantheses');
+        warning('Arrays within a string are deprecated, please use parentheses');
 
         my @array = map {
             my $value = resolve_old_variable_refs($_);
