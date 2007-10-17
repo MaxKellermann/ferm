@@ -11,6 +11,8 @@ v1.3.0 - not yet released
   - reserve tokens starting with "@" as ferm keywords
   - implemented conditionals with @if/@else
   - added @include/@def as alias to include/def
+  - redirect STDOUT into STDERR --shell mode; this way, iptables warnings
+    are separated from the ferm shell script output
 
 
 v1.2.5 - 14 Oct 2007
