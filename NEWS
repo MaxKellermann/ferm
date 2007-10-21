@@ -10,7 +10,7 @@
 v1.3.0 - not yet released
   - reserve tokens starting with "@" as ferm keywords
   - implemented conditionals with @if/@else
-  - added @include/@def as alias to include/def
+  - added @include/@def/@subchain as alias to include/def/subchain
   - redirect STDOUT into STDERR --shell mode; this way, iptables warnings
     are separated from the ferm shell script output
   - microperl compatiblity:

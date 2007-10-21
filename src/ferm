@@ -2360,8 +2360,8 @@ sub enter($@) {
             }
 
             # create a subchain
-            if ($keyword eq 'subchain') {
-                error('No rule specified before "subchain"')
+            if ($keyword eq '@subchain' or $keyword eq 'subchain') {
+                error('No rule specified before "@subchain"')
                   unless find_option(\@fw, 'has_rule');
 
                 my $subchain;
