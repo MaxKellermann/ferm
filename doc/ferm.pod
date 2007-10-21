@@ -1306,7 +1306,12 @@ The keyword B<@if> introduces a conditional expression:
     @if $condition DROP;
 
 A value is evaluated true just like in Perl: zero, empty list, empty
-string are false, everything else is true.
+string are false, everything else is true.  Examples for true values:
+
+    (a b); 1; 'foo'; (0 0)
+
+Examples for false values:
+    (); 0; '0'; ''
 
 There is also B<@else>:
 
