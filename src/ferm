@@ -224,12 +224,11 @@ use vars qw(%proto_defs %match_defs %target_defs);
 #
 
 # add a module definition
-sub add_def_x {
+sub add_def {
     my $defs = shift;
-    my $domain_family = shift;
     my $name = shift;
-    die if exists $defs->{$domain_family}{$name};
-    my $def = $defs->{$domain_family}{$name} = {};
+    die if exists $defs->{$name};
+    my $def = $defs->{$name} = {};
     foreach (@_) {
         my $keyword = $_;
         my $k = {};
@@ -252,26 +251,6 @@ sub add_def_x {
     }
 
     return $def;
-}
-
-# add a protocol module definition
-sub add_proto_def_x {
-    add_def_x(\%proto_defs, @_);
-}
-
-# add a match module definition
-sub add_match_def_x {
-    add_def_x(\%match_defs, @_);
-}
-
-# add a target module definition
-sub add_target_def_x {
-    add_def_x(\%target_defs, @_);
-}
-
-sub add_def {
-    my $defs = shift;
-    add_def_x($defs, 'ip', @_);
 }
 
 # add a protocol module definition
@@ -374,9 +353,6 @@ add_target_def 'TOS', qw(set-tos&compat_tos_params);
 add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
-
-add_match_def_x 'arp', '', qw(source-mac destination-mac),
-  qw(h-length=s opcode=s h-type=s proto-type=s);
 
 # parameter parser for ipt_multiport
 sub multiport_params {
@@ -1223,38 +1199,6 @@ sub getvar {
     return $token;
 }
 
-# collect all tokens in a flat array reference until the end of the
-# command is reached
-sub collect_tokens {
-    my @level;
-    my @tokens;
-
-    while (1) {
-        my $keyword = next_token();
-        error('unexpected end of file within function/variable declaration')
-          unless defined $keyword;
-
-        if ($keyword =~ /^[\{\(]$/) {
-            push @level, $keyword;
-        } elsif ($keyword =~ /^[\}\)]$/) {
-            my $expected = $keyword;
-            $expected =~ tr/\}\)/\{\(/;
-            my $opener = pop @level;
-            error("unmatched '$keyword'")
-              unless defined $opener and $opener eq $expected;
-        } elsif ($keyword eq ';' and @level == 0) {
-            last;
-        }
-
-        push @tokens, $keyword;
-
-        last
-          if $keyword eq '}' and @level == 0;
-    }
-
-    return \@tokens;
-}
-
 
 # returns the specified value as an array. dereference arrayrefs
 sub to_array {
@@ -1683,7 +1627,7 @@ sub filter_domains {
 
 # parse tokens from builtin match modules
 sub parse_builtin_matches {
-    my ($fw, $current, $domain_family, $keyword, $negated_ref) = @_;
+    my ($current, $domain_family, $keyword, $negated_ref) = @_;
 
     if ($domain_family eq 'ip' and $keyword eq 'addr') {
         error("source/destination not declared")
@@ -1728,13 +1672,16 @@ sub parse_builtin_matches {
 
     # arptables
 
-    if (exists $match_defs{$domain_family} and
-        exists $match_defs{$domain_family}{''} and
-        exists $match_defs{$domain_family}{''}{$keyword}) {
-        my $k = $match_defs{$domain_family}{''}{$keyword};
-        $current->{"builtin__${keyword}"}
-          = parse_keyword($fw, $k,
-                          $keyword, $negated_ref);
+    if ($domain_family eq 'arp') {
+        if ($keyword =~ /^(?:source|destination)-mac$/s) {
+            $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
+            return 1;
+        }
+
+        if ($keyword =~ /^(?:h-length|opcode|h-type|proto-type)/s) {
+            $current->{$keyword} = getvar();
+            return 1;
+        }
     }
 
     return;
@@ -1844,8 +1791,8 @@ sub parse_module_options {
         next unless defined $k;
 
         $current->{"module__${name}__${keyword}"}
-          = &parse_keyword($fw, $k,
-                           $keyword, $negated_ref);
+          = parse_keyword($fw, $k,
+                          $keyword, $negated_ref);
 
         # reset hash
         keys %match_defs;
@@ -1963,7 +1910,7 @@ sub enter {
 
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
-                error('"hook" must be the first token in a command')
+                error('"def" must be the first token in a command')
                   if keys %$current;
 
                 my $position = getvar();
@@ -2021,12 +1968,9 @@ sub enter {
 
             # include another file
             if ($keyword eq 'include') {
-                my @files = collect_filenames to_array getvalues;
-                $keyword = next_token;
-                error('Missing ";" - "include FILENAME" must be the last command in a rule')
-                  unless defined $keyword and $keyword eq ';';
+                my $files = getvalues;
 
-                foreach my $filename (@files) {
+                foreach my $filename (collect_filenames to_array $files) {
                     # save old script, open new script
                     my $old_script = $script;
                     open_script($filename);
@@ -2056,6 +2000,10 @@ sub enter {
                     # restore old script
                     $script = $old_script;
                 }
+
+                $keyword = next_token;
+                error('Missing ";" - "include FILENAME" must be the last command in a rule')
+                  unless defined $keyword and $keyword eq ';';
 
                 next;
             }
@@ -2121,9 +2069,35 @@ sub enter {
                     error('"=" expected')
                       unless $keyword eq '=';
 
-                    my $tokens = collect_tokens();
-                    $function{block} = 1 if grep { $_ eq '{' } @$tokens;
-                    $function{tokens} = $tokens;
+                    my @level;
+                    my @tokens;
+
+                    while (1) {
+                        $keyword = next_token();
+                        error('unexpected end of file within function/variable declaration')
+                          unless defined $keyword;
+
+                        if ($keyword =~ /^[\{\(]$/) {
+                            push @level, $keyword;
+                            $function{block} = 1
+                              if $keyword eq '{';
+                        } elsif ($keyword =~ /^[\}\)]$/) {
+                            my $expected = $keyword;
+                            $expected =~ tr/\}\)/\{\(/;
+                            my $opener = pop @level;
+                            error("unmatched '$keyword'")
+                              unless defined $opener and $opener eq $expected;
+                        } elsif ($keyword eq ';' and @level == 0) {
+                            last;
+                        }
+
+                        push @tokens, $keyword;
+
+                        last
+                          if $keyword eq '}' and @level == 0;
+                    }
+
+                    $function{tokens} = \@tokens;
 
                     $stack[0]{functions}{$name} = \%function
                       unless exists $stack[-1]{functions}{$name};
@@ -2395,8 +2369,7 @@ sub enter {
                 next;
             }
 
-            parse_builtin_matches(\@fw, $current, $domain_family,
-                                  $keyword, \$negated)
+            parse_builtin_matches($current, $domain_family, $keyword, \$negated)
               and next;
 
             ###
