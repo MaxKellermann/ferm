@@ -18,6 +18,7 @@ v2.0 - not yet released
     - don't allow lower case bult-in chain names
     - removed --automod
     - comma in array is forbidden
+    - removed "source" and "destination" as prefix for "addr" and "port" 
 
 
 v1.3.0 - not yet released

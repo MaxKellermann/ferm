@@ -1,5 +1,0 @@
-chain INPUT {
-    source addr 10.0.0.1 ACCEPT;
-    proto udp dest addr 10.0.0.2 port 25 REJECT;
-    destination addr 127.0.0.1 source addr 127.0.0.2 DROP;
-}
