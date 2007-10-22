@@ -1957,6 +1957,22 @@ sub parse_keyword($$$$) {
     return $value;
 }
 
+# parse options of a module
+sub parse_option($$$$$$$) {
+    my ($type, $defs, $name, $fw, $current, $keyword, $negated_ref) = @_;
+
+    my $def = $defs->{$name};
+    return unless defined $def;
+
+    my $k = $def->{keywords}{$keyword};
+    return unless defined $k;
+
+    $current->{"${type}__${name}__${keyword}"}
+      = parse_keyword($fw, $k,
+                      $keyword, $negated_ref);
+    return 1;
+}
+
 # parse options for a protocol module definition
 sub parse_protocol_options($$$$$) {
     my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
@@ -1965,30 +1981,16 @@ sub parse_protocol_options($$$$$) {
     my $proto_defs = $proto_defs{$domain_family};
     return unless defined $proto_defs;
 
-    return unless exists $proto_defs->{$proto} &&
-      exists $proto_defs->{$proto}{keywords}{$keyword};
-
-    $current->{"protocol__${proto}__${keyword}"}
-      = parse_keyword($fw, $proto_defs->{$proto}{keywords}{$keyword},
-                      $keyword, $negated_ref);
-
-    return 1;
+    return parse_option('protocol', $proto_defs, $proto, $fw, $current,
+                        $keyword, $negated_ref);
 }
 
 # parse options of a match module
 sub parse_match_option($$$$$$) {
     my ($match_defs, $name, $fw, $current, $keyword, $negated_ref) = @_;
 
-    my $match_def = $match_defs->{$name};
-    next unless defined $match_def;
-
-    my $k = $match_def->{keywords}{$keyword};
-    next unless defined $k;
-
-    $current->{"module__${name}__${keyword}"}
-      = parse_keyword($fw, $k,
-                      $keyword, $negated_ref);
-    return 1;
+    return parse_option('module', $match_defs, $name, $fw, $current,
+                        $keyword, $negated_ref);
 }
 
 # parse options for a match module definition
@@ -1999,14 +2001,15 @@ sub parse_module_options($$$$$$) {
     my $match_defs = $match_defs{$domain_family};
     return unless defined $match_defs;
 
-    # reset hash
-    keys %$match_defs;
-
     # modules stored in %match_defs
     foreach my $name (keys %$modules) {
         parse_match_option($match_defs, $name, $fw, $current,
                            $keyword, $negated_ref)
-          and return 1;
+          and do {
+              # reset hash
+              keys %$match_defs;
+              return 1;
+          }
     }
 
     return;
