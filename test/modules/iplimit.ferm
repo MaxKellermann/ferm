@@ -1,5 +1,4 @@
 table filter chain INPUT mod iplimit {
-    iplimitabove 20 DROP;
-    ip-limit-above !10 ACCEPT;
-    iplimit-mask 255.255.255.0 ip-limit-above 5 REJECT;
+    iplimit-above !10 ACCEPT;
+    iplimit-mask 255.255.255.0 iplimit-above 5 REJECT;
 }

@@ -1,7 +1,0 @@
-table filter chain INPUT {
-    TOS settos interactive;
-    TOS settos max-throughput;
-    TOS settos reliable;
-    TOS settos min-cost;
-    TOS settos clear;
-}
