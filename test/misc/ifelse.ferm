@@ -1,0 +1,17 @@
+table filter chain INPUT {
+    @if 0 MARK set-mark 0; @else MARK set-mark 1;
+    @if 1 MARK set-mark 2; @else MARK set-mark 3;
+    @if () MARK set-mark 4; @else MARK set-mark 5;
+    @if (0) MARK set-mark 6; @else MARK set-mark 7;
+    @if (1) MARK set-mark 8; @else MARK set-mark 9;
+    @if '' MARK set-mark 10; @else MARK set-mark 11;
+    @if '0' MARK set-mark 12; @else MARK set-mark 13;
+    @if ' ' MARK set-mark 14; @else MARK set-mark 15;
+
+    @if 1 {
+        LOG;
+        ACCEPT;
+    } @else {
+        DROP;
+    }
+}
