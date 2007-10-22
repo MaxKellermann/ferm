@@ -2333,7 +2333,7 @@ sub enter($@) {
                 my $domain = getvalues();
                 my $filtered_domain = filter_domains($domain);
                 unless (ref $domain) {
-                    $domain_family = $domain;
+                    $domain_family = $domain eq 'ip6' ? 'ip' : $domain;
                 } elsif (@$domain == 0) {
                     $domain_family = 'none';
                 } elsif (grep { not /^ip6?$/s } @$domain) {
