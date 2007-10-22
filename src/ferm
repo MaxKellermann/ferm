@@ -386,10 +386,10 @@ add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
 
-add_match_def_x 'arp', '', qw(source-mac destination-mac),
+add_match_def_x 'arp', '', qw(!source-mac !destination-mac),
   qw(h-length=s opcode=s h-type=s proto-type=s),
   qw(mangle-ip-s=s mangle-ip-d=s mangle-mac-s=s mangle-mac-d=s mangle-target=s);
-add_match_def_x 'eb', '', qw(logical-in logical-out);
+add_match_def_x 'eb', '', qw(!logical-in !logical-out);
 
 # parameter parser for ipt_multiport
 sub multiport_params {

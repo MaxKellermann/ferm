@@ -1,0 +1,5 @@
+domain arp chain INPUT {
+    saddr !192.168.1.1 DROP;
+    source-mac !00:00:de:ad:be:ef ACCEPT;
+    destination-mac !f0:00:00:00:00:00 DROP;
+}
