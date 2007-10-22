@@ -57,6 +57,10 @@ FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
 EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
 IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 
+# just a hack because ferm/import-ferm scramble the keyword order
+IMPORT_SED = -e 's,fragfirst fragres,fragres fragfirst,'
+SAVE2_SED = -e 's,--start 2 --counter 1,--counter 1 --start 2,'
+
 FERM_13_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
 $(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
@@ -78,10 +82,10 @@ $(STAMPDIR)/%.SAVE: % $(NEW_FERM)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
 $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
-	$(PERL) src/import-ferm $< >$@
+	$(PERL) src/import-ferm $< |sed $(IMPORT_SED) >$@
 
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' |sed $(SAVE2_SED) >$@
 
 $(STAMPDIR)/%.check: $(STAMPDIR)/%.OLD $(STAMPDIR)/%.NEW
 	diff -u $^
