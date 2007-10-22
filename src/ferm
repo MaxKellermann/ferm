@@ -749,45 +749,20 @@ sub read_header() {
     die unless ref $tokens eq 'ARRAY';
     die if @$tokens;
 
-    while (1) {
+    my @line;
+    do {
         my $handle = $script->{handle};
         my $line = <$handle>;
         return unless defined $line;
 
         $script->{line} ++;
 
-        my @line = tokenize_string($line);
-        next unless @line;
+        @line = tokenize_string($line);
 
         map { s/^(["'])(.*)\1$/$2/s } @line;
+    } while (@line == 0);
 
-        # look at the first word, then decide what to do. some special
-        # keywords are handled here, everything else gets added to @tokens
-        if ($line[0] eq 'option') {
-            # option: edit the %option hash
-            shift @line;
-            my $name = shift @line;
-            my $value = shift @line;
-
-            unless (defined $value) {
-                $value = 1;
-            } elsif ($value eq 'off') {
-                $value = undef;
-            }
-
-            if ($value and $name =~ /^(?:ipchains|iptables|ipfwadm)$/) {
-                print STDERR "The options ipchains, iptables and ipfwadm are obsolete, ignoring them\n";
-            } else {
-                print STDERR "The 'option' keyword is deprecated\n";
-                $option{$name} = $value;
-            }
-        } else {
-            # the next parser stage eats this
-            push @$tokens, @line;
-            last;
-        }
-    }
-
+    push @$tokens, @line;
     return 1;
 }
 
