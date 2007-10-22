@@ -389,7 +389,32 @@ add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold)
 add_match_def_x 'arp', '', qw(source-mac! destination-mac!),
   qw(h-length=s opcode=s h-type=s proto-type=s),
   qw(mangle-ip-s=s mangle-ip-d=s mangle-mac-s=s mangle-mac-d=s mangle-target=s);
-add_match_def_x 'eb', '', qw(logical-in! logical-out!);
+add_match_def_x 'eb', '', qw(logical-in! logical-out!),
+  # 802.3
+  qw(802_3-sap! 802_3-type!),
+  # arp
+  qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
+  qw(arp-ip-src! arp-ip-dst! arp-mac-src! arp-mac-dst!),
+  # ip
+  qw(ip-source! ip-destination! ip-tos! ip-protocol! ip-sport! ip-dport!),
+  # mark_m
+  qw(mark!),
+  # pkttype
+  qw(pkttype-type!),
+  # stp
+  qw(stp-type! stp-flags! stp-root-prio! stp-root-addr! stp-root-cost!),
+  qw(stp-sender-prio! stp-sender-addr! stp-port! stp-msg-age! stp-max-age!),
+  qw(stp-hello-time! stp-forward-delay!),
+  # vlan
+  qw(vlan-id! vlan-prio! vlan-encap!),
+  # log
+  qw(log*0 log-level=s log-prefix=s log-ip*0 log-arp*0);
+
+add_target_def_x 'eb', 'arpreply', qw(arpreply-mac arpreply-target);
+add_target_def_x 'eb', 'dnat', qw(to-destination dnat-target);
+add_target_def_x 'eb', 'mark', qw(set-mark mark-target);
+add_target_def_x 'eb', 'redirect', qw(redirect-target);
+add_target_def_x 'eb', 'snat', qw(to-source snat-target);
 
 # parameter parser for ipt_multiport
 sub multiport_params {
