@@ -943,7 +943,7 @@ sub getvalues {
                 last if $token eq ')';
 
                 if ($token eq ',') {
-                    warning('Comma within arrays is deprecated, please use only a space');
+                    error('Comma is not allowed within arrays, please use only a space');
                     next;
                 }
 
