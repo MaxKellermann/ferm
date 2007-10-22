@@ -1,8 +1,0 @@
-
-set A `echo "'test'"`
-set B "hello `echo there`"
-set C 'hello `you`'
-set D 'hello "you"'
-
-chain test proto ( %A %B %C %D ) ACCEPT;
-

@@ -1,5 +1,0 @@
-
-set LIST "eth0,eth1,eth2"
-
-chain input proto tcp if ! %LIST ACCEPT;
-

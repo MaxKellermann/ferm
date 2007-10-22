@@ -1,5 +1,0 @@
-
-chain INPUT {
-	log ACCEPT;
-	LOG;
-	}

@@ -1,6 +1,0 @@
-
-chain input policy accept { proto tcp ACCEPT; proto udp ACCEPT; policy DENY; }
-chain input policy accept { proto tcp ACCEPT; }
-chain input policy accept;
-
-
