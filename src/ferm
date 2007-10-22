@@ -1372,8 +1372,8 @@ sub is_netfilter_core_target($) {
     return $target =~ /^(?:ACCEPT|DROP|RETURN|QUEUE)$/;
 }
 
-sub is_netfilter_module_target($) {
-    my $target = shift;
+sub is_netfilter_module_target($$) {
+    my ($domain_family, $target) = @_;
     die unless defined $target and length $target;
 
     return exists $target_defs{$target};
@@ -1529,7 +1529,7 @@ sub tables($) {
     if (defined $action and
         $action ne 'NOP' and
         not is_netfilter_core_target($action) and
-        not is_netfilter_module_target($action) and
+        not is_netfilter_module_target($domain_family, $action) and
         not exists $table_info->{chains}{$action}{was_created}) {
         push @$rules, "$rr -N $action\n";
         $table_info->{chains}{$action}{was_created} = 1;
@@ -2542,7 +2542,7 @@ sub enter($@) {
                 next;
             }
 
-            if (is_netfilter_module_target($keyword)) {
+            if (is_netfilter_module_target($domain_family, $keyword)) {
                 error('There can only one action per rule')
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
