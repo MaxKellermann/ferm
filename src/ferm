@@ -2229,9 +2229,10 @@ sub enter {
                   if exists $current->{table};
                 $current->{table} = $stack[0]{auto}{TABLE} = getvalues();
 
-                my $domain = find_option(\@fw, 'domain');
-                $current->{domain} = $domain = filter_domains('ip')
-                  unless defined $domain;
+                unless (defined find_option(\@fw, 'domain')) {
+                    $current->{domain} = filter_domains('ip');
+                    $current->{domain_family} = $domain_family = 'ip';
+                }
 
                 next;
             }
@@ -2248,8 +2249,12 @@ sub enter {
                       and warning('Please write built-in chain names in upper case');
                 }
 
-                $current->{domain} = filter_domains('ip')
-                  unless defined find_option(\@fw, 'domain');
+                my $domain = find_option(\@fw, 'domain');
+                unless (defined find_option(\@fw, 'domain')) {
+                    $current->{domain} = filter_domains('ip');
+                    $current->{domain_family} = $domain_family = 'ip';
+                }
+
                 $current->{table} = 'filter'
                   unless defined find_option(\@fw, 'table');
 
