@@ -45,7 +45,7 @@ doc/import-ferm.1: src/import-ferm
 #
 
 STAMPDIR = $(TOPDIR)/build/test
-STAMPDIR_13 = $(TOPDIR)/build/test2
+STAMPDIR_20 = $(TOPDIR)/build/test2
 
 # a list of all ferm scripts which should be tested with iptables
 FERM_SCRIPTS = test/positive/flush test/positive/multimod test/positive/policyorder
@@ -61,7 +61,7 @@ IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 IMPORT_SED = -e 's,fragfirst fragres,fragres fragfirst,'
 SAVE2_SED = -e 's,--start 2 --counter 1,--counter 1 --start 2,'
 
-FERM_13_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
+FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
 $(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
 $(STAMPDIR)/%.OLD: % $(OLD_FERM) test/canonical.pl
@@ -95,18 +95,18 @@ $(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
 	diff -u $^
 	@touch $@
 
-$(STAMPDIR_13)/%.result: %.ferm $(NEW_FERM)
+$(STAMPDIR_20)/%.result: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp
 	-mv $@.tmp $@
 
-$(STAMPDIR_13)/%.check: %.result $(STAMPDIR_13)/%.result
+$(STAMPDIR_20)/%.check: %.result $(STAMPDIR_20)/%.result
 	diff -u $^
 	@touch $@
 
 .PHONY : check-ferm check-import check
 
-check-ferm: $(patsubst %,$(STAMPDIR)/%.check,$(FERM_SCRIPTS)) $(patsubst %.ferm,$(STAMPDIR_13)/%.check,$(FERM_13_SCRIPTS))
+check-ferm: $(patsubst %,$(STAMPDIR)/%.check,$(FERM_SCRIPTS)) $(patsubst %.ferm,$(STAMPDIR_20)/%.check,$(FERM_20_SCRIPTS))
 
 check-import: $(patsubst %,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
 
