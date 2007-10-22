@@ -1614,7 +1614,8 @@ sub tables($) {
         }
 
         # special case: --dport and --sport for TCP/UDP
-        if ((exists $rule{dport} or exists $rule{sport}) and
+        if ($domain_family eq 'ip' and
+            (exists $rule{dport} or exists $rule{sport}) and
             $proto =~ /^(?:tcp|udp|dccp|sctp)$/) {
             unless (exists $modules{$proto}) {
                 shell_append(\$rr, '-m', $proto);
