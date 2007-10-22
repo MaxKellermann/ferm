@@ -59,10 +59,9 @@ use vars qw(@pre_hooks @post_hooks);
 
 ## parser variables
 # $script: current script file
-# %oldvars = ferm 1.1 compatibility variables, name => value
 # @stack = ferm's parser stack containing local variables
 # $auto_chain = index for the next auto-generated chain
-use vars qw($script %oldvars %rules @stack $auto_chain);
+use vars qw($script %rules @stack $auto_chain);
 
 ## netfilter variables
 # %domains = state information about all domains ("ip" and "ip6")
@@ -845,31 +844,6 @@ sub read_header() {
                 print STDERR "The 'option' keyword is deprecated\n";
                 $option{$name} = $value;
             }
-        } elsif ($line[0] eq 'set') {
-            # set: set a variable
-            shift @line;
-            my $name = getvar(\&next_array_token, \@line);
-            my $value = getvalues(\&next_array_token, \@line);
-
-            warning('"set" is deprecated, please use "def $NAME = VALUE;"');
-
-            if (@line and $line[0] eq ',') {
-                warning('Arrays without parentheses are deprecated');
-
-                $value = [ $value ]
-                  unless ref $value;
-
-                do {
-                    shift @line;
-                    my $v = getvalues(\&next_array_token, \@line);
-                    push @$value, ref $v ? @$v : $v;
-                } while (@line and $line[0] eq ',');
-            }
-
-            error('spare tokens after "set"')
-              if @line;
-
-            $oldvars{$name} = $value;
         } else {
             # the next parser stage eats this
             push @$tokens, @line;
@@ -1081,45 +1055,6 @@ sub require_next_token {
     return $token;
 }
 
-# determine the value of an old style variable, die if the variable is
-# unknown
-sub old_variable_value($) {
-    my $name = shift;
-
-    error("no such variable: \%$name")
-      unless exists $oldvars{$name};
-
-    return $oldvars{$name};
-}
-
-# determine the value of a variable, die if the value is an array
-sub string_old_variable_value($) {
-    my $name = shift;
-    my $value = old_variable_value($name);
-
-    error("variable '$name' must be a string, is an array")
-      if ref $value;
-
-    return $value;
-}
-
-# resolve all old style variable references in the string - may be an
-# array!
-sub resolve_old_variable_refs($) {
-    my $token = shift;
-
-    if ($token =~ /^\%(\w+)$/) {
-        # if the token only of the reference, return the pure value
-        return old_variable_value($1);
-    } else {
-        # a reference in the middle of the string. replace, but only
-        # allow string variables, no arrays here
-        $token =~ s/\%(\w+)/string_old_variable_value($1)/eg;
-
-        return $token;
-    }
-}
-
 # return the value of a variable
 sub variable_value($) {
     my $name = shift;
@@ -1234,10 +1169,10 @@ sub getvalues {
             : \@values;
     } elsif ($token =~ /^\'(.*)\'$/s) {
         # single quotes: a string
-        return resolve_old_variable_refs($1);
+        return $1;
     } elsif ($token =~ /^\"(.*)\"$/s) {
         # double quotes: a string with escapes
-        $token = resolve_old_variable_refs($1);
+        $token = $1;
         $token =~ s,\$(\w+),string_variable_value($1),eg;
         return $token;
     } elsif ($token eq '!') {
@@ -1250,15 +1185,6 @@ sub getvalues {
           if ref $token and not $options{allow_array_negation};
 
         return bless [ $token ], 'negated';
-    } elsif ($token =~ /^.+,.+$/) {
-        warning('Arrays within a string are deprecated, please use parentheses');
-
-        my @array = map {
-            my $value = resolve_old_variable_refs($_);
-            ref $value ? @$value : $value;
-        } split(/,/, $token);
-
-        return \@array;
     } elsif ($token eq ',') {
         return $token
           if $options{comma_allowed};
@@ -1277,12 +1203,6 @@ sub getvalues {
           unless defined $value;
 
         return $value;
-    } elsif ($token eq '%') {
-        my $name = require_next_token($code, $param);
-        error('variable name expected')
-          unless $name =~ /^\w+$/;
-
-        return old_variable_value($name);
     } elsif ($token eq '&') {
         error("function calls are not allowed as keyword parameter");
     } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
@@ -1312,7 +1232,7 @@ sub getvalues {
             error("unknown ferm built-in function");
         }
     } else {
-        return resolve_old_variable_refs($token);
+        return $token;
     }
 }
 
