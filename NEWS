@@ -8,7 +8,7 @@
 
 
 v2.0 - not yet released
-  - basic support for arptables and ebtables
+  - support for arptables and ebtables
 
 
 v1.3.0 - not yet released
