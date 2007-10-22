@@ -291,7 +291,7 @@ add_match_def 'set', qw(set=sc);
 add_match_def 'state', qw(state=c);
 add_match_def 'tcpmss', qw(!mss);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
-add_match_def 'tos', qw(!tos&compat_tos_params);
+add_match_def 'tos', qw(!tos);
 add_match_def 'ttl', qw(ttl-eq ttl-lt=s ttl-gt=s);
 
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
@@ -317,7 +317,7 @@ add_target_def 'SET', qw(add-set=sc del-set=sc);
 add_target_def 'SNAT', qw(to-source=a to:=to-source);
 add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
-add_target_def 'TOS', qw(set-tos&compat_tos_params);
+add_target_def 'TOS', qw(set-tos);
 add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
@@ -382,27 +382,6 @@ sub multiport_params {
     } else {
         return join_value(',', $value);
     }
-}
-
-# parameter parser for ipt_tos
-sub compat_tos_params {
-    my $value = getvalues(undef, undef, allow_negation => 1);
-
-    return $value if ref $value and ref $value eq 'negated';
-
-    # ferm 1.1 allowed some abbreviations.  It is this function's only
-    # job to translate these deprecated keywords to the "real" ones.
-    my @value = map {
-        my $value = $_;
-        $value =~ s/^min-?cost$/0x02/;
-        $value =~ s/^(?:reliability|reliable)$/0x04/;
-        $value =~ s/^max-?throughput$/0x08/;
-        $value =~ s/^(?:lowdelay|interactive|min-delay)$/0x10/;
-        $value =~ s/^clear$/0x00/;
-        $value
-    } to_array($value);
-
-    return @value == 1 ? $value[0] : \@value;
 }
 
 # initialize stack: command line definitions

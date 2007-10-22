@@ -13,6 +13,7 @@ v2.0 - not yet released
     - removed the "set" and the "option" keyword
     - removed support for array-in-string
     - cleared the deprecated keyword translation table
+    - removed TOS parameter shortcuts
 
 
 v1.3.0 - not yet released
