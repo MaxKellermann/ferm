@@ -571,7 +571,7 @@ exit 0;
 
 sub printversion {
     print "ferm $VERSION\n";
-    print "Copyright (C) 2001-2006 Auke Kok, Max Kellermann\n";
+    print "Copyright (C) 2001-2007 Auke Kok, Max Kellermann\n";
     print "This program is free software released under GPLv2.\n";
     print "See the included COPYING file for license details.\n";
 }
@@ -1199,6 +1199,38 @@ sub getvar {
     return $token;
 }
 
+# collect all tokens in a flat array reference until the end of the
+# command is reached
+sub collect_tokens {
+    my @level;
+    my @tokens;
+
+    while (1) {
+        my $keyword = next_token();
+        error('unexpected end of file within function/variable declaration')
+          unless defined $keyword;
+
+        if ($keyword =~ /^[\{\(]$/) {
+            push @level, $keyword;
+        } elsif ($keyword =~ /^[\}\)]$/) {
+            my $expected = $keyword;
+            $expected =~ tr/\}\)/\{\(/;
+            my $opener = pop @level;
+            error("unmatched '$keyword'")
+              unless defined $opener and $opener eq $expected;
+        } elsif ($keyword eq ';' and @level == 0) {
+            last;
+        }
+
+        push @tokens, $keyword;
+
+        last
+          if $keyword eq '}' and @level == 0;
+    }
+
+    return \@tokens;
+}
+
 
 # returns the specified value as an array. dereference arrayrefs
 sub to_array {
@@ -1389,10 +1421,13 @@ sub tables {
 
     shell_append(\$rr, '-A', $chain);
 
-    # modules
+    # modules; copy the hash because we might add automatic protocol
+    # modules later
+    my %modules;
     if (exists $rule{modules}) {
+        %modules = %{$rule{modules}};
         shell_append(\$rr, '-m', $_)
-          foreach keys %{$rule{modules}};
+          foreach keys %modules;
     }
 
     # general iptables options
@@ -1444,9 +1479,9 @@ sub tables {
                 my $value = $rule->{$key};
 
                 my $module = $proto eq 'icmpv6' ? 'icmp6' : $proto;
-                unless (exists $rule{modules}{$module}) {
+                unless (exists $modules{$module}) {
                     shell_append(\$rr, '-m', $module);
-                    $rule{modules}{$module} = 1;
+                    $modules{$module} = 1;
                 }
 
                 shell_append_option(\$rr, $k, $keyword, $value);
@@ -1456,9 +1491,9 @@ sub tables {
         # special case: --dport and --sport for TCP/UDP
         if ((exists $rule{dport} or exists $rule{sport}) and
             $proto =~ /^(?:tcp|udp|dccp|sctp)$/) {
-            unless (exists $rule{modules}{$proto}) {
+            unless (exists $modules{$proto}) {
                 shell_append(\$rr, '-m', $proto);
-                $rule{modules}{$proto} = 1;
+                $modules{$proto} = 1;
             }
 
             shell_append_option(\$rr, { params => 1,
@@ -1910,7 +1945,7 @@ sub enter {
 
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
-                error('"def" must be the first token in a command')
+                error('"hook" must be the first token in a command')
                   if keys %$current;
 
                 my $position = getvar();
@@ -1968,9 +2003,12 @@ sub enter {
 
             # include another file
             if ($keyword eq 'include') {
-                my $files = getvalues;
+                my @files = collect_filenames to_array getvalues;
+                $keyword = next_token;
+                error('Missing ";" - "include FILENAME" must be the last command in a rule')
+                  unless defined $keyword and $keyword eq ';';
 
-                foreach my $filename (collect_filenames to_array $files) {
+                foreach my $filename (@files) {
                     # save old script, open new script
                     my $old_script = $script;
                     open_script($filename);
@@ -2000,10 +2038,6 @@ sub enter {
                     # restore old script
                     $script = $old_script;
                 }
-
-                $keyword = next_token;
-                error('Missing ";" - "include FILENAME" must be the last command in a rule')
-                  unless defined $keyword and $keyword eq ';';
 
                 next;
             }
@@ -2069,35 +2103,9 @@ sub enter {
                     error('"=" expected')
                       unless $keyword eq '=';
 
-                    my @level;
-                    my @tokens;
-
-                    while (1) {
-                        $keyword = next_token();
-                        error('unexpected end of file within function/variable declaration')
-                          unless defined $keyword;
-
-                        if ($keyword =~ /^[\{\(]$/) {
-                            push @level, $keyword;
-                            $function{block} = 1
-                              if $keyword eq '{';
-                        } elsif ($keyword =~ /^[\}\)]$/) {
-                            my $expected = $keyword;
-                            $expected =~ tr/\}\)/\{\(/;
-                            my $opener = pop @level;
-                            error("unmatched '$keyword'")
-                              unless defined $opener and $opener eq $expected;
-                        } elsif ($keyword eq ';' and @level == 0) {
-                            last;
-                        }
-
-                        push @tokens, $keyword;
-
-                        last
-                          if $keyword eq '}' and @level == 0;
-                    }
-
-                    $function{tokens} = \@tokens;
+                    my $tokens = collect_tokens();
+                    $function{block} = 1 if grep { $_ eq '{' } @$tokens;
+                    $function{tokens} = $tokens;
 
                     $stack[0]{functions}{$name} = \%function
                       unless exists $stack[-1]{functions}{$name};
