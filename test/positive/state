@@ -1,4 +1,0 @@
-option iptables
-
-table filter chain input proto tcp mod state state (ESTABLISHED,RELATED) ACCEPT;
-table filter chain input proto tcp tcpflags (ACK SYN RST) (SYN,RST) ACCEPT;

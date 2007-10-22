@@ -1,7 +1,0 @@
-chain inallow {
-    interface wan0 {
-      destination addr 194.112.244.0/29 goto in_acpt;
-      destination addr 194.112.157.184/29 goto in_acpt;
-      DROP;
-    }
-  }

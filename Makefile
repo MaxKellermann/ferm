@@ -49,7 +49,7 @@ STAMPDIR_20 = $(TOPDIR)/build/test2
 
 # a list of all ferm scripts which should be tested with iptables
 FERM_SCRIPTS = test/positive/flush test/positive/multimod test/positive/policyorder
-FERM_SCRIPTS += test/positive/bug test/positive/iptables-targets test/positive/masqto test/positive/mod test/params/owner test/positive/state test/positive/tables2 test/positive/TCPMSS test/positive/ttlset test/positive/ulog test/positive/varlists
+FERM_SCRIPTS += test/positive/masqto test/positive/ttlset
 FERM_SCRIPTS += $(wildcard test/modules/*.ferm) $(wildcard test/targets/*.ferm)
 FERM_SCRIPTS += $(wildcard test/protocols/*.ferm) $(wildcard test/misc/*.ferm)
 FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
