@@ -405,9 +405,9 @@ specified by the policy.
 To avoid ambiguity, always specify the policies of all predefined
 chains explicitly.
 
-=item B<subchain ["CHAIN-NAME"] { ... }>
+=item B<@subchain ["CHAIN-NAME"] { ... }>
 
-Works like the normal block operators (i.e. without the I<subchain>
+Works like the normal block operators (i.e. without the I<@subchain>
 keyword), except that B<ferm> moves rules within the curly braces into
 a new custom chain. The name for this chain is chosen automatically by
 ferm.
@@ -424,12 +424,12 @@ the following example:
  }
 
 This generates 20 rules. When a packet arrives which does not pass the
-B<saddr> match, it nonetheless checks all 20 rules. With B<subchain>,
+B<saddr> match, it nonetheless checks all 20 rules. With B<@subchain>,
 this check is done once, resulting in faster network filtering and
 less CPU load:
 
  table filter chain INPUT {
-     saddr (1.2.3.4 2.3.4.5 3.4.5.6 4.5.6.7 5.6.7.8) subchain {
+     saddr (1.2.3.4 2.3.4.5 3.4.5.6 4.5.6.7 5.6.7.8) @subchain {
          proto tcp dport (http https ssh) ACCEPT;
          proto udp dport domain ACCEPT;
      }
@@ -437,13 +437,13 @@ less CPU load:
 
 Optionally, you may define the name of the sub chain:
 
- saddr (1.2.3.4 2.3.4.5 3.4.5.6) subchain "foobar" {
+ saddr (1.2.3.4 2.3.4.5 3.4.5.6) @subchain "foobar" {
      proto tcp dport (http https ssh) ACCEPT;
      proto udp dport domain ACCEPT;
  }
 
 You can achieve the same by explicitly declaring a custom chain, but
-you may feel that using B<subchain> requires less typing.
+you may feel that using B<@subchain> requires less typing.
 
 
 =back
@@ -1177,9 +1177,9 @@ give a network interface a meaningful name.
 
 To set variables, write:
 
-    def $DEV_INTERNET = eth0;
-    def $PORTS = (http ftp);
-    def $MORE_PORTS = ($PORTS 8080);
+    @def $DEV_INTERNET = eth0;
+    @def $PORTS = (http ftp);
+    @def $MORE_PORTS = ($PORTS 8080);
 
 In the real ferm code, variables are used like any other keyword
 parameter:
@@ -1192,10 +1192,10 @@ Note that variables can only be used in keyword parameters
 
 Variables are only valid in the current block:
 
-    def $DEV_INTERNET = eth1;
+    @def $DEV_INTERNET = eth1;
     chain INPUT {
         proto tcp {
-            def $DEV_INTERNET = ppp0;
+            @def $DEV_INTERNET = ppp0;
             interface $DEV_INTERNET dport http ACCEPT;
         }
         interface $DEV_INTERNET DROP;
@@ -1243,10 +1243,10 @@ The current netfilter chain.
 Functions are similar to variables, except that they may have
 parameters, and they provide ferm commands, not values.
 
-    def &FOO() = proto (tcp udp) dport domain;
+    @def &FOO() = proto (tcp udp) dport domain;
     &FOO() ACCEPT;
 
-    def &TCP_TUNNEL($port, $dest) = {
+    @def &TCP_TUNNEL($port, $dest) = {
         table filter chain FORWARD interface ppp0 proto tcp dport $port daddr $dest outerface eth0 ACCEPT;
         table nat chain PREROUTING interface ppp0 proto tcp dport $port daddr 1.2.3.4 DNAT to $dest;
     }
@@ -1260,14 +1260,14 @@ command in a ferm rule, i.e. it must be followed by ';'. The '&FOO()'
 example does not contain a block, thus you may write 'ACCEPT' after
 the call. To circumvent this, you can reorder the keywords:
 
-    def &IPSEC() = { proto (esp ah); proto udp dport 500; }
+    @def &IPSEC() = { proto (esp ah); proto udp dport 500; }
     ACCEPT &IPSEC();
 
 =head2 Backticks
 
 With backticks, you may use the output of an external command:
 
-    def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
+    @def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
     chain INPUT proto tcp saddr $DNSSERVERS ACCEPT;
 
 The command is executed with the shell (F</bin/sh>), just like
@@ -1279,9 +1279,9 @@ of values, separated by whitespace.
 
 =head2 Includes
 
-The B<include> keyword allows you to include external files:
+The B<@include> keyword allows you to include external files:
 
-    include 'vars.ferm';
+    @include 'vars.ferm';
 
 The file name is relative to the calling file, e.g. when including
 from F</etc/ferm/ferm.conf>, the above statement includes
@@ -1291,13 +1291,47 @@ included file are still available in the calling file.
 B<include> works within a block:
 
     chain INPUT {
-        include 'input.ferm';
+        @include 'input.ferm';
     }
 
 If you specify a directory (with a trailing '/'), all files in this
 directory are included, sorted alphabetically:
 
-    include 'ferm.d/';
+    @include 'ferm.d/';
+
+=head2 Conditionals
+
+The keyword B<@if> introduces a conditional expression:
+
+    @if $condition DROP;
+
+A value is evaluated true just like in Perl: zero, empty list, empty
+string are false, everything else is true.  Examples for true values:
+
+    (a b); 1; 'foo'; (0 0)
+
+Examples for false values:
+    (); 0; '0'; ''
+
+There is also B<@else>:
+
+    @if $condition DROP; @else REJECT;
+
+Note the semicolon before the B<@else>.
+
+It is possible to use curly braces after either B<@if> or B<@else>:
+
+    @if $condition {
+        MARK set-mark 2;
+        RETURN;
+    } @else {
+        MARK set-mark 3;
+    }
+
+Since the closing curly brace also finishes the command, there is no
+need for semicolon.
+
+There is no B<@elsif>, use B<@else @if> instead.
 
 =head2 Hooks
 
@@ -1310,6 +1344,29 @@ The specified command is executed using the shell.  "pre" means run
 the command before applying the firewall rules, and "post" means run
 the command afterwards.  You may install any number of hooks.
 
+=head1 FUNCTIONS
+
+There are several built-in functions which you might find useful.
+
+=head2 @resolve((hostname1 hostname2 ...))
+
+Usually, host names are resolved by iptables.  To let ferm resolve
+host names, use the function @resolve:
+
+    saddr @resolve(my.host.foo) proto tcp dport ssh ACCEPT;
+    saddr @resolve((another.host.foo third.host.foo)) proto tcp dport openvpn ACCEPT;
+
+Note the double parentheses in the second line: the inner pair for
+creating a ferm list, and the outer pair as function parameter
+delimiters.
+
+This function currently only resolves B<A> records (i.e. IPv4
+addresses), rendering it useless for the I<ip6> domain.
+
+Be careful with resolved host names in firewall configuration.  DNS
+requests may block the firewall configuration for a long time, leaving
+the machine vulnerable, or they may fail.
+
 =head1 RECIPES
 
 The F<./examples/> directory contains numerous ferm configuration
@@ -1320,7 +1377,7 @@ samples, recipes and tricks.
 
 Ferm function make routine tasks quick and easy:
 
-    def &FORWARD_TCP($proto, $port, $dest) = {
+    @def &FORWARD_TCP($proto, $port, $dest) = {
         table filter chain FORWARD interface $DEV_WORLD outerface $DEV_DMZ daddr $dest proto $proto dport $port ACCEPT;
         table nat chain PREROUTING interface $DEV_WORLD daddr $HOST_STATIC proto $proto dport $port DNAT to $dest;
     }
@@ -1393,7 +1450,7 @@ The concept of variables has been overhauled in ferm 1.2; you can now
 declare functions which take parameters.  Besides that, you should use
 the new syntax:
 
- def $FOO = (http ssh);
+ @def $FOO = (http ssh);
  chain INPUT proto tcp dport $FOO ACCEPT;
 
 =item I<Arrays>

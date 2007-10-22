@@ -1,14 +1,14 @@
 # test comment syntax
 
-def $EMPTY = (
+@def $EMPTY = (
     # only a comment
 );
 
-def $ONE = (
+@def $ONE = (
     192.168.0.1 # comment after data
 );
 
-def $TWO = (
+@def $TWO = (
     # nothing in this line
     192.168.0.2
 );

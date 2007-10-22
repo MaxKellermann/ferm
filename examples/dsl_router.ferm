@@ -7,10 +7,10 @@
 # Author: Max Kellermann <max@duempel.org>
 #
 
-def $DEV_PRIVATE = (eth0 eth1);
-def $DEV_WORLD = ppp0;
+@def $DEV_PRIVATE = (eth0 eth1);
+@def $DEV_WORLD = ppp0;
 
-def $NET_PRIVATE = 192.168.0.0/16;
+@def $NET_PRIVATE = 192.168.0.0/16;
 
 table filter {
     chain INPUT {

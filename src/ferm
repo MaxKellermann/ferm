@@ -27,9 +27,20 @@
 
 # $Id$
 
-use strict;
-use IO::File;
-use Getopt::Long;
+BEGIN {
+    eval { require strict; import strict; };
+    $has_strict = not $@;
+    if ($@) {
+        # we need no vars.pm if there is not even strict.pm
+        $INC{'vars.pm'} = 1;
+        *vars::import = sub {};
+    }
+
+    eval { require Getopt::Long; import Getopt::Long; };
+    $has_getopt = not $@;
+}
+
+use vars qw($has_strict $has_getopt);
 
 use vars qw($DATE $VERSION);
 
@@ -254,17 +265,17 @@ sub add_def {
 }
 
 # add a protocol module definition
-sub add_proto_def {
+sub add_proto_def(@) {
     add_def(\%proto_defs, @_);
 }
 
 # add a match module definition
-sub add_match_def {
+sub add_match_def(@) {
     add_def(\%match_defs, @_);
 }
 
 # add a target module definition
-sub add_target_def {
+sub add_target_def(@) {
     add_def(\%target_defs, @_);
 }
 
@@ -365,7 +376,7 @@ sub multiport_params {
 
     my $proto = find_option($fw, 'proto');
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
-      unless defined $proto and grep { /^(?:tcp|udp)$/ } &to_array($proto);
+      unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array($proto);
 
     my $value = getvalues(undef, undef,
                           allow_negation => 1,
@@ -411,7 +422,7 @@ sub compat_tos_params {
 unshift @stack, {};
 
 # Get command line stuff
-{
+if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
@@ -427,7 +438,7 @@ unshift @stack, {};
         die 'Invalid --def specification'
           unless $value =~ /^\$?(\w+)=(.*)$/s;
         my ($name, $unparsed_value) = ($1, $2);
-        my @tokens = &tokenize_string($unparsed_value);
+        my @tokens = tokenize_string($unparsed_value);
         my $value = getvalues(\&next_array_token, \@tokens);
         die 'Extra tokens after --def'
           if @tokens;
@@ -483,8 +494,8 @@ unshift @stack, {};
 
     mydie('ferm interactive mode not possible: /dev/stdin is not a tty')
       if $option{interactive} and not -t STDIN;
-    mydie('ferm interactive mode not possible: /dev/stdout is not a tty')
-      if $option{interactive} and not -t STDOUT;
+    mydie('ferm interactive mode not possible: /dev/stderr is not a tty')
+      if $option{interactive} and not -t STDERR;
 
     $option{fast} = 1 if defined $opt_fast;
 
@@ -514,11 +525,48 @@ unshift @stack, {};
       if defined $opt_createchains;
     print STDERR "Warning: ignoring the obsolete --location option\n"
       if defined $opt_location;
+} else {
+    # tiny getopt emulation for microperl
+    my $filename;
+    foreach (@ARGV) {
+        if ($_ eq '--noexec' or $_ eq '-n') {
+            $option{noexec} = 1;
+        } elsif ($_ eq '--lines' or $_ eq '-l') {
+            $option{lines} = 1;
+        } elsif ($_ eq '--fast') {
+            $option{fast} = 1;
+        } elsif ($_ eq '--test') {
+            $option{noexec} = 1;
+            $option{lines} = 1;
+        } elsif ($_ eq '--shell') {
+            $option{$_} = 1 foreach qw(shell fast lines);
+        } elsif (/^-/) {
+            printf STDERR "Usage: ferm [--noexec] [--lines] [--fast] [--shell] FILENAME\n";
+            exit 1;
+        } else {
+            $filename = $_;
+        }
+    }
+    undef @ARGV;
+    push @ARGV, $filename;
 }
 
 unless (@ARGV == 1) {
     require Pod::Usage;
     Pod::Usage::pod2usage(-exitstatus => 1);
+}
+
+if ($has_strict) {
+    open LINES, ">&STDOUT" if $option{lines};
+    open STDOUT, ">&STDERR" if $option{shell};
+} else {
+    # microperl can't redirect file handles
+    *LINES = *STDOUT;
+
+    if ($option{fast} and not $option{noexec}) {
+        print STDERR "Sorry, ferm on microperl does not allow --fast without --noexec\n";
+        exit 1
+    }
 }
 
 unshift @stack, {};
@@ -536,7 +584,7 @@ check();
 my $status;
 
 foreach my $cmd (@pre_hooks) {
-    print "$cmd\n" if $option{lines};
+    print LINES "$cmd\n" if $option{lines};
     system($cmd) unless $option{noexec};
 }
 
@@ -650,7 +698,8 @@ sub initialize_domain {
 
     # determine the location of this domain's tools
     foreach my $tool (@tools) {
-        my $path = "/sbin/${domain}${tool}";
+        my $path = "/usr/sbin/${domain}${tool}";
+        $path = "/sbin/${domain}${tool}" unless -x $path;
         die "$path not found\n" unless -x $path;
         $domains{$domain}{tools}{$tool} = $path;
     }
@@ -685,12 +734,12 @@ sub initialize_domain {
 }
 
 # split the an input string into words and delete comments
-sub tokenize_string {
-    my ($string) = @_;
+sub tokenize_string($) {
+    my $string = shift;
 
     my @ret;
 
-    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|#)/g) {
+    foreach my $word ($string =~ m/(".*?"|'.*?'|`.*?`|[!,=&\$\%\(\){};]|[-+\w\/\.:]+|@\w+|#)/g) {
         last if $word eq '#';
         push @ret, $word;
     }
@@ -705,7 +754,7 @@ sub next_array_token {
 }
 
 # read the header of a ferm script, handle (deprecated) syntax
-sub read_header {
+sub read_header() {
     die unless defined $script;
     die if defined $script->{parent};
 
@@ -714,7 +763,8 @@ sub read_header {
     die if @$tokens;
 
     while (1) {
-        my $line = $script->{handle}->getline;
+        my $handle = $script->{handle};
+        my $line = <$handle>;
         return unless defined $line;
 
         $script->{line} ++;
@@ -753,7 +803,7 @@ sub read_header {
             warning('"set" is deprecated, please use "def $NAME = VALUE;"');
 
             if (@line and $line[0] eq ',') {
-                warning('Arrays without parantheses are deprecated');
+                warning('Arrays without parentheses are deprecated');
 
                 $value = [ $value ]
                   unless ref $value;
@@ -780,7 +830,7 @@ sub read_header {
 }
 
 # read some more tokens from the input file into a buffer
-sub prepare_tokens {
+sub prepare_tokens() {
     return
       unless defined $script;
 
@@ -788,7 +838,8 @@ sub prepare_tokens {
     die unless ref $tokens eq 'ARRAY';
 
     while (@$tokens == 0) {
-        my $line = $script->{handle}->getline;
+        my $handle = $script->{handle};
+        my $line = <$handle>;
         return unless defined $line;
 
         $script->{line} ++;
@@ -803,7 +854,7 @@ sub prepare_tokens {
 }
 
 # open a ferm sub script
-sub open_script {
+sub open_script($) {
     my $filename = shift;
 
     for (my $s = $script; defined $s; $s = $s->{parent}) {
@@ -811,9 +862,10 @@ sub open_script {
           if $s->{filename} eq $filename;
     }
 
-    my $handle = new IO::File($filename);
-    mydie("Failed to open $filename: $!")
-      unless defined $handle;
+    local *FILE;
+    open FILE, "<$filename"
+      or mydie("Failed to open $filename: $!");
+    my $handle = *FILE;
 
     $script = { filename => $filename,
                 handle => $handle,
@@ -827,7 +879,7 @@ sub open_script {
 }
 
 # collect script filenames which are being included
-sub collect_filenames {
+sub collect_filenames(@) {
     my @ret;
 
     # determine the current script's parent directory for relative
@@ -884,7 +936,7 @@ sub collect_filenames {
 }
 
 # peek a token from the queue, but don't remove it
-sub peek_token {
+sub peek_token() {
     # get a token
     prepare_tokens();
 
@@ -901,7 +953,7 @@ sub peek_token {
 }
 
 # get a token from the queue
-sub next_token {
+sub next_token() {
     prepare_tokens();
 
     return
@@ -980,7 +1032,7 @@ sub require_next_token {
 
 # determine the value of an old style variable, die if the variable is
 # unknown
-sub old_variable_value {
+sub old_variable_value($) {
     my $name = shift;
 
     error("no such variable: \%$name")
@@ -990,7 +1042,7 @@ sub old_variable_value {
 }
 
 # determine the value of a variable, die if the value is an array
-sub string_old_variable_value {
+sub string_old_variable_value($) {
     my $name = shift;
     my $value = old_variable_value($name);
 
@@ -1002,7 +1054,7 @@ sub string_old_variable_value {
 
 # resolve all old style variable references in the string - may be an
 # array!
-sub resolve_old_variable_refs {
+sub resolve_old_variable_refs($) {
     my $token = shift;
 
     if ($token =~ /^\%(\w+)$/) {
@@ -1018,7 +1070,7 @@ sub resolve_old_variable_refs {
 }
 
 # return the value of a variable
-sub variable_value {
+sub variable_value($) {
     my $name = shift;
 
     foreach (@stack) {
@@ -1033,7 +1085,7 @@ sub variable_value {
 }
 
 # determine the value of a variable, die if the value is an array
-sub string_variable_value {
+sub string_variable_value($) {
     my $name = shift;
     my $value = variable_value($name);
 
@@ -1045,7 +1097,7 @@ sub string_variable_value {
 
 # similar to the built-in "join" function, but also handle negated
 # values in a special way
-sub join_value {
+sub join_value($$) {
     my ($expr, $value) = @_;
 
     unless (ref $value) {
@@ -1148,7 +1200,7 @@ sub getvalues {
 
         return bless [ $token ], 'negated';
     } elsif ($token =~ /^.+,.+$/) {
-        warning('Arrays within a string are deprecated, please use parantheses');
+        warning('Arrays within a string are deprecated, please use parentheses');
 
         my @array = map {
             my $value = resolve_old_variable_refs($_);
@@ -1184,6 +1236,30 @@ sub getvalues {
         error("function calls are not allowed as keyword parameter");
     } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
         error('Syntax error');
+    } elsif ($token =~ /^@/) {
+        if ($token eq '@resolve') {
+            my @params = get_function_params();
+            error('Usage: @resolve((hostname ...))')
+              unless @params == 1;
+            eval { require Net::DNS; };
+            error('For the @resolve() function, you need the Perl library Net::DNS')
+              if $@;
+            my $type = 'A';
+            my $resolver = new Net::DNS::Resolver;
+            my @result;
+            foreach my $hostname (to_array($params[0])) {
+                my $query = $resolver->search($hostname, $type);
+                error("DNS query for '$hostname' failed: " . $resolver->errorstring)
+                  unless $query;
+                foreach my $rr ($query->answer) {
+                    next unless $rr->type eq $type;
+                    push @result, $rr->address;
+                }
+            }
+            return \@result;
+        } else {
+            error("unknown ferm built-in function");
+        }
     } else {
         return resolve_old_variable_refs($token);
     }
@@ -1199,9 +1275,38 @@ sub getvar {
     return $token;
 }
 
+sub get_function_params(%) {
+    my $token = next_token();
+    error('function name must be followed by "()"')
+      unless defined $token and $token eq '(';
+
+    $token = peek_token();
+    if ($token eq ')') {
+        require_next_token;
+        return;
+    }
+
+    my @params;
+
+    while (1) {
+        if (@params > 0) {
+            $token = require_next_token();
+            last
+              if $token eq ')';
+
+            error('"," expected')
+              unless $token eq ',';
+        }
+
+        push @params, getvalues(undef, undef, @_);
+    }
+
+    return @params;
+}
+
 # collect all tokens in a flat array reference until the end of the
 # command is reached
-sub collect_tokens {
+sub collect_tokens() {
     my @level;
     my @tokens;
 
@@ -1233,7 +1338,7 @@ sub collect_tokens {
 
 
 # returns the specified value as an array. dereference arrayrefs
-sub to_array {
+sub to_array($) {
     my $value = shift;
     die unless wantarray;
     die if @_;
@@ -1246,21 +1351,35 @@ sub to_array {
     }
 }
 
-sub is_netfilter_core_target {
+# evaluate the specified value as bool
+sub eval_bool($) {
+    my $value = shift;
+    die if wantarray;
+    die if @_;
+    unless (ref $value) {
+        return $value;
+    } elsif (ref $value eq 'ARRAY') {
+        return @$value > 0;
+    } else {
+        die;
+    }
+}
+
+sub is_netfilter_core_target($) {
     my $target = shift;
     die unless defined $target and length $target;
 
     return $target =~ /^(?:ACCEPT|DROP|RETURN|QUEUE)$/;
 }
 
-sub is_netfilter_module_target {
+sub is_netfilter_module_target($) {
     my $target = shift;
     die unless defined $target and length $target;
 
     return exists $target_defs{$target};
 }
 
-sub is_netfilter_builtin_chain {
+sub is_netfilter_builtin_chain($$) {
     my ($table, $chain) = @_;
 
     return grep { $_ eq $chain }
@@ -1268,7 +1387,7 @@ sub is_netfilter_builtin_chain {
 }
 
 # escape the string in a way safe for the shell
-sub shell_escape {
+sub shell_escape($) {
     my $token = shift;
 
     if ($option{fast}) {
@@ -1292,7 +1411,7 @@ sub shell_escape {
 
 # append parameters to a shell command line, with the correct escape
 # sequences
-sub shell_append {
+sub shell_append($@) {
     my $ref = shift;
 
     foreach (@_) {
@@ -1302,7 +1421,7 @@ sub shell_append {
 
 # append an option to the shell command line, using information from
 # the module definition (see %match_defs etc.)
-sub shell_append_option {
+sub shell_append_option($$$$) {
     my ($ref, $def, $keyword, $value) = @_;
 
     my @negated;
@@ -1330,7 +1449,7 @@ sub shell_append_option {
 }
 
 # dereference a bless'negated'
-sub extract_negation {
+sub extract_negation($) {
     local $_ = shift;
     ref && ref eq 'negated'
       ? ( '!', $_->[0] )
@@ -1339,7 +1458,7 @@ sub extract_negation {
 
 # reset a netfilter domain: set all policies to ACCEPT, clear all
 # rules, delete custom chains
-sub reset_domain {
+sub reset_domain($) {
     my $domain = shift;
     my $domain_info = $domains{$domain};
 
@@ -1362,7 +1481,7 @@ sub reset_domain {
 }
 
 # convert an internal rule structure into an iptables call
-sub tables {
+sub tables($) {
     my $rule = shift;
     my %rule = %$rule;
 
@@ -1541,7 +1660,7 @@ sub tables {
                   };
 };
 
-sub printrule {
+sub printrule($) {
     my $rule = shift;
 
     # prints all rules in a hash
@@ -1551,7 +1670,7 @@ sub printrule {
 
 # convert a bunch of internal rule structures in iptables calls,
 # unfold arrays during that
-sub mkrules {
+sub mkrules($) {
     # compile the list hashes into rules
     my $fw = shift;
 
@@ -1565,7 +1684,7 @@ sub mkrules {
         }
     }
 
-    sub dofr {
+    sub dofr($@) {
         my $rule = shift;
         my $current = shift;
 
@@ -1632,7 +1751,7 @@ sub mkrules {
 }
 
 # find an option in the rule stack
-sub find_option {
+sub find_option($$) {
     my ($fw, $key) = @_;
 
     my $item = (grep { exists $_->{$key} } reverse @$fw)[0];
@@ -1641,7 +1760,7 @@ sub find_option {
     return $item->{$key};
 }
 
-sub filter_domains {
+sub filter_domains($) {
     my $domains = shift;
     my $result = [];
 
@@ -1661,7 +1780,7 @@ sub filter_domains {
 }
 
 # parse tokens from builtin match modules
-sub parse_builtin_matches {
+sub parse_builtin_matches($$$$) {
     my ($current, $domain_family, $keyword, $negated_ref) = @_;
 
     if ($domain_family eq 'ip' and $keyword eq 'addr') {
@@ -1723,7 +1842,7 @@ sub parse_builtin_matches {
 }
 
 # parse a keyword from a module definition
-sub parse_keyword {
+sub parse_keyword($$$$) {
     my ($fw, $def, $keyword, $negated_ref) = @_;
 
     my $params = $def->{params};
@@ -1801,7 +1920,7 @@ sub parse_keyword {
 }
 
 # parse options for a protocol module definition
-sub parse_protocol_options {
+sub parse_protocol_options($$$$$) {
     my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
 
     return unless exists $proto_defs{$proto} &&
@@ -1815,7 +1934,7 @@ sub parse_protocol_options {
 }
 
 # parse options for a match module definition
-sub parse_module_options {
+sub parse_module_options($$$$$$) {
     my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
 
     # modules stored in %match_defs
@@ -1839,7 +1958,7 @@ sub parse_module_options {
 }
 
 # parse options for a target module definition
-sub parse_target_options {
+sub parse_target_options($$$$) {
     my ($fw, $current, $target, $keyword) = @_;
 
     return unless exists $target_defs{$target} &&
@@ -1864,7 +1983,7 @@ sub parse_target_options {
 
 # the main parser loop: read tokens, convert them into internal rule
 # structures
-sub enter {
+sub enter($@) {
     my $lev = shift;  # current recursion depth
     my @fw = @_; # fwset in list of hashes
 
@@ -1943,6 +2062,25 @@ sub enter {
                 next;
             }
 
+            # conditional expression
+            if ($keyword eq '@if') {
+                unless (eval_bool(getvalues)) {
+                    collect_tokens;
+                    my $token = peek_token();
+                    require_next_token() if $token and $token eq '@else';
+                }
+
+                next;
+            }
+
+            if ($keyword eq '@else') {
+                # hack: if this "else" has not been eaten by the "if"
+                # handler above, we believe it came from an if clause
+                # which evaluated "true" - remove the "else" part now.
+                collect_tokens;
+                next;
+            }
+
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
                 error('"hook" must be the first token in a command')
@@ -2002,7 +2140,7 @@ sub enter {
             }
 
             # include another file
-            if ($keyword eq 'include') {
+            if ($keyword eq '@include' or $keyword eq 'include') {
                 my @files = collect_filenames to_array getvalues;
                 $keyword = next_token;
                 error('Missing ";" - "include FILENAME" must be the last command in a rule')
@@ -2043,7 +2181,7 @@ sub enter {
             }
 
             # definition of a variable or function
-            if ($keyword eq 'def') {
+            if ($keyword eq '@def' or $keyword eq 'def') {
                 error('"def" must be the first token in a command')
                   if keys %$current;
 
@@ -2134,35 +2272,10 @@ sub enter {
                 error("no such function: \&$name")
                   unless defined $function;
 
-                my $token = next_token();
-                error('function name must be followed by "()"')
-                  unless defined $token and $token eq '(';
-
                 my $paramdef = $function->{params};
                 die unless defined $paramdef;
-                my @params;
 
-                $token = peek_token();
-                if ($token eq ')') {
-                    # eat the ')'
-                    require_next_token
-                } else {
-                    # parse parameter list
-
-                    while (1) {
-                        if (@params > 0) {
-                            $token = require_next_token();
-                            last
-                              if $token eq ')';
-
-                            error('"," expected')
-                              unless $token eq ',';
-                        }
-
-                        push @params, getvalues(undef, undef,
-                                                allow_negation => 1);
-                    }
-                }
+                my @params = get_function_params(allow_negation => 1);
 
                 error("Wrong number of parameters for function '\&$name': "
                       . @$paramdef . " expected, " . @params . " given")
@@ -2297,8 +2410,8 @@ sub enter {
             }
 
             # create a subchain
-            if ($keyword eq 'subchain') {
-                error('No rule specified before "subchain"')
+            if ($keyword eq '@subchain' or $keyword eq 'subchain') {
+                error('No rule specified before "@subchain"')
                   unless find_option(\@fw, 'has_rule');
 
                 my $subchain;
@@ -2515,7 +2628,7 @@ sub enter {
       if keys %$current;
 }
 
-sub check {
+sub check() {
     while (my ($domain_name, $domain) = each %domains) {
         while (my ($table_name, $table_info) = each %{$domain->{tables}}) {
             while (my ($chain_name, $chain) = each %{$table_info->{chains}}) {
@@ -2526,7 +2639,7 @@ sub check {
     }
 }
 
-sub execute_slow {
+sub execute_slow($$) {
     my ($domain, $rules) = @_;
 
     my $status;
@@ -2539,7 +2652,7 @@ sub execute_slow {
         }
 
         s/^\s+//s;
-        print
+        print LINES $_
           if $option{lines};
         next if $option{noexec};
         next if /^#/;
@@ -2563,7 +2676,7 @@ sub execute_slow {
     return $status;
 }
 
-sub rules_to_save {
+sub rules_to_save($$) {
     my ($domain, $rules) = @_;
 
     # parse the current ruleset, ignore -X and -F, handle policies and
@@ -2624,7 +2737,7 @@ sub rules_to_save {
     return $result;
 }
 
-sub restore_domain {
+sub restore_domain($$) {
     my ($domain, $save) = @_;
 
     my $path = $domains{$domain}{tools}{'tables-restore'};
@@ -2639,14 +2752,14 @@ sub restore_domain {
       or die "Failed to run $path\n";
 }
 
-sub execute_fast {
+sub execute_fast($$) {
     my ($domain, $save) = @_;
 
     if ($option{lines}) {
-        print "$domains{$domain}{tools}{'tables-restore'} <<EOT\n"
+        print LINES "$domains{$domain}{tools}{'tables-restore'} <<EOT\n"
           if $option{shell};
-        print $save;
-        print "EOT\n"
+        print LINES $save;
+        print LINES "EOT\n"
           if $option{shell};
     }
 
@@ -2663,7 +2776,7 @@ sub execute_fast {
     return;
 }
 
-sub rollback {
+sub rollback() {
     my $error;
     foreach my $domain (keys %rules) {
         unless (defined $domains{$domain}{tools}{'tables-restore'}) {
@@ -2696,15 +2809,15 @@ sub alrm_handler {
     # do nothing, just interrupt a system call
 }
 
-sub confirm_rules {
+sub confirm_rules() {
     $SIG{ALRM} = \&alrm_handler;
 
     alarm(5);
 
-    print "\n"
+    print STDERR "\n"
       . "ferm has applied the new firewall rules.\n"
         . "Please type 'yes' to confirm:\n";
-    STDOUT->flush();
+    STDERR->flush();
 
     alarm(30);
 

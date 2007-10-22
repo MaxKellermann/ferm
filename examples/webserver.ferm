@@ -7,7 +7,7 @@
 # Author: Max Kellermann <max@duempel.org>
 #
 
-def $NET_TRUSTED = 195.135.144.144/28;
+@def $NET_TRUSTED = 195.135.144.144/28;
 
 table filter {
     chain INPUT {

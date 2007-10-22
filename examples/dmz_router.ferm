@@ -8,22 +8,22 @@
 # Author: Max Kellermann <max@duempel.org>
 #
 
-def $DEV_PRIVATE = eth0;
-def $DEV_WORLD = eth1;
-def $DEV_DMZ = eth2;
+@def $DEV_PRIVATE = eth0;
+@def $DEV_WORLD = eth1;
+@def $DEV_DMZ = eth2;
 
-def $NET_PRIVATE = 192.168.0.0/24;
-def $NET_DMZ = 192.168.1.0/24;
+@def $NET_PRIVATE = 192.168.0.0/24;
+@def $NET_DMZ = 192.168.1.0/24;
 
 # internal IPs of the admins
-def $HOST_ADMIN = (192.168.0.4 192.168.0.10);
+@def $HOST_ADMIN = (192.168.0.4 192.168.0.10);
 
 # our static IP address
-def $HOST_STATIC = 193.43.91.203;
+@def $HOST_STATIC = 193.43.91.203;
 
 # convenience function which creates both the nat/DNAT and the filter/FORWARD
 # rule
-def &FORWARD_TCP($proto, $port, $dest) = {
+@def &FORWARD_TCP($proto, $port, $dest) = {
     table filter chain FORWARD interface $DEV_WORLD outerface $DEV_DMZ daddr $dest proto $proto dport $port ACCEPT;
     table nat chain PREROUTING interface $DEV_WORLD daddr $HOST_STATIC proto $proto dport $port DNAT to $dest;
 }

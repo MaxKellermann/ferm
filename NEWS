@@ -6,8 +6,23 @@
     Auke Kok <sofar@foo-projects.org>
     Max Kellermann <max@foo-projects.org>
 
+
 v2.0 - not yet released
   - basic support for arptables
+
+
+v1.3.0 - not yet released
+  - reserve tokens starting with "@" as ferm keywords
+  - implemented conditionals with @if/@else
+  - added @include/@def/@subchain as alias to include/def/subchain
+  - redirect STDOUT into STDERR --shell mode; this way, iptables warnings
+    are separated from the ferm shell script output
+  - microperl compatiblity:
+    - don't require strict.pm / vars.pm
+    - don't use IO::File
+    - added simple Getopt::Long emulation
+  - look for iptables in /usr/sbin, too
+  - added function @resolve which resolves host names to IPv4 addresses
 
 
 v1.2.5 - 14 Oct 2007

@@ -1,14 +1,14 @@
-def $myports= (http ftp);
-def &mytcp() = proto $myports;
-def &myrule() = proto ah DROP;
-def &level() = {
+@def $myports= (http ftp);
+@def &mytcp() = proto $myports;
+@def &myrule() = proto ah DROP;
+@def &level() = {
     proto ah;
     proto esp;
 }
 
-def &proto_port($a, $b) = proto $a dport $b;
+@def &proto_port($a, $b) = proto $a dport $b;
 
-def &TCP_TUNNEL($port, $dest) = {
+@def &TCP_TUNNEL($port, $dest) = {
     table filter chain FORWARD interface ppp0 proto tcp dport $port daddr $dest outerface eth0 ACCEPT;
     table nat chain PREROUTING interface ppp0 proto tcp dport $port daddr 1.2.3.4 DNAT to $dest;
 }
