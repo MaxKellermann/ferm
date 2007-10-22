@@ -1487,6 +1487,7 @@ sub tables($) {
 
     my $domain = $rule{domain};
     my $domain_info = $domains{$domain};
+    my $domain_family = $rule{domain_family};
 
     my $table = $rule{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
@@ -1570,7 +1571,7 @@ sub tables($) {
         shell_append(\$rr, '-f')
     }
 
-    if ($rule{domain_family} eq 'arp') {
+    if ($domain_family eq 'arp') {
         foreach my $keyword (qw(source-mac destination-mac)) {
             shell_append(\$rr, '--' . $keyword, extract_negation $rule{$keyword})
               if defined $rule{$keyword};
@@ -1580,7 +1581,7 @@ sub tables($) {
             shell_append(\$rr, '--' . $keyword, $rule{$keyword})
               if defined $rule{$keyword};
         }
-    } elsif ($rule{domain_family} eq 'eb') {
+    } elsif ($domain_family eq 'eb') {
         foreach my $keyword (qw(logical-in logical-out)) {
             shell_append(\$rr, '--' . $keyword, extract_negation $rule{$keyword})
               if defined $rule{$keyword};
