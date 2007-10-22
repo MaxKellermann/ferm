@@ -1975,6 +1975,22 @@ sub parse_protocol_options($$$$$) {
     return 1;
 }
 
+# parse options of a match module
+sub parse_match_option($$$$$$) {
+    my ($match_defs, $name, $fw, $current, $keyword, $negated_ref) = @_;
+
+    my $match_def = $match_defs->{$name};
+    next unless defined $match_def;
+
+    my $k = $match_def->{keywords}{$keyword};
+    next unless defined $k;
+
+    $current->{"module__${name}__${keyword}"}
+      = parse_keyword($fw, $k,
+                      $keyword, $negated_ref);
+    return 1;
+}
+
 # parse options for a match module definition
 sub parse_module_options($$$$$$) {
     my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
@@ -1983,21 +1999,14 @@ sub parse_module_options($$$$$$) {
     my $match_defs = $match_defs{$domain_family};
     return unless defined $match_defs;
 
+    # reset hash
+    keys %$match_defs;
+
     # modules stored in %match_defs
     foreach my $name (keys %$modules) {
-        my $mod = $match_defs->{$name};
-        next unless defined $mod;
-        my $k = $mod->{keywords}{$keyword};
-        next unless defined $k;
-
-        $current->{"module__${name}__${keyword}"}
-          = parse_keyword($fw, $k,
-                          $keyword, $negated_ref);
-
-        # reset hash
-        keys %$match_defs;
-
-        return 1;
+        parse_match_option($match_defs, $name, $fw, $current,
+                           $keyword, $negated_ref)
+          and return 1;
     }
 
     return;
