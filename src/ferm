@@ -356,9 +356,8 @@ unshift @stack, {};
 if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
-        $opt_location, $opt_clearall, $opt_flushall,
-        $opt_createchains, $opt_flushchains, $opt_help,
-        $opt_version, $opt_use, $opt_test, $opt_fast, $opt_shell,
+        $opt_help,
+        $opt_version, $opt_test, $opt_fast, $opt_shell,
         $opt_domain);
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
@@ -382,14 +381,8 @@ if ($has_getopt) {
                'interactive|i' => \$opt_interactive,
                'verbose|v' => \$opt_verbose,
                'debug|d' => \$opt_debug,
-               'location=s' => \$opt_location,
-               clearall => \$opt_clearall,
-               flushall => \$opt_flushall,
-               createchains => \$opt_createchains,
-               flushchains => \$opt_flushchains,
                'help|h' => \$opt_help,
                'version|V' => \$opt_version,
-               'use=s' => \$opt_use,
                test => \$opt_test,
                remote => \$opt_test,
                fast => \$opt_fast,
@@ -434,23 +427,10 @@ if ($has_getopt) {
 
     $option{domain} = $opt_domain if defined $opt_domain;
 
-    print STDERR "Warning: ignoring the obsolete --use/-s option\n"
-      if defined $opt_use;
-
     print STDERR "Warning: ignoring the obsolete --debug option\n"
       if defined $opt_debug;
     print STDERR "Warning: ignoring the obsolete --verbose option\n"
       if defined $opt_verbose;
-    print STDERR "Warning: ignoring the obsolete --clearall option\n"
-      if defined $opt_clearall;
-    print STDERR "Warning: ignoring the obsolete --flushall option\n"
-      if defined $opt_flushall;
-    print STDERR "Warning: ignoring the obsolete --flushchains option\n"
-      if defined $opt_flushchains;
-    print STDERR "Warning: ignoring the obsolete --createchains option\n"
-      if defined $opt_createchains;
-    print STDERR "Warning: ignoring the obsolete --location option\n"
-      if defined $opt_location;
 } else {
     # tiny getopt emulation for microperl
     my $filename;

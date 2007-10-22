@@ -16,7 +16,8 @@ v2.0 - not yet released
     - removed TOS parameter shortcuts
     - don't default to policy if no action is specified
     - don't allow lower case bult-in chain names
-    - removed --automod
+    - removed --automod, --use, --clearall, --flushall, --flushchains,
+      --createchains, --location
     - comma in array is forbidden
     - removed "source" and "destination" as prefix for "addr" and "port" 
 
