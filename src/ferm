@@ -2201,8 +2201,7 @@ sub enter($@) {
                   if exists $current->{chain};
                 $current->{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
-                # ferm 1.1 compatibility: uppercase built-in chain
-                # names
+                # ferm 1.1 allowed lower case built-in chain names
                 foreach (ref $current->{chain} ? @{$current->{chain}} : $current->{chain}) {
                     error('Please write built-in chain names in upper case')
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
