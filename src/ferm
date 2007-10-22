@@ -77,46 +77,11 @@ use vars qw($script %rules @stack $auto_chain);
 use vars qw(%domains);
 
 ## constants
-use vars qw(%deprecated_keywords %automod);
+use vars qw(%deprecated_keywords);
 
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
 %deprecated_keywords = ();
-
-# support for the deprecated "automod" option. provide a mapping
-# between keywords and modules required for that
-%automod = ( tos => 'tos',
-             mark => 'mark',
-             'mac-source' => 'mac',
-             limit => 'limit',
-             'limit-burst' => 'limit',
-             'iplimit-above' => 'iplimit',
-             'iplimit-mask' => 'iplimit',
-             'uid-owner' => 'owner',
-             'gid-owner' => 'owner',
-             'pid-owner' => 'owner',
-             'sid-owner' => 'owner',
-             'psd-weight-threshold' => 'psd',
-             'psd-delay-threshold' => 'psd',
-             'psd-lo-ports-weight' => 'psd',
-             'psd-hi-ports-weight' => 'psd',
-             length => 'length',
-             average => 'random',
-             every => 'nth',
-             counter => 'nth',
-             start => 'nth',
-             packet => 'nth',
-             'pkt-type' => 'pkttype',
-             state => 'state',
-             'ttl-eq' => 'ttl',
-             'ttl-gt' => 'ttl',
-             'ttl-lt' => 'ttl',
-             timestart => 'time',
-             timestop => 'time',
-             days => 'time',
-             datestart => 'time',
-             datestop => 'time',
-           );
 
 # these hashes provide the Netfilter module definitions
 use vars qw(%proto_defs %match_defs %target_defs);
@@ -392,7 +357,7 @@ if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
         $opt_location, $opt_clearall, $opt_flushall,
-        $opt_createchains, $opt_flushchains, $opt_help, $opt_automod,
+        $opt_createchains, $opt_flushchains, $opt_help,
         $opt_version, $opt_use, $opt_test, $opt_fast, $opt_shell,
         $opt_domain);
 
@@ -423,7 +388,6 @@ if ($has_getopt) {
                createchains => \$opt_createchains,
                flushchains => \$opt_flushchains,
                'help|h' => \$opt_help,
-               automod => \$opt_automod,
                'version|V' => \$opt_version,
                'use=s' => \$opt_use,
                test => \$opt_test,
@@ -448,7 +412,6 @@ if ($has_getopt) {
     $option{flush} = defined $opt_flush;
     $option{'lines'} = (defined $opt_lines);
     $option{interactive} = (defined $opt_interactive);
-    $option{'automod'} = (defined $opt_automod);
     $option{test} = (defined $opt_test);
 
     if ($option{test}) {
@@ -470,9 +433,6 @@ if ($has_getopt) {
     }
 
     $option{domain} = $opt_domain if defined $opt_domain;
-
-    print STDERR "Warning: --automod is deprecated\n"
-      if defined $opt_automod;
 
     print STDERR "Warning: ignoring the obsolete --use/-s option\n"
       if defined $opt_use;
@@ -2433,12 +2393,6 @@ sub enter($@) {
             ###
             # module specific options
             #
-
-            if ($option{automod} and exists $automod{$keyword}) {
-                # suport the deprecated 'automod' option
-                $current->{modules}{$automod{$keyword}} = 1;
-                $modules{$automod{$keyword}} = 1;
-            }
 
             if (keys %modules) {
                 parse_module_options(\@fw, $current, \%modules, $keyword, \$negated, $proto)
