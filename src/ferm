@@ -558,7 +558,6 @@ if ($has_strict) {
 
 unshift @stack, {};
 open_script($ARGV[0]);
-read_header();
 
 # parse all input recursively
 enter(0);
@@ -738,32 +737,6 @@ sub tokenize_string($) {
 sub next_array_token {
     my $array = shift;
     shift @$array;
-}
-
-# read the header of a ferm script, handle (deprecated) syntax
-sub read_header() {
-    die unless defined $script;
-    die if defined $script->{parent};
-
-    my $tokens = $script->{tokens};
-    die unless ref $tokens eq 'ARRAY';
-    die if @$tokens;
-
-    my @line;
-    do {
-        my $handle = $script->{handle};
-        my $line = <$handle>;
-        return unless defined $line;
-
-        $script->{line} ++;
-
-        @line = tokenize_string($line);
-
-        map { s/^(["'])(.*)\1$/$2/s } @line;
-    } while (@line == 0);
-
-    push @$tokens, @line;
-    return 1;
 }
 
 # read some more tokens from the input file into a buffer
