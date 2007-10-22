@@ -388,6 +388,7 @@ add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold)
 
 add_match_def_x 'arp', '', qw(source-mac destination-mac),
   qw(h-length=s opcode=s h-type=s proto-type=s);
+add_match_def_x 'eb', '', qw(logical-in logical-out);
 
 # parameter parser for ipt_multiport
 sub multiport_params {
@@ -1597,20 +1598,12 @@ sub tables($) {
         shell_append(\$rr, '-f')
     }
 
-    if ($domain_family eq 'arp') {
-        foreach my $keyword (qw(source-mac destination-mac)) {
-            shell_append(\$rr, '--' . $keyword, extract_negation $rule{$keyword})
-              if defined $rule{$keyword};
-        }
-
-        foreach my $keyword (qw(h-length opcode h-type proto-type)) {
-            shell_append(\$rr, '--' . $keyword, $rule{$keyword})
-              if defined $rule{$keyword};
-        }
-    } elsif ($domain_family eq 'eb') {
-        foreach my $keyword (qw(logical-in logical-out)) {
-            shell_append(\$rr, '--' . $keyword, extract_negation $rule{$keyword})
-              if defined $rule{$keyword};
+    if (exists $match_defs{$domain_family} and
+        exists $match_defs{$domain_family}{''}) {
+        foreach my $keyword (%{$match_defs{$domain_family}{''}{keywords}}) {
+            my $value = $rule{"builtin____${keyword}"};
+            shell_append(\$rr, '--' . $keyword, extract_negation $value)
+              if defined $value;
         }
     }
 
@@ -1859,21 +1852,11 @@ sub parse_builtin_matches($$$$$) {
 
     # arptables
 
-    if ($domain_family eq 'arp') {
-        if ($keyword =~ /^(?:source|destination)-mac$/s) {
-            $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
-            return 1;
-        }
-
-        if ($keyword =~ /^(?:h-length|opcode|h-type|proto-type)/s) {
-            $current->{$keyword} = getvar();
-            return 1;
-        }
-    } elsif ($domain_family eq 'eb') {
-        if ($keyword =~ /^logical-(?:in|out)$/s) {
-            $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
-            return 1;
-        }
+    if (exists $match_defs{$domain_family}) {
+        parse_option('builtin', $match_defs{$domain_family}, '',
+                     $fw, $current,
+                     $keyword, $negated_ref)
+          and return 1;
     }
 
     return;
