@@ -1,6 +1,0 @@
-option iptables
-table mangle {
-  chain PREROUTING {
-      if eth1 TTL ttl-set 64;
-        }
-	}
