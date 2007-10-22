@@ -15,6 +15,7 @@ v2.0 - not yet released
     - cleared the deprecated keyword translation table
     - removed TOS parameter shortcuts
     - don't default to policy if no action is specified
+    - don't allow lower case bult-in chain names
 
 
 v1.3.0 - not yet released

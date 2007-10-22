@@ -2204,8 +2204,8 @@ sub enter($@) {
                 # ferm 1.1 compatibility: uppercase built-in chain
                 # names
                 foreach (ref $current->{chain} ? @{$current->{chain}} : $current->{chain}) {
-                    s/^(?:input|forward|output|prerouting|postrouting)$/uc $&/e
-                      and warning('Please write built-in chain names in upper case');
+                    error('Please write built-in chain names in upper case')
+                      if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
 
                 my $domain = find_option(\@fw, 'domain');
