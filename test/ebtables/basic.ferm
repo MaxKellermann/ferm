@@ -1,0 +1,6 @@
+domain eb chain INPUT {
+    saddr 192.168.1.1 DROP;
+    proto ARP ACCEPT;
+    interface eth0 logical-in br0 outerface eth1 logical-out br1 ACCEPT;
+    saddr Multicast daddr Broadcast DROP;
+}

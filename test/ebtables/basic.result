@@ -1,0 +1,7 @@
+ebtables -t filter -P INPUT ACCEPT
+ebtables -t filter -F
+ebtables -t filter -X
+ebtables -t filter -A INPUT -s 192.168.1.1 -j DROP
+ebtables -t filter -A INPUT -p ARP -j ACCEPT
+ebtables -t filter -A INPUT -i eth0 -o eth1 --logical-in br0 --logical-out br1 -j ACCEPT
+ebtables -t filter -A INPUT -s Multicast -d Broadcast -j DROP

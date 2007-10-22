@@ -1580,6 +1580,11 @@ sub tables($) {
             shell_append(\$rr, '--' . $keyword, $rule{$keyword})
               if defined $rule{$keyword};
         }
+    } elsif ($rule{domain_family} eq 'eb') {
+        foreach my $keyword (qw(logical-in logical-out)) {
+            shell_append(\$rr, '--' . $keyword, extract_negation $rule{$keyword})
+              if defined $rule{$keyword};
+        }
     }
 
     #
@@ -1834,6 +1839,11 @@ sub parse_builtin_matches($$$$) {
 
         if ($keyword =~ /^(?:h-length|opcode|h-type|proto-type)/s) {
             $current->{$keyword} = getvar();
+            return 1;
+        }
+    } elsif ($domain_family eq 'eb') {
+        if ($keyword =~ /^logical-(?:in|out)$/s) {
+            $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
             return 1;
         }
     }
