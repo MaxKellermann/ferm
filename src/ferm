@@ -2443,7 +2443,7 @@ sub enter($@) {
                 my @fw2;
                 foreach my $fw (@fw) {
                     my $fw2 = {};
-                    foreach my $key (qw(domain table proto)) {
+                    foreach my $key (qw(domain domain_family table proto)) {
                         my $value = $fw->{$key};
                         next unless defined $value;
                         $value = ref $value
