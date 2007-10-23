@@ -1689,6 +1689,13 @@ sub parse_option($$$$$$$) {
     my $k = $def->{keywords}{$keyword};
     return unless defined $k;
 
+    while (exists $k->{alias}) {
+        die if $k->{alias} eq $keyword;
+        $keyword = $k->{alias};
+        $k = $defs->{$name}{keywords}{$keyword};
+        die unless defined $k;
+    }
+
     $current->{"${type}__${name}__${keyword}"}
       = parse_keyword($fw, $k,
                       $keyword, $negated_ref);
