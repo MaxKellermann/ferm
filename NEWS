@@ -8,6 +8,7 @@
 
 
 v2.0 - not yet released
+  - don't hard code built-in match modules
   - support for arptables and ebtables
   - removed support for deprecated ferm 1.1 syntax
     - removed the "set" and the "option" keyword
