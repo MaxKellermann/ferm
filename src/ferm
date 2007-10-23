@@ -1350,10 +1350,12 @@ sub tables($) {
 
     if (exists $match_defs{$domain_family} and
         exists $match_defs{$domain_family}{''}) {
-        foreach my $keyword (%{$match_defs{$domain_family}{''}{keywords}}) {
-            my $value = $rule{"builtin____${keyword}"};
-            shell_append(\$rr, '--' . $keyword, extract_negation $value)
-              if defined $value;
+        while (my ($keyword, $k) = each %{$match_defs{$domain_family}{''}{keywords}}) {
+            my $key = "builtin____${keyword}";
+            next unless exists $rule{$key};
+            my $value = $rule->{$key};
+
+            shell_append_option(\$rr, $k, $keyword, $value);
         }
     }
 
