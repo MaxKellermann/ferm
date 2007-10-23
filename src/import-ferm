@@ -43,7 +43,7 @@ sub parse_table {
 }
 
 my %p0 = parse_table(<<EOT);
-f=fragment
+f=fragment fragment
 syn
 clamp-mss-to-pmtu
 ecn-tcp-cwr ecn-tcp-ece
@@ -63,8 +63,11 @@ ashort
 EOT
 
 my %p1 = parse_table(<<EOT);
+p=protocol
 i=interface o=outerface
+in-interface=interface out-interface=outerface
 s=saddr d=daddr
+source=saddr destination=daddr
 dport sport
 reject-with icmp-type icmpv6-type
 to-destination to-ports to
@@ -578,7 +581,7 @@ sub parse_option {
     $option = 'destination-ports' if $option eq 'dports';
     $option = 'source-ports' if $option eq 'sports';
 
-    if ($option eq 'p') {
+    if ($option eq 'protocol') {
         my $keyword = 'protocol';
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);
         # protocol implicitly loads the module
