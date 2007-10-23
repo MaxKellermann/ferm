@@ -208,6 +208,17 @@ add_proto_def 'sctp', qw(chunk-types!=sc);
 add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
 add_proto_def 'udp', qw();
 
+add_match_def '',
+  # --protocol
+  qw(protocol! proto:=protocol),
+  # --source, --destination
+  qw(source! saddr:=source destination! daddr:=destination),
+  # --in-interface
+  qw(in-interface! interface:=in-interface if:=in-interface),
+  # --out-interface
+  qw(out-interface! outerface:=out-interface of:=out-interface),
+  # --fragment
+  qw(!fragment*0);
 add_match_def 'account', qw(aaddr=s aname=s ashort*0);
 add_match_def 'addrtype', qw(src-type dst-type);
 add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
@@ -287,10 +298,30 @@ add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
 
-add_match_def_x 'arp', '', qw(source-mac! destination-mac!),
+add_match_def_x 'arp', '',
+  # ip
+  qw(source-ip! destination-ip! saddr:=source-ip daddr:=destination-ip),
+  # mac
+  qw(source-mac! destination-mac!),
+  # --in-interface
+  qw(in-interface! interface:=in-interface if:=in-interface),
+  # --out-interface
+  qw(out-interface! outerface:=out-interface of:=out-interface),
+  # misc
   qw(h-length=s opcode=s h-type=s proto-type=s),
   qw(mangle-ip-s=s mangle-ip-d=s mangle-mac-s=s mangle-mac-d=s mangle-target=s);
-add_match_def_x 'eb', '', qw(logical-in! logical-out!),
+
+add_match_def_x 'eb', '',
+  # protocol
+  qw(protocol! proto:=protocol),
+  # --in-interface
+  qw(in-interface! interface:=in-interface if:=in-interface),
+  # --out-interface
+  qw(out-interface! outerface:=out-interface of:=out-interface),
+  # logical interface
+  qw(logical-in! logical-out!),
+  # --source, --destination
+  qw(source! saddr:=source destination! daddr:=destination),
   # 802.3
   qw(802_3-sap! 802_3-type!),
   # arp
@@ -326,7 +357,7 @@ sub multiport_params {
     # into portions of 15, and handle these portions as
     # array elements
 
-    my $proto = find_option($fw, 'proto');
+    my $proto = find_option($fw, 'builtin____protocol');
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array($proto);
 
@@ -1328,25 +1359,6 @@ sub tables($) {
     }
 
     # general iptables options
-    shell_append(\$rr, '-s', extract_negation $rule{saddr})
-      if defined $rule{saddr};
-    shell_append(\$rr, '-d', extract_negation $rule{daddr})
-      if defined $rule{daddr};
-
-    shell_append(\$rr, '-i', extract_negation $rule{interface})
-      if defined $rule{'interface'};
-    shell_append(\$rr, '-o', extract_negation $rule{outerface})
-      if defined $rule{'outerface'};
-
-    shell_append(\$rr, '-p', extract_negation $rule{proto})
-      if defined $rule{proto};
-
-    if (defined $rule{'fragment'}) {
-        shell_append(\$rr, '!')
-          unless $rule{fragment} eq 'set';
-
-        shell_append(\$rr, '-f')
-    }
 
     if (exists $match_defs{$domain_family} and
         exists $match_defs{$domain_family}{''}) {
@@ -1363,8 +1375,8 @@ sub tables($) {
     # match module options
     #
 
-    if (defined $rule{proto}) {
-        my $proto = $rule{proto};
+    if (defined $rule{builtin____protocol}) {
+        my $proto = $rule{builtin____protocol};
         $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
 
         if (exists $proto_defs{$domain_family}{$proto}) {
@@ -1560,38 +1572,6 @@ sub filter_domains($) {
 # parse tokens from builtin match modules
 sub parse_builtin_matches($$$$$) {
     my ($fw, $current, $domain_family, $keyword, $negated_ref) = @_;
-
-    # routing base parameters
-    if ($keyword =~ /^(?:interface|if)$/) {
-        $current->{interface} = getvalues(undef, undef, allow_negation => 1);
-        return 1;
-    }
-    if ($keyword =~ /^(?:outerface|of)$/) {
-        $current->{outerface} = getvalues(undef, undef, allow_negation => 1);
-        return 1;
-    }
-    if ($keyword =~ /^proto(?:col)?$/) {
-        $current->{proto} = getvalues(undef, undef, allow_negation => 1);
-        return 1;
-    }
-
-    if ($keyword =~ /^[sd]addr$/) {
-        $current->{$keyword} = getvalues(undef, undef, allow_negation => 1);
-        return 1;
-    }
-
-    # miscelleanous switches
-    if ($domain_family eq 'ip' and $keyword eq 'fragment') {
-        if ($$negated_ref) {
-            $current->{$keyword} = 'unset';
-            undef $$negated_ref;
-        } else {
-            $current->{$keyword} = 'set';
-        }
-        return 1;
-    }
-
-    # arptables
 
     if (exists $match_defs{$domain_family}) {
         parse_option('builtin', $match_defs{$domain_family}, '',
@@ -2215,7 +2195,7 @@ sub enter($@) {
                 my @fw2;
                 foreach my $fw (@fw) {
                     my $fw2 = {};
-                    foreach my $key (qw(domain domain_family table proto)) {
+                    foreach my $key (qw(domain domain_family table builtin____protocol)) {
                         my $value = $fw->{$key};
                         next unless defined $value;
                         $value = ref $value
@@ -2309,7 +2289,7 @@ sub enter($@) {
                   if find_option(\@fw, 'policy');
 
                 if ($keyword eq 'TCPMSS') {
-                    my $protos = find_option(\@fw, 'proto');
+                    my $protos = find_option(\@fw, 'builtin____protocol');
                     error('No protocol specified before TCPMSS')
                       unless defined $protos;
                     foreach my $proto (to_array $protos) {
@@ -2326,7 +2306,7 @@ sub enter($@) {
             # protocol specific options
             #
 
-            my $proto = find_option(\@fw, 'proto');
+            my $proto = find_option(\@fw, 'builtin____protocol');
             if (defined $proto and not ref $proto) {
                 $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
 
