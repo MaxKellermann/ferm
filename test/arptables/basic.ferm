@@ -1,5 +1,5 @@
 domain arp chain INPUT {
-    saddr 192.168.1.1 DROP;
+    source-ip 192.168.1.1 DROP;
     source-mac 00:00:de:ad:be:ef ACCEPT;
     destination-mac f0:00:00:00:00:00 DROP;
     h-length 1234 opcode 1 h-type 1 proto-type 0x800 ACCEPT;
