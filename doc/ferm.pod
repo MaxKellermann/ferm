@@ -1168,6 +1168,84 @@ Log packets to a userspace program.
 
 =back
 
+=head1 OTHER DOMAINS
+
+Since verison 2.0, B<ferm> supports not only I<ip> and I<ip6>, but
+also I<arp> (ARP tables) and I<eb> (ethernet bridging tables).  The
+concepts are similar to I<iptables>.
+
+=head2 arptables keywords
+
+=over 8
+
+=item B<source-ip>, B<destination-ip>
+
+Matches the source or destination IPv4 address.  Same as B<saddr> and
+B<daddr> in the I<ip> domain.
+
+=item B<source-mac>, B<destination-mac>
+
+Matches the source or destination MAC address.
+
+=item B<interface>, B<outerface>
+
+Input and output interface.
+
+=item B<h-length>
+
+Hardware length of the packet.
+
+    chain INPUT h-length 64 ACCEPT;
+
+=item B<opcode>
+
+Operation code, for details see the iptables(8).
+
+    opcode 9 ACCEPT;
+
+=item B<h-type>
+
+Hardware type.
+
+    h-type 1 ACCEPT;
+
+=item B<proto-type>
+
+Protocol type.
+
+    proto-type 0x800 ACCEPT;
+
+=item B<Mangling>
+
+The keywords B<mangle-ip-s>, B<mangle-ip-d>, B<mangle-mac-s>,
+B<mangle-mac-d>, B<mangle-target> may be used for ARP mangling.  See
+iptables(8) for details.
+
+=back
+
+=head2 ebtables keywords
+
+=over 8
+
+=item B<proto>
+
+Matches the protocol which created the frame, e.g. I<IPv4> or B<PPP>.
+For a list, see F</etc/ethertypes>.
+
+=item B<interface>, B<outerface>
+
+Physical input and output interface.
+
+=item B<logical-in>, B<logical-out>
+
+The logical bridge interface.
+
+=item B<saddr>, B<daddr>
+
+Matches source or destination MAC address.
+
+=back
+
 =head1 ADVANCED FEATURES
 
 =head2 Variables
