@@ -1389,6 +1389,7 @@ string are false, everything else is true.  Examples for true values:
     (a b); 1; 'foo'; (0 0)
 
 Examples for false values:
+
     (); 0; '0'; ''
 
 There is also B<@else>:
