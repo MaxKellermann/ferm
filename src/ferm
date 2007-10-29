@@ -281,7 +281,7 @@ sub add_target_def(@) {
 
 add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
 add_proto_def 'icmp', qw(icmp-type!);
-add_proto_def 'icmpv6', qw(icmpv6-type!);
+add_proto_def 'icmpv6', qw(icmpv6-type! icmp-type:=icmpv6-type);
 add_proto_def 'sctp', qw(chunk-types!=sc);
 add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
 add_proto_def 'udp', qw();
@@ -1574,7 +1574,11 @@ sub tables($) {
 
     if (defined $rule{proto}) {
         my $proto = $rule{proto};
-        $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
+
+        if ($domain eq 'ip6') {
+            $proto = 'icmpv6'
+              if $proto eq 'ipv6-icmp' or $proto eq 'icmp';
+        }
 
         if (exists $proto_defs{$proto}) {
             my $def = $proto_defs{$proto};
@@ -2519,6 +2523,11 @@ sub enter($@) {
             my $proto = find_option(\@fw, 'proto');
             if (defined $proto and not ref $proto) {
                 $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
+
+                if ($proto eq 'icmp') {
+                    my $domains = find_option(\@fw, 'domain');
+                    $proto = 'icmpv6' if not ref $domains and $domains eq 'ip6';
+                }
 
                 parse_protocol_options(\@fw, $current, $proto, $keyword, \$negated)
                   and next;
