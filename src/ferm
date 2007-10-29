@@ -678,6 +678,16 @@ sub warning {
       . (shift) . "\n";
 }
 
+sub find_tool($) {
+    my $name = shift;
+    return $name if $option{test};
+    for my $path ('/sbin', split ':', $ENV{PATH}) {
+        my $ret = "$path/$name";
+        return $ret if -x $ret;
+    }
+    die "$name not found in PATH\n";
+}
+
 sub initialize_domain {
     my $domain = shift;
 
@@ -687,25 +697,17 @@ sub initialize_domain {
 
     my @tools = qw(tables tables-save tables-restore);
 
-    if ($option{test}) {
-        $domains{$domain}{tools}{$_} = "${domain}$_" foreach @tools;
-        $domains{$domain}{initialized} = 1;
-        return;
-    }
-
     # determine the location of this domain's tools
     foreach my $tool (@tools) {
-        my $path = "/usr/sbin/${domain}${tool}";
-        $path = "/sbin/${domain}${tool}" unless -x $path;
-        die "$path not found\n" unless -x $path;
-        $domains{$domain}{tools}{$tool} = $path;
+        $domains{$domain}{tools}{$tool} = find_tool("${domain}${tool}");
     }
 
     # make tables-save tell us about the state of this domain
     # (which tables and chains do exist?), also remember the old
     # save data which may be used later by the rollback function
     local *SAVE;
-    if (open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
+    if (!$option{test} &&
+        open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
         my $save = '';
 
         my $table_info;
