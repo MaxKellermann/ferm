@@ -1898,6 +1898,15 @@ sub parse_protocol_options($$$$$) {
     return unless exists $proto_defs{$proto} &&
       exists $proto_defs{$proto}{keywords}{$keyword};
 
+    my $k = $proto_defs{$proto}{keywords}{$keyword};
+
+    while (exists $k->{alias}) {
+        die if $k->{alias} eq $keyword;
+        $keyword = $k->{alias};
+        $k = $proto_defs{$proto}{keywords}{$keyword};
+        die unless defined $k;
+    }
+
     $current->{"protocol__${proto}__${keyword}"}
       = parse_keyword($fw, $proto_defs{$proto}{keywords}{$keyword},
                       $keyword, $negated_ref);
