@@ -1456,8 +1456,8 @@ sub tables($) {
 sub transform_rule($) {
     my $rule = shift;
 
-    $rule->{proto} = 'icmpv6'
-      if $rule->{domain} eq 'ip6' and $rule->{proto} eq 'icmp';
+    $rule->{builtin____protocol} = 'icmpv6'
+      if $rule->{domain} eq 'ip6' and $rule->{builtin____protocol} eq 'icmp';
 }
 
 sub printrule($) {
