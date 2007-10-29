@@ -203,7 +203,7 @@ sub add_target_def(@) {
 
 add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
 add_proto_def 'icmp', qw(icmp-type!);
-add_proto_def 'icmpv6', qw(icmpv6-type!);
+add_proto_def 'icmpv6', qw(icmpv6-type! icmp-type:=icmpv6-type);
 add_proto_def 'sctp', qw(chunk-types!=sc);
 add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
 add_proto_def 'udp', qw();
@@ -1379,7 +1379,8 @@ sub tables($) {
 
     if (defined $rule{builtin____protocol}) {
         my $proto = $rule{builtin____protocol};
-        $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
+        $proto = 'icmpv6'
+          if $domain eq 'ip6' and $proto eq 'ipv6-icmp';
 
         if (exists $proto_defs{$domain_family}{$proto}) {
             my $def = $proto_defs{$domain_family}{$proto};
@@ -1452,8 +1453,17 @@ sub tables($) {
                   };
 };
 
+sub transform_rule($) {
+    my $rule = shift;
+
+    $rule->{proto} = 'icmpv6'
+      if $rule->{domain} eq 'ip6' and $rule->{proto} eq 'icmp';
+}
+
 sub printrule($) {
     my $rule = shift;
+
+    transform_rule($rule);
 
     # prints all rules in a hash
     tables($rule);
@@ -2311,6 +2321,11 @@ sub enter($@) {
             my $proto = find_option(\@fw, 'builtin____protocol');
             if (defined $proto and not ref $proto) {
                 $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
+
+                if ($proto eq 'icmp') {
+                    my $domains = find_option(\@fw, 'domain');
+                    $proto = 'icmpv6' if not ref $domains and $domains eq 'ip6';
+                }
 
                 parse_protocol_options(\@fw, $current, $proto, $keyword, \$negated)
                   and next;

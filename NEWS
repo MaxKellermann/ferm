@@ -36,6 +36,7 @@ v1.3.0 - not yet released
   - look for iptables in PATH
   - added function @resolve which resolves host names to IPv4 addresses
   - import-ferm supports ip6tables-save files
+  - support "proto icmp" in the ip6 domain
 
 
 v1.2.5 - 14 Oct 2007
