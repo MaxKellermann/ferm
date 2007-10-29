@@ -1937,19 +1937,14 @@ sub parse_module_options($$$$$$) {
     my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
 
     # modules stored in %match_defs
-    while (my ($name, $mod) = each %match_defs) {
-        next unless exists $modules->{$name};
-        my $k = $mod->{keywords}{$keyword};
-        next unless defined $k;
-
-        $current->{"module__${name}__${keyword}"}
-          = parse_keyword($fw, $k,
-                          $keyword, $negated_ref);
-
-        # reset hash
-        keys %match_defs;
-
-        return 1;
+    foreach my $name (keys %$modules) {
+        parse_option('module', \%match_defs, $name, $fw, $current,
+                     $keyword, $negated_ref)
+          and do {
+              # reset hash
+              keys %match_defs;
+              return 1;
+          }
     }
 
     return;
