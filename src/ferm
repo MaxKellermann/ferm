@@ -1901,27 +1901,35 @@ sub parse_keyword($$$$) {
     return $value;
 }
 
-# parse options for a protocol module definition
-sub parse_protocol_options($$$$$) {
-    my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
+# parse options of a module
+sub parse_option($$$$$$$) {
+    my ($type, $defs, $name, $fw, $current, $keyword, $negated_ref) = @_;
 
-    return unless exists $proto_defs{$proto} &&
-      exists $proto_defs{$proto}{keywords}{$keyword};
+    my $def = $defs->{$name};
+    return unless defined $def;
 
-    my $k = $proto_defs{$proto}{keywords}{$keyword};
+    my $k = $def->{keywords}{$keyword};
+    return unless defined $k;
 
     while (exists $k->{alias}) {
         die if $k->{alias} eq $keyword;
         $keyword = $k->{alias};
-        $k = $proto_defs{$proto}{keywords}{$keyword};
+        $k = $defs->{$name}{keywords}{$keyword};
         die unless defined $k;
     }
 
-    $current->{"protocol__${proto}__${keyword}"}
-      = parse_keyword($fw, $proto_defs{$proto}{keywords}{$keyword},
+    $current->{"${type}__${name}__${keyword}"}
+      = parse_keyword($fw, $k,
                       $keyword, $negated_ref);
-
     return 1;
+}
+
+# parse options for a protocol module definition
+sub parse_protocol_options($$$$$) {
+    my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
+
+    return parse_option('protocol', \%proto_defs, $proto, $fw, $current,
+                        $keyword, $negated_ref);
 }
 
 # parse options for a match module definition
