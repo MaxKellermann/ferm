@@ -616,6 +616,8 @@ sub parse_option {
         my $keyword = $p1{$option};
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);
         $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
+        delete $cur->{$keyword}
+          if $keyword =~ /^[sd]addr$/ && $cur->{$keyword} eq '::/0';
     } elsif (exists $p1c{$option}) {
         my $keyword = $p1c{$option};
         my $param = wrap_negated($keyword, $tokens, \&fetch_token_comma);
