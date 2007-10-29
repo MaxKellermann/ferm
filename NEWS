@@ -19,6 +19,7 @@ v1.3.0 - not yet released
     - added simple Getopt::Long emulation
   - look for iptables in PATH
   - added function @resolve which resolves host names to IPv4 addresses
+  - import-ferm supports ip6tables-save files
 
 
 v1.2.5 - 14 Oct 2007
