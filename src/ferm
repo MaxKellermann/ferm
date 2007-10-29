@@ -1574,11 +1574,8 @@ sub tables($) {
 
     if (defined $rule{proto}) {
         my $proto = $rule{proto};
-
-        if ($domain eq 'ip6') {
-            $proto = 'icmpv6'
-              if $proto eq 'ipv6-icmp' or $proto eq 'icmp';
-        }
+        $proto = 'icmpv6'
+          if $domain eq 'ip6' and $proto eq 'ipv6-icmp';
 
         if (exists $proto_defs{$proto}) {
             my $def = $proto_defs{$proto};
@@ -1650,8 +1647,17 @@ sub tables($) {
                   };
 };
 
+sub transform_rule($) {
+    my $rule = shift;
+
+    $rule->{proto} = 'icmpv6'
+      if $rule->{domain} eq 'ip6' and $rule->{proto} eq 'icmp';
+}
+
 sub printrule($) {
     my $rule = shift;
+
+    transform_rule($rule);
 
     # prints all rules in a hash
     tables($rule);
