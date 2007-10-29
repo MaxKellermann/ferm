@@ -80,6 +80,7 @@ $(STAMPDIR)/%.SAVE: % $(NEW_FERM)
 	@mkdir -p $(dir $@)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
+$(STAMPDIR)/test/ipv6/%.IMPORT: export FERM_DOMAIN=ip6
 $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 	$(PERL) src/import-ferm $< |sed $(IMPORT_SED) >$@
 
