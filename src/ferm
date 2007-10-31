@@ -1525,12 +1525,12 @@ sub tables($) {
 
     # check for unknown jump target
     if (defined $action and
-        $action ne 'NOP' and
-        not is_netfilter_core_target($action) and
-        not is_netfilter_module_target($action) and
-        not exists $table_info->{chains}{$action}{was_created}) {
-        push @$rules, "$rr -N $action\n";
-        $table_info->{chains}{$action}{was_created} = 1;
+        ($action->{type} eq 'jump' or
+         $action->{type} eq 'goto') and
+        not exists $table_info->{chains}{$action->{chain}}{was_created}) {
+        my $chain = $action->{chain};
+        push @$rules, "$rr -N $chain\n";
+        $table_info->{chains}{$chain}{was_created} = 1;
     }
 
     # return if this is a policy-only rule
@@ -1629,20 +1629,23 @@ sub tables($) {
     # target options
     #
 
-    unless ($action eq 'NOP') {
-        my $option = (exists $rule{actiontype} and
-                      $rule{actiontype} eq 'goto')
-          ? '-g' : '-j';
-        shell_append(\$rr, $option, $action);
-    }
+    if ($action->{type} eq 'jump') {
+        shell_append(\$rr, '-j', $action->{chain});
+    } elsif ($action->{type} eq 'goto') {
+        shell_append(\$rr, '-g', $action->{chain});
+    } elsif ($action->{type} eq 'target') {
+        shell_append(\$rr, '-j', $action->{target});
 
-    # targets stored in %target_defs
+        # targets stored in %target_defs
 
-    while (my ($keyword, $value) = each %{$rule{target_options}}) {
-        my $def = $target_defs{$action}{keywords}{$keyword};
-        die unless defined $def;
+        while (my ($keyword, $value) = each %{$rule{target_options}}) {
+            my $def = $target_defs{$action->{target}}{keywords}{$keyword};
+            die unless defined $def;
 
-        shell_append_option(\$rr, $def, $keyword, $value);
+            shell_append_option(\$rr, $def, $keyword, $value);
+        }
+    } elsif ($action->{type} ne 'nop') {
+        die;
     }
 
     # this line is done
@@ -2424,7 +2427,9 @@ sub enter($@) {
                 enter($lev + 1, @fw2);
 
                 # now handle the parent - it's a jump to the sub chain
-                $current->{action} = $subchain;
+                $current->{action} = { type => 'jump',
+                                       chain => $subchain,
+                                     };
 
                 $current->{script} = { filename => $script->{filename},
                                        line => $script->{line},
@@ -2480,7 +2485,17 @@ sub enter($@) {
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
-                $current->{action} = getvar();
+                my $chain = getvar();
+                if (is_netfilter_core_target($chain) or
+                    is_netfilter_module_target($chain)) {
+                    $current->{action} = { type => 'target',
+                                           target => $chain,
+                                         };
+                } else {
+                    $current->{action} = { type => 'jump',
+                                           chain => $chain,
+                                         };
+                }
                 next;
             };
 
@@ -2490,8 +2505,9 @@ sub enter($@) {
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
-                $current->{action} = getvar();
-                $current->{actiontype} = 'goto';
+                $current->{action} = { type => 'goto',
+                                       chain => getvar(),
+                                     };
                 next;
             };
 
@@ -2501,7 +2517,9 @@ sub enter($@) {
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
-                $current->{action} = $keyword;
+                $current->{action} = { type => 'target',
+                                       target => $keyword,
+                                     };
                 next;
             }
 
@@ -2510,7 +2528,8 @@ sub enter($@) {
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
-                $current->{action} = uc $keyword;
+                $current->{action} = { type => 'nop',
+                                     };
                 next;
             }
 
@@ -2530,7 +2549,9 @@ sub enter($@) {
                     }
                 }
 
-                $current->{action} = $keyword;
+                $current->{action} = { type => 'target',
+                                       target => $keyword,
+                                     };
                 next;
             }
 
@@ -2591,9 +2612,10 @@ sub enter($@) {
             # target specific options
             #
 
-            my $target = find_option(\@fw, 'action');
-            if (defined $target and
-                parse_target_options(\@fw, $current, $target, $keyword)) {
+            my $action = find_option(\@fw, 'action');
+            if (defined $action and $action->{type} eq 'target') {
+                parse_target_options(\@fw, $current,
+                                     $action->{target}, $keyword);
                 next;
             }
 
