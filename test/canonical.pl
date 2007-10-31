@@ -76,6 +76,7 @@ while (<>) {
 
         # short to long
         s/-j\b/--jump/g;
+        s/-g\b/--goto/g;
         s/-i\b/--in-interface/g;
         s/-o\b/--out-interface/g;
         s/-p\b/--protocol/g;
