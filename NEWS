@@ -39,6 +39,7 @@ v1.3.0 - not yet released
   - support "proto icmp" in the ip6 domain
   - make "goto" deprecated to remap it to "--goto" later
   - implemented "--goto" support, keyword is "realgoto"
+  - don't default to policy if rule action is missing
 
 
 v1.2.5 - 14 Oct 2007
