@@ -92,7 +92,7 @@ more complex. Something to look at:
 
    chain INPUT {
        policy ACCEPT;
-       daddr 10.0.0.0/8 proto tcp dport ! ftp goto mychain sport :1023 TOS 4 settos 8 mark 2;
+       daddr 10.0.0.0/8 proto tcp dport ! ftp jump mychain sport :1023 TOS 4 settos 8 mark 2;
        daddr 10.0.0.0/8 proto tcp dport ftp REJECT;
    }
 
@@ -116,10 +116,10 @@ You will be thankful for it later!
         interface (eth0 ppp0) {
             # deny access to notorius hackers, return here if no match
             # was found to resume normal firewalling
-            goto badguys;
+            jump badguys;
 
-            protocol tcp goto fw_tcp;
-            protocol udp goto fw_udp;
+            protocol tcp jump fw_tcp;
+            protocol udp jump fw_udp;
         }
     }
 
@@ -328,7 +328,7 @@ Most matches are followed by a parameter: "proto tcp", "daddr
 =item
 
 B<target> keywords state what to do with a packet. Example: "ACCEPT",
-"REJECT", "goto".
+"REJECT", "jump".
 
 Some targets define more keywords to specify details: "REJECT
 reject-with icmp-net-unreachable".
@@ -530,7 +530,7 @@ keywords. We'll get to that later.
 
 =over 8
 
-=item B<goto [custom-chain-name]>
+=item B<jump [custom-chain-name]>
 
 Jumps to a custom chain. If no rule in the custom chain matched,
 netfilter returns to the next rule in the previous chain.
@@ -556,7 +556,7 @@ Type "iptables -j REJECT -h" for details.
 
 =item B<RETURN>
 
-Finish the current chain and return to the calling chain (if "goto
+Finish the current chain and return to the calling chain (if "jump
 [custom-chain-name]" was used).
 
 =item B<NOP>
