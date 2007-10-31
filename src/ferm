@@ -2033,14 +2033,7 @@ sub enter($@) {
                 if ($has_rule and not defined $action) {
                     # something is wrong when a rule was specifiedd,
                     # but no action
-                    if (defined $policy) {
-                        # ferm 1.1 compatibility: default action is
-                        # policy
-                        warning('Using policy as action is deprecated');
-                        $current->{action} = $policy;
-                    } else {
-                        error('No action defined; did you mean "NOP"?');
-                    }
+                    error('No action defined; did you mean "NOP"?');
                 }
 
                 error('No chain defined') unless defined $chain;
