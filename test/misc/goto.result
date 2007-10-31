@@ -1,0 +1,5 @@
+iptables -t filter -N foo
+iptables -t filter -A INPUT -p esp -j foo
+iptables -t filter -A INPUT -p ah -j foo
+iptables -t filter -A INPUT -p icmp -g foo
+iptables -t filter -A foo -j REJECT
