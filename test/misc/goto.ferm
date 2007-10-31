@@ -1,0 +1,8 @@
+chain INPUT {
+    proto esp jump foo;
+    proto ah goto foo;
+    proto icmp realgoto foo;
+}
+chain foo {
+    REJECT;
+}

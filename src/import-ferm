@@ -642,13 +642,19 @@ sub parse_option {
         $cur = $line->{jump} = {};
         unless (is_netfilter_core_target($target) ||
                 is_netfilter_module_target($target)) {
-            $cur->{goto} = $target;
+            $cur->{jump} = $target;
         } else {
             $cur->{$target} = undef;
         }
         # what now follows is target parameters; set $cur
         # correctly
         $line->{cur} = $line->{target} = {};
+    } elsif ($option eq 'g') {
+        die unless @$tokens;
+        my $target = shift @$tokens;
+        # store the target in $line->{jump}
+        $cur = $line->{jump} = {};
+        $cur->{realgoto} = $target;
     } else {
         die "option '$option' in line $. not understood\n";
     }

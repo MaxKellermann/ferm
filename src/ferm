@@ -1435,8 +1435,12 @@ sub tables($) {
     # target options
     #
 
-    shell_append(\$rr, '-j', $action)
-      unless $action eq 'NOP';
+    unless ($action eq 'NOP') {
+        my $option = (exists $rule{actiontype} and
+                      $rule{actiontype} eq 'goto')
+          ? '-g' : '-j';
+        shell_append(\$rr, $option, $action);
+    }
 
     # targets stored in %target_defs
 
@@ -2273,6 +2277,17 @@ sub enter($@) {
                 warning('Please declare the policy in a separate statement')
                   if find_option(\@fw, 'policy');
                 $current->{action} = getvar();
+                next;
+            };
+
+            # goto action
+            if ($keyword eq 'realgoto') {
+                error('There can only one action per rule')
+                  if exists $current->{action};
+                warning('Please declare the policy in a separate statement')
+                  if find_option(\@fw, 'policy');
+                $current->{action} = getvar();
+                $current->{actiontype} = 'goto';
                 next;
             };
 

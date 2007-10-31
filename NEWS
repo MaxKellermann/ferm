@@ -38,6 +38,7 @@ v1.3.0 - not yet released
   - import-ferm supports ip6tables-save files
   - support "proto icmp" in the ip6 domain
   - make "goto" deprecated to remap it to "--goto" later
+  - implemented "--goto" support, keyword is "realgoto"
 
 
 v1.2.5 - 14 Oct 2007
