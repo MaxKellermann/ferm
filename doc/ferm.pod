@@ -750,6 +750,9 @@ when you use "protocol icmp".
 
     proto icmp icmp-type echo-request ACCEPT;
 
+This option can also be used in be I<ip6> domain, although this is
+called B<icmpv6> in F<ip6tables>.
+
 Use "iptables -p icmp C<-h>" to obtain a list of valid ICMP types.
 
 =item B<iprange>
