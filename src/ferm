@@ -145,6 +145,7 @@ use vars qw(%deprecated_keywords %automod);
                          ttl => 'TTL',
                          ulog => 'ULOG',
                          nop => 'NOP',
+                         goto => 'jump',
                        );
 
 # support for the deprecated "automod" option. provide a mapping
@@ -1512,7 +1513,7 @@ sub tables($) {
 
     # mark this chain as "non-empty" because we will add stuff to
     # it now; this flag is later used to check if a custom chain
-    # referenced by "goto" was actually defined
+    # referenced by "jump" was actually defined
     $chain_info->{non_empty} = 1;
 
     # check if the chain is already defined
@@ -2477,7 +2478,7 @@ sub enter($@) {
             #
 
             # jump action
-            if (/^(?:goto|jump)$/) {
+            if ($keyword eq 'jump') {
                 error('There can only one action per rule')
                   if exists $current->{action};
                 warning('Please declare the policy in a separate statement')
