@@ -7,7 +7,6 @@ Roadmap for ferm 1.3
 
 * support more netfilter modules
   - statistic
-  - ERROR
   - NFLOG
 
 
