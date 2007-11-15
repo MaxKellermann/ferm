@@ -633,6 +633,15 @@ Matches if a value in /proc/net/ipt_condition/NAME is 1 (path is
     mod condition condition (abc def) ACCEPT;
     mod condition condition !foo ACCEPT;
 
+=item B<connlimit>
+
+Allows you to restrict the number of parallel TCP connections to a
+server per client IP address (or address block).
+
+    mod connlimit connlimit-above 4 REJECT;
+    mod connlimit connlimit-above !4 ACCEPT;
+    mod connlimit connlimit-above 4 connlimit-mask 24 REJECT;
+
 =item B<connmark>
 
 Check the mark field associated with the connection, set by the

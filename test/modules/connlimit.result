@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m connlimit -j REJECT --connlimit-above 4 --connlimit-mask 24
+iptables -t filter -A INPUT -m connlimit -j DROP ! --connlimit-above 2

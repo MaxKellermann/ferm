@@ -121,6 +121,7 @@ aaddr aname
 hashlimit hashlimit-burst hashlimit-mode hashlimit-name
 hashlimit-htable-size hashlimit-htable-max
 hashlimit-htable-expire hashlimit-htable-gcinterval
+connlimit-above connlimit-mask
 EOT
 
 my %p1c = parse_table(<<EOT);
