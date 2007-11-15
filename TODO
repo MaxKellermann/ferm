@@ -20,6 +20,8 @@ Roadmap for ferm 2.0
 * remove support for legacy 1.1 syntax
 * remove support for obsolete netfilter modules: dst, frag, iplimit, mport
 * import-ferm should use ferm's %XY_defs
+* the order of matches is important for iptables; honor that
+* policy parameters
 
 
 Roadmap for ferm 3.0
