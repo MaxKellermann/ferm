@@ -842,6 +842,12 @@ bit integer between 0 and 4294967295.
 
     mod mark mark 42;
 
+=item B<mh>
+
+Matches the mobility header (domain I<ip6>).
+
+    proto mh mh-type binding-update ACCEPT;
+
 =item B<multiport>
 
 Match a set of source or destination ports (UDP and TCP only).

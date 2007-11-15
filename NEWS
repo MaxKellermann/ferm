@@ -24,6 +24,8 @@ v1.3.0 - not yet released
   - make "goto" deprecated to remap it to "--goto" later
   - implemented "--goto" support, keyword is "realgoto"
   - don't default to policy if rule action is missing
+  - support protocol modules
+    * mh
   - support netfilter modules:
     * connbytes
     * connlimit

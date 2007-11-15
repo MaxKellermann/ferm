@@ -125,6 +125,7 @@ hashlimit-htable-expire hashlimit-htable-gcinterval
 connlimit-above connlimit-mask
 connbytes connbytes-dir connbytes-mode
 selctx
+mh-type
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -178,6 +179,7 @@ header
 length
 physdev-in physdev-out
 rt-type rt-segsleft rt-len
+mh-type
 );
 
 sub is_netfilter_core_target {

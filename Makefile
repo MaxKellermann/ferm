@@ -56,6 +56,9 @@ FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
 EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
 IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 
+# just a hack because ferm/import-ferm scramble the keyword order
+SAVE2_SED = -e 's,-m mh -p ipv6-mh,-p ipv6-mh -m mh,'
+
 $(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
 $(STAMPDIR)/%.OLD: % $(OLD_FERM) test/canonical.pl
 	@mkdir -p $(dir $@)
@@ -79,7 +82,7 @@ $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 	$(PERL) src/import-ferm $< >$@
 
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' |sed $(SAVE2_SED) >$@
 
 %.check: %.OLD %.NEW
 	diff -u $^
