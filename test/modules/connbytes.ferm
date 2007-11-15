@@ -1,0 +1,4 @@
+table filter chain INPUT mod connbytes {
+    connbytes 1024:4096 connbytes-dir both connbytes-mode packets ACCEPT;
+    connbytes !2048: connbytes-dir original connbytes-mode bytes DROP;
+}
