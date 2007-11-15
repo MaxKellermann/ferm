@@ -26,6 +26,7 @@ v1.3.0 - not yet released
   - don't default to policy if rule action is missing
   - support protocol modules
     * mh
+    * udplite (sport, dport, mod multiport)
   - support netfilter modules:
     * connbytes
     * connlimit

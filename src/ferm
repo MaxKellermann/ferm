@@ -382,7 +382,7 @@ sub multiport_params {
 
     my $proto = find_option($fw, 'proto');
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
-      unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array($proto);
+      unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
     my $value = getvalues(undef, undef,
                           allow_negation => 1,
@@ -1604,7 +1604,7 @@ sub tables($) {
 
         # special case: --dport and --sport for TCP/UDP
         if ((exists $rule{dport} or exists $rule{sport}) and
-            $proto =~ /^(?:tcp|udp|dccp|sctp)$/) {
+            $proto =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
             unless (exists $modules{$proto}) {
                 shell_append(\$rr, '-m', $proto);
                 $modules{$proto} = 1;
@@ -2594,7 +2594,7 @@ sub enter($@) {
 
             if ($keyword =~ /^[sd]port$/) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
-                  unless defined $proto and grep { /^(?:tcp|udp|dccp|sctp)$/ } to_array $proto;
+                  unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
                 $current->{$keyword} = getvalues(undef, undef,
                                                  allow_negation => 1);
