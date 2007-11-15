@@ -1,0 +1,8 @@
+chain INPUT {
+    NFLOG;
+    NFLOG nflog-group 1;
+    NFLOG nflog-prefix "foo;bar";
+    NFLOG nflog-prefix "foo{}bar";
+    NFLOG nflog-range 100;
+    NFLOG nflog-threshold 200;
+}

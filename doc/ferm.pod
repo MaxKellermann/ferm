@@ -1156,6 +1156,14 @@ Disable connection tracking for all packets matching that rule.
 
     proto tcp dport (135:139 445) NOTRACK;
 
+=item B<NFLOG>
+
+Log packets over netlink; this is the successor of I<ULOG>.
+
+    NFLOG nflog-group 5 nflog-prefix "Look at this: ";
+    NFLOG nflog-range 256;
+    NFLOG nflog-threshold 10;
+
 =item B<NFQUEUE>
 
 Userspace queueing, requires nfnetlink_queue kernel support.

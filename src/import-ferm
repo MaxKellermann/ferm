@@ -127,6 +127,7 @@ connbytes connbytes-dir connbytes-mode
 selctx
 mh-type
 probability
+nflog-group nflog-prefix nflog-range nflog-threshold
 EOT
 
 my %p1c = parse_table(<<EOT);
