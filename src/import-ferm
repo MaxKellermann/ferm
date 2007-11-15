@@ -122,6 +122,7 @@ hashlimit hashlimit-burst hashlimit-mode hashlimit-name
 hashlimit-htable-size hashlimit-htable-max
 hashlimit-htable-expire hashlimit-htable-gcinterval
 connlimit-above connlimit-mask
+connbytes connbytes-dir connbytes-mode
 EOT
 
 my %p1c = parse_table(<<EOT);

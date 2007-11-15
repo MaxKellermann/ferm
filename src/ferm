@@ -292,6 +292,7 @@ add_match_def 'addrtype', qw(src-type dst-type);
 add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
 add_match_def 'comment', qw(comment=s);
 add_match_def 'condition', qw(condition!);
+add_match_def 'connbytes', qw(!connbytes connbytes-dir connbytes-mode);
 add_match_def 'connlimit', qw(!connlimit-above connlimit-mask);
 add_match_def 'connmark', qw(mark);
 add_match_def 'conntrack', qw(ctstate=c ctproto ctorigsrc! ctorigdst!),

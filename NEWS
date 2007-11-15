@@ -25,6 +25,7 @@ v1.3.0 - not yet released
   - implemented "--goto" support, keyword is "realgoto"
   - don't default to policy if rule action is missing
   - support netfilter modules:
+    * connbytes
     * connlimit
 
 

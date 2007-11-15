@@ -633,6 +633,18 @@ Matches if a value in /proc/net/ipt_condition/NAME is 1 (path is
     mod condition condition (abc def) ACCEPT;
     mod condition condition !foo ACCEPT;
 
+=item B<connbytes>
+
+Match by how many bytes or packets a connection (or one of the two
+flows constituting the connection) have tranferred so far, or by
+average bytes per packet.
+
+    mod connbytes connbytes 65536: connbytes-dir both connbytes-mode bytes ACCEPT;
+    mod connbytes connbytes !1024:2048 connbytes-dir reply connbytes-mode packets ACCEPT;
+
+Valid values for I<connbytes-dir>: I<original>, I<reply>, I<both>; for
+I<connbytes-mode>: I<packets>, I<bytes>, I<avgpkt>.
+
 =item B<connlimit>
 
 Allows you to restrict the number of parallel TCP connections to a
