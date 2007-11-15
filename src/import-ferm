@@ -126,6 +126,7 @@ connlimit-above connlimit-mask
 connbytes connbytes-dir connbytes-mode
 selctx
 mh-type
+probability
 EOT
 
 my %p1c = parse_table(<<EOT);

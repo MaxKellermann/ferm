@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m statistic --mode random --probability 0.8 -j ACCEPT
+iptables -t filter -A INPUT -m statistic --mode nth --every 5 --packet 0 -j DROP

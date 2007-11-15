@@ -990,6 +990,14 @@ Checks the connection tracking state.
 
 Type "iptables -m state -h" for details.
 
+=item B<statistic>
+
+Successor of B<nth> and B<random>, currently undocumented in the
+iptables(8) man page.
+
+    mod statistic mode random probability 0.8 ACCEPT;
+    mod statistic mode nth every 5 packet 0 DROP;
+
 =item B<tcp>
 
 Checks TCP specific attributes. This module is automatically loaded
