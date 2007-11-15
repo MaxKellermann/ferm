@@ -1062,6 +1062,16 @@ Sets the netfilter mark value associated with a connection.
     CONNMARK save-mark mask 0x7fff;
     CONNMARK restore-mark mask 0x8000;
 
+=item B<CONNSECMARK>
+
+This module copies security markings from packets to connections (if
+unlabeled), and from connections back to packets (also only if
+unlabeled).  Typically used in conjunction with SECMARK, it is only
+valid in the mangle table.
+
+    CONNSECMARK save;
+    CONNSECMARK restore;
+
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
 
 Change the destination address of the packet.
@@ -1151,6 +1161,14 @@ Transparent proxying: alter the destination IP of the packet to the
 machine itself.
 
     proto tcp dport http REDIRECT to-ports 3128;
+
+=item B<SECMARK>
+
+This is used to set the security mark value associated with the packet
+for use by security subsystems such as SELinux.  It is only valid in
+the mangle table.
+
+    SECMARK selctx "system_u:object_r:httpd_packet_t:s0";
 
 =item B<SET [add-set|del-set] [setname] [flag(s)]>
 

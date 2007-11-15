@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -p udp -j CONNSECMARK --save
+iptables -t filter -A INPUT -p tcp -j CONNSECMARK --restore

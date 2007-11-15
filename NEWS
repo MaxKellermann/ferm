@@ -27,6 +27,9 @@ v1.3.0 - not yet released
   - support netfilter modules:
     * connbytes
     * connlimit
+  - support netfilter targets:
+    * CONNSECMARK
+    * SECMARK
 
 
 v1.2.5 - 14 Oct 2007
