@@ -33,6 +33,8 @@ v1.3.0 - not yet released
   - support netfilter targets:
     * CONNSECMARK
     * SECMARK
+  - abort when there is an unrecognized command line option (reported by
+    Han Holl)
 
 
 v1.2.5 - 14 Oct 2007

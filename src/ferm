@@ -453,6 +453,7 @@ if ($has_getopt) {
         $stack[0]{vars}{$name} = $value;
     }
 
+    local $SIG{__WARN__} = sub { die $_[0]; };
     GetOptions('noexec|n' => \$opt_noexec,
                'flush|F' => \$opt_flush,
                'lines|l' => \$opt_lines,
