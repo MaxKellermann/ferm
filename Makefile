@@ -59,6 +59,7 @@ IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 # just a hack because ferm/import-ferm scramble the keyword order
 IMPORT_SED = -e 's,fragfirst fragres,fragres fragfirst,'
 SAVE2_SED = -e 's,--start 2 --counter 1,--counter 1 --start 2,'
+SAVE2_SED += -e 's,-m mh -p ipv6-mh,-p ipv6-mh -m mh,'
 
 FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 

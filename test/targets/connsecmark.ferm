@@ -1,0 +1,4 @@
+table filter chain INPUT {
+    proto udp CONNSECMARK save;
+    proto tcp CONNSECMARK restore;
+}

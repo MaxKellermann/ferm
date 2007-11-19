@@ -1,0 +1,5 @@
+domain ip6 chain INPUT {
+    proto mh mh-type home-test ACCEPT;
+    proto mh mh-type !binding-update DROP;
+    proto ipv6-mh mh-type (binding-acknowledgement binding-error) REJECT;
+}

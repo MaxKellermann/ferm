@@ -203,6 +203,7 @@ sub add_target_def(@) {
 }
 
 add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
+add_proto_def 'mh', qw(mh-type!);
 add_proto_def 'icmp', qw(icmp-type!);
 add_proto_def 'icmpv6', qw(icmpv6-type! icmp-type:=icmpv6-type);
 add_proto_def 'sctp', qw(chunk-types!=sc);
@@ -225,6 +226,8 @@ add_match_def 'addrtype', qw(src-type dst-type);
 add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
 add_match_def 'comment', qw(comment=s);
 add_match_def 'condition', qw(condition!);
+add_match_def 'connbytes', qw(!connbytes connbytes-dir connbytes-mode);
+add_match_def 'connlimit', qw(!connlimit-above connlimit-mask);
 add_match_def 'connmark', qw(mark);
 add_match_def 'conntrack', qw(ctstate=c ctproto ctorigsrc! ctorigdst!),
   qw(ctreplsrc! ctrepldst! ctstatus ctexpire=s);
@@ -266,6 +269,7 @@ add_match_def 'recent', qw(name=s !set*0 !rcheck*0 !update*0 !seconds !hitcount 
 add_match_def 'rt', qw(rt-type! rt-segsleft! rt-len! rt-0-res*0 rt-0-addrs=c rt-0-not-strict*0);
 add_match_def 'set', qw(set=sc);
 add_match_def 'state', qw(state=c);
+add_match_def 'statistic', qw(mode=s probability=s every=s packet=s);
 add_match_def 'tcpmss', qw(!mss);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
 add_match_def 'tos', qw(!tos);
@@ -274,6 +278,7 @@ add_match_def 'ttl', qw(ttl-eq ttl-lt=s ttl-gt=s);
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
 add_target_def 'CLASSIFY', qw(set-class);
 add_target_def 'CONNMARK', qw(set-mark save-mark*0 restore-mark*0 mask);
+add_target_def 'CONNSECMARK', qw(save*0 restore*0);
 add_target_def 'DNAT', qw(to-destination to:=to-destination);
 add_target_def 'DSCP', qw(set-dscp set-dscp-class);
 add_target_def 'ECN', qw(ecn-tcp-remove*0);
@@ -284,12 +289,14 @@ add_target_def 'MARK', qw(set-mark);
 add_target_def 'MASQUERADE', qw(to-ports);
 add_target_def 'MIRROR';
 add_target_def 'NETMAP', qw(to);
+add_target_def 'NFLOG', qw(nflog-group nflog-prefix nflog-range nflog-threshold);
 add_target_def 'NFQUEUE', qw(queue-num);
 add_target_def 'NOTRACK';
 add_target_def 'REDIRECT', qw(to-ports);
 add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SAME', qw(to nodst*0);
+add_target_def 'SECMARK', qw(selctx);
 add_target_def 'SET', qw(add-set=sc del-set=sc);
 add_target_def 'SNAT', qw(to-source=a to:=to-source);
 add_target_def 'TARPIT';
@@ -360,7 +367,7 @@ sub multiport_params {
 
     my $proto = find_option($fw, 'builtin____protocol');
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
-      unless defined $proto and grep { /^(?:tcp|udp)$/ } to_array($proto);
+      unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
     my $value = getvalues(undef, undef,
                           allow_negation => 1,
@@ -407,6 +414,7 @@ if ($has_getopt) {
         $stack[0]{vars}{$name} = $value;
     }
 
+    local $SIG{__WARN__} = sub { die $_[0]; };
     GetOptions('noexec|n' => \$opt_noexec,
                'flush|F' => \$opt_flush,
                'lines|l' => \$opt_lines,
@@ -1382,6 +1390,8 @@ sub tables($) {
         my $proto = $rule{builtin____protocol};
         $proto = 'icmpv6'
           if $domain eq 'ip6' and $proto eq 'ipv6-icmp';
+        $proto = 'mh'
+          if $domain eq 'ip6' and $proto eq 'ipv6-mh';
 
         if (exists $proto_defs{$domain_family}{$proto}) {
             my $def = $proto_defs{$domain_family}{$proto};
@@ -1403,7 +1413,7 @@ sub tables($) {
         # special case: --dport and --sport for TCP/UDP
         if ($domain_family eq 'ip' and
             (exists $rule{dport} or exists $rule{sport}) and
-            $proto =~ /^(?:tcp|udp|dccp|sctp)$/) {
+            $proto =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
             unless (exists $modules{$proto}) {
                 shell_append(\$rr, '-m', $proto);
                 $modules{$proto} = 1;
@@ -2358,6 +2368,7 @@ sub enter($@) {
             my $proto = find_option(\@fw, 'builtin____protocol');
             if (defined $proto and not ref $proto) {
                 $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
+                $proto = 'mh' if $proto eq 'ipv6-mh';
 
                 if ($proto eq 'icmp') {
                     my $domains = find_option(\@fw, 'domain');
@@ -2371,7 +2382,7 @@ sub enter($@) {
             # port switches
             if ($keyword =~ /^[sd]port$/) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
-                  unless defined $proto and grep { /^(?:tcp|udp|dccp|sctp)$/ } to_array $proto;
+                  unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
                 $current->{$keyword} = getvalues(undef, undef,
                                                  allow_negation => 1);

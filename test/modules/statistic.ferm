@@ -1,0 +1,4 @@
+table filter chain INPUT mod statistic {
+    mode random probability 0.8 ACCEPT;
+    mode nth every 5 packet 0 DROP;
+}

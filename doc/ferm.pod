@@ -633,6 +633,27 @@ Matches if a value in /proc/net/ipt_condition/NAME is 1 (path is
     mod condition condition (abc def) ACCEPT;
     mod condition condition !foo ACCEPT;
 
+=item B<connbytes>
+
+Match by how many bytes or packets a connection (or one of the two
+flows constituting the connection) have tranferred so far, or by
+average bytes per packet.
+
+    mod connbytes connbytes 65536: connbytes-dir both connbytes-mode bytes ACCEPT;
+    mod connbytes connbytes !1024:2048 connbytes-dir reply connbytes-mode packets ACCEPT;
+
+Valid values for I<connbytes-dir>: I<original>, I<reply>, I<both>; for
+I<connbytes-mode>: I<packets>, I<bytes>, I<avgpkt>.
+
+=item B<connlimit>
+
+Allows you to restrict the number of parallel TCP connections to a
+server per client IP address (or address block).
+
+    mod connlimit connlimit-above 4 REJECT;
+    mod connlimit connlimit-above !4 ACCEPT;
+    mod connlimit connlimit-above 4 connlimit-mask 24 REJECT;
+
 =item B<connmark>
 
 Check the mark field associated with the connection, set by the
@@ -821,6 +842,12 @@ bit integer between 0 and 4294967295.
 
     mod mark mark 42;
 
+=item B<mh>
+
+Matches the mobility header (domain I<ip6>).
+
+    proto mh mh-type binding-update ACCEPT;
+
 =item B<multiport>
 
 Match a set of source or destination ports (UDP and TCP only).
@@ -963,6 +990,14 @@ Checks the connection tracking state.
 
 Type "iptables -m state -h" for details.
 
+=item B<statistic>
+
+Successor of B<nth> and B<random>, currently undocumented in the
+iptables(8) man page.
+
+    mod statistic mode random probability 0.8 ACCEPT;
+    mod statistic mode nth every 5 packet 0 DROP;
+
 =item B<tcp>
 
 Checks TCP specific attributes. This module is automatically loaded
@@ -1041,6 +1076,16 @@ Sets the netfilter mark value associated with a connection.
     CONNMARK save-mark mask 0x7fff;
     CONNMARK restore-mark mask 0x8000;
 
+=item B<CONNSECMARK>
+
+This module copies security markings from packets to connections (if
+unlabeled), and from connections back to packets (also only if
+unlabeled).  Typically used in conjunction with SECMARK, it is only
+valid in the mangle table.
+
+    CONNSECMARK save;
+    CONNSECMARK restore;
+
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
 
 Change the destination address of the packet.
@@ -1111,6 +1156,14 @@ Disable connection tracking for all packets matching that rule.
 
     proto tcp dport (135:139 445) NOTRACK;
 
+=item B<NFLOG>
+
+Log packets over netlink; this is the successor of I<ULOG>.
+
+    NFLOG nflog-group 5 nflog-prefix "Look at this: ";
+    NFLOG nflog-range 256;
+    NFLOG nflog-threshold 10;
+
 =item B<NFQUEUE>
 
 Userspace queueing, requires nfnetlink_queue kernel support.
@@ -1130,6 +1183,14 @@ Transparent proxying: alter the destination IP of the packet to the
 machine itself.
 
     proto tcp dport http REDIRECT to-ports 3128;
+
+=item B<SECMARK>
+
+This is used to set the security mark value associated with the packet
+for use by security subsystems such as SELinux.  It is only valid in
+the mangle table.
+
+    SECMARK selctx "system_u:object_r:httpd_packet_t:s0";
 
 =item B<SET [add-set|del-set] [setname] [flag(s)]>
 

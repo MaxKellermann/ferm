@@ -40,6 +40,17 @@ v1.3.0 - not yet released
   - make "goto" deprecated to remap it to "--goto" later
   - implemented "--goto" support, keyword is "realgoto"
   - don't default to policy if rule action is missing
+  - support protocol modules
+    * mh
+    * udplite (sport, dport, mod multiport)
+  - support netfilter modules:
+    * connbytes
+    * connlimit
+  - support netfilter targets:
+    * CONNSECMARK
+    * SECMARK
+  - abort when there is an unrecognized command line option (reported by
+    Han Holl)
 
 
 v1.2.5 - 14 Oct 2007

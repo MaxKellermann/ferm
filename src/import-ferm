@@ -60,6 +60,7 @@ ahres
 soft
 rt-0-res rt-0-not-strict
 ashort
+save restore
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -124,6 +125,12 @@ aaddr aname
 hashlimit hashlimit-burst hashlimit-mode hashlimit-name
 hashlimit-htable-size hashlimit-htable-max
 hashlimit-htable-expire hashlimit-htable-gcinterval
+connlimit-above connlimit-mask
+connbytes connbytes-dir connbytes-mode
+selctx
+mh-type
+probability
+nflog-group nflog-prefix nflog-range nflog-threshold
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -177,6 +184,7 @@ header
 length
 physdev-in physdev-out
 rt-type rt-segsleft rt-len
+mh-type
 );
 
 sub is_netfilter_core_target {
