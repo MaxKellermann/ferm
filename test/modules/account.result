@@ -1,3 +1,3 @@
-iptables -A FORWARD -m account --aname mynetwork --aaddr 192.168.0.0/24
+iptables -A INPUT -m account --aname mynetwork --aaddr 192.168.0.0/24
 iptables -A INPUT -p tcp --dport 80 -m account --aname mywwwserver --aaddr 192.168.0.0/24 --ashort
-iptables -A OUTPUT -p tcp --sport 80 -m account --aname mywwwserver --aaddr 192.168.0.0/24 --ashort
+iptables -A INPUT -p tcp --sport 80 -m account --aname mywwwserver --aaddr 192.168.0.0/24 --ashort
