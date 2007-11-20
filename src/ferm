@@ -1735,8 +1735,8 @@ sub parse_match_option($$$$$$) {
 }
 
 # parse options for a match module definition
-sub parse_module_options($$$$$$) {
-    my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
+sub parse_module_options($$$$$) {
+    my ($fw, $current, $modules, $keyword, $negated_ref) = @_;
 
     my $domain_family = find_option($fw, 'domain_family');
     my $match_defs = $match_defs{$domain_family};
@@ -2394,7 +2394,7 @@ sub enter($@) {
             #
 
             if (keys %modules) {
-                parse_module_options(\@fw, $current, \%modules, $keyword, \$negated, $proto)
+                parse_module_options(\@fw, $current, \%modules, $keyword, \$negated)
                   and next;
             }
 
