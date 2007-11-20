@@ -1951,8 +1951,8 @@ sub parse_protocol_options($$$$$) {
 }
 
 # parse options for a match module definition
-sub parse_module_options($$$$$$) {
-    my ($fw, $current, $modules, $keyword, $negated_ref, $proto) = @_;
+sub parse_module_options($$$$$) {
+    my ($fw, $current, $modules, $keyword, $negated_ref) = @_;
 
     # modules stored in %match_defs
     foreach my $name (keys %$modules) {
@@ -2615,7 +2615,7 @@ sub enter($@) {
             }
 
             if (keys %modules) {
-                parse_module_options(\@fw, $current, \%modules, $keyword, \$negated, $proto)
+                parse_module_options(\@fw, $current, \%modules, $keyword, \$negated)
                   and next;
             }
 
