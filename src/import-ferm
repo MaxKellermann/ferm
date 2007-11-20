@@ -492,7 +492,7 @@ sub flush {
 
         foreach (qw(match jump target)) {
             unless (exists $rule->{$_}) {
-                push @line, 'NOP' if $_ eq 'jump';
+                push @line, 'NOP' if $_ eq 'jump' and not exists $rule->{block};
                 next;
             }
 
