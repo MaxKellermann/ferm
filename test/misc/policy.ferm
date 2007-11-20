@@ -1,7 +1,7 @@
 chain INPUT policy DROP;
 chain OUTPUT policy ACCEPT;
 chain FORWARD policy DROP;
-table nat chain FORWARD policy DROP {
+table nat chain FORWARD {
+    policy DROP;
     ACCEPT;
 }
-
