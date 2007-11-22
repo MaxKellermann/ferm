@@ -1215,7 +1215,7 @@ sub netfilter_canonical_protocol($) {
     return $proto;
 }
 
-sub netfilter_protocol_module($$) {
+sub netfilter_protocol_module($) {
     my $proto = shift;
     return unless defined $proto;
     return 'icmp6'
