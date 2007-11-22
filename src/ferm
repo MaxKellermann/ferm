@@ -1205,6 +1205,24 @@ sub is_netfilter_builtin_chain($$) {
       qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
 }
 
+sub netfilter_canonical_protocol($) {
+    my $proto) = shift;
+    return unless defined $proto;
+    return 'icmpv6'
+      if $proto eq 'ipv6-icmp';
+    return 'mh'
+      if $proto eq 'ipv6-mh';
+    return $proto;
+}
+
+sub netfilter_protocol_module($$) {
+    my $proto = shift;
+    return unless defined $proto;
+    return 'icmp6'
+      if $proto eq 'icmpv6';
+    return $proto;
+}
+
 # escape the string in a way safe for the shell
 sub shell_escape($) {
     my $token = shift;
@@ -1387,11 +1405,7 @@ sub tables($) {
     #
 
     if (defined $rule{builtin____protocol}) {
-        my $proto = $rule{builtin____protocol};
-        $proto = 'icmpv6'
-          if $domain eq 'ip6' and $proto eq 'ipv6-icmp';
-        $proto = 'mh'
-          if $domain eq 'ip6' and $proto eq 'ipv6-mh';
+        my $proto = netfilter_canonical_protocol($rule{builtin____protocol});
 
         if (exists $proto_defs{$domain_family}{$proto}) {
             my $def = $proto_defs{$domain_family}{$proto};
@@ -1400,7 +1414,7 @@ sub tables($) {
                 next unless exists $rule{$key};
                 my $value = $rule->{$key};
 
-                my $module = $proto eq 'icmpv6' ? 'icmp6' : $proto;
+                my $module = netfilter_protocol_module($proto);
                 unless (exists $modules{$module}) {
                     shell_append(\$rr, '-m', $module);
                     $modules{$module} = 1;
@@ -2367,8 +2381,7 @@ sub enter($@) {
 
             my $proto = find_option(\@fw, 'builtin____protocol');
             if (defined $proto and not ref $proto) {
-                $proto = 'icmpv6' if $proto eq 'ipv6-icmp';
-                $proto = 'mh' if $proto eq 'ipv6-mh';
+                $proto = netfilter_canonical_protocol($proto);
 
                 if ($proto eq 'icmp') {
                     my $domains = find_option(\@fw, 'domain');
