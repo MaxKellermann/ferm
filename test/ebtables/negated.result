@@ -2,5 +2,5 @@ ebtables -t filter -P INPUT ACCEPT
 ebtables -t filter -F
 ebtables -t filter -X
 ebtables -t filter -A INPUT --protocol ! ARP -j ACCEPT
-ebtables -t filter -A INPUT --out-interface ! eth1 --logical-in ! br0 --logical-out ! br1 --in-interface ! eth0 -j ACCEPT
-ebtables -t filter -A INPUT --destination ! Broadcast --source ! Multicast -j DROP
+ebtables -t filter -A INPUT --logical-out ! br1 --in-interface ! eth0 --logical-in ! br0 --out-interface ! eth1 -j ACCEPT
+ebtables -t filter -A INPUT --source ! Multicast --destination ! Broadcast -j DROP

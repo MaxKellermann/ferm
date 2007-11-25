@@ -60,6 +60,10 @@ IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 IMPORT_SED = -e 's,fragfirst fragres,fragres fragfirst,'
 SAVE2_SED = -e 's,--start 2 --counter 1,--counter 1 --start 2,'
 SAVE2_SED += -e 's,-m mh -p ipv6-mh,-p ipv6-mh -m mh,'
+SAVE2_SED += -e 's,--connlimit-above 4 --connlimit-mask 24,--connlimit-mask 24 --connlimit-above 4,'
+SAVE2_SED += -e 's,--hashlimit 10/minute --hashlimit-mode dstip,--hashlimit-mode dstip --hashlimit 10/minute,'
+SAVE2_SED += -e 's,--packet 1 --every 3 --counter 1,--packet 1 --counter 1 --every 3,'
+SAVE2_SED += -e 's!--rt-0-addrs ::1,::2 --rt-0-not-strict!--rt-0-not-strict --rt-0-addrs ::1,::2!'
 
 FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
