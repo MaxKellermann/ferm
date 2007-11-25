@@ -630,6 +630,8 @@ print "# http://ferm.foo-projects.org/\n";
 
 $next_domain = $ENV{FERM_DOMAIN} || 'ip';
 
+my %policies;
+
 while (<>) {
     if (/^(?:#.*)?$/) {
         # empty or comment
@@ -637,6 +639,13 @@ while (<>) {
         $next_domain = $1 if /^#.*\b(ip|ip6)tables(?:-save)\b/;
     } elsif (/^\*(\w+)$/) {
         # table
+
+        if (keys %policies > 0) {
+            while (my ($chain, $policy) = each %policies) {
+                write_line('chain', $chain, 'policy', $policy, ';');
+            }
+            undef %policies;
+        }
 
         unless (defined $domain and $domain eq $next_domain) {
             flush_domain;
@@ -654,7 +663,7 @@ while (<>) {
     } elsif (/^:(\S+)\s+(\w+)\s+/) {
         # built-in chain
         die unless defined $table;
-        write_line('chain', $1, 'policy', $2, ';');
+        $policies{$1} = $2;
     } elsif (s/^-A (\S+)\s+//) {
         # a rule
         unless (defined $chain) {
@@ -666,6 +675,11 @@ while (<>) {
             write_line('}');
             $chain = $1;
             write_line('chain', $chain, '{');
+        }
+
+        if (exists $policies{$chain}) {
+            write_line('policy', $policies{$chain}, ';');
+            delete $policies{$chain};
         }
 
         my @tokens = tokenize($_);
@@ -699,6 +713,12 @@ while (<>) {
         }
     } else {
         print STDERR "line $. was not understood, ignoring it\n";
+    }
+}
+
+if (keys %policies > 0) {
+    while (my ($chain, $policy) = each %policies) {
+        write_line('chain', $chain, 'policy', $policy, ';');
     }
 }
 
