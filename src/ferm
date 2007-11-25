@@ -365,7 +365,7 @@ sub multiport_params {
     # into portions of 15, and handle these portions as
     # array elements
 
-    my $proto = find_option($fw, 'builtin____protocol');
+    my $proto = $fw->{builtin}{protocol};
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
@@ -1378,34 +1378,23 @@ sub tables($) {
 
     shell_append(\$rr, '-A', $chain);
 
-    # modules; copy the hash because we might add automatic protocol
-    # modules later
-    my %modules;
-    if (exists $rule{modules}) {
-        %modules = %{$rule{modules}};
-        shell_append(\$rr, '-m', $_)
-          foreach keys %modules;
-    }
-
     # general iptables options
 
-    if (exists $match_defs{$domain_family} and
-        exists $match_defs{$domain_family}{''}) {
-        while (my ($keyword, $k) = each %{$match_defs{$domain_family}{''}{keywords}}) {
-            my $key = "builtin____${keyword}";
-            next unless exists $rule{$key};
-            my $value = $rule->{$key};
+    while (my ($keyword, $value) = each %{$rule{builtin}}) {
+        my $def = $match_defs{$domain_family}{''}{keywords}{$keyword};
+        die unless defined $def;
 
-            shell_append_option(\$rr, $k, $keyword, $value);
-        }
+        shell_append_option(\$rr, $def, $keyword, $value);
     }
 
     #
     # match module options
     #
 
-    if (defined $rule{builtin____protocol}) {
-        my $proto = netfilter_canonical_protocol($rule{builtin____protocol});
+    my %modules;
+
+    if (defined $rule{builtin}{protocol}) {
+        my $proto = netfilter_canonical_protocol($rule{builtin}{protocol});
 
         if (exists $proto_defs{$domain_family}{$proto}) {
             my $def = $proto_defs{$domain_family}{$proto};
@@ -1445,14 +1434,23 @@ sub tables($) {
     }
 
     # modules stored in %match_defs
-    while (my ($key, $value) = each %rule) {
-        next unless $key =~ /^module__(\w+)__([-\w]+)$/;
-        my ($module_name, $keyword) = ($1, $2);
 
-        my $def = $match_defs{$rule{domain_family}}{$module_name}{keywords}{$keyword};
-        die unless defined $def;
+    foreach my $match (@{$rule{match}}) {
+        my $module_name = $match->{name};
+        unless (exists $modules{$module_name}) {
+            shell_append(\$rr, '-m', $module_name);
+            $modules{$module_name} = 1;
+        }
 
-        shell_append_option(\$rr, $def, $keyword, $value);
+        my $defs = $match->{defs} || $match_defs{$domain_family}{$module_name};
+        die unless defined $defs;
+
+        while (my ($keyword, $value) = each %{$match->{options}}) {
+            my $def = $defs->{keywords}{$keyword};
+            die unless defined $def;
+
+            shell_append_option(\$rr, $def, $keyword, $value);
+        }
     }
 
     #
@@ -1488,8 +1486,8 @@ sub tables($) {
 sub transform_rule($) {
     my $rule = shift;
 
-    $rule->{builtin____protocol} = 'icmpv6'
-      if $rule->{domain} eq 'ip6' and $rule->{builtin____protocol} eq 'icmp';
+    $rule->{builtin}{protocol} = 'icmpv6'
+      if $rule->{domain} eq 'ip6' and $rule->{builtin}{protocol} eq 'icmp';
 }
 
 sub printrule($) {
@@ -1502,86 +1500,64 @@ sub printrule($) {
 }
 
 
+sub check_unfold(\@$$) {
+    my ($unfold, $parent, $key) = @_;
+
+    return unless ref $parent->{$key} and
+      ref $parent->{$key} eq 'ARRAY';
+
+    push @$unfold, { parent => $parent,
+                     key => $key,
+                     values => [ @{$parent->{$key}} ],
+                   };
+}
+
 # convert a bunch of internal rule structures in iptables calls,
 # unfold arrays during that
 sub mkrules($) {
     # compile the list hashes into rules
     my $fw = shift;
 
-    # pack the data in a handy format (list-of-hashes with one kw
-    # per level, so we can recurse...
-    my @fr;
+    my @unfold;
 
-    foreach my $current (@$fw) {
-        while (my ($key, $value) = each %$current) {
-            push @fr, [ $key, $value ];
+    foreach my $key (qw(domain table chain)) {
+        check_unfold(@unfold, $fw, $key);
+    }
+
+    foreach my $key (keys %{$fw->{builtin}}) {
+        check_unfold(@unfold, $fw->{builtin}, $key);
+    }
+
+    foreach my $match (@{$fw->{match}}) {
+        while (my ($key, $value) = each %{$match->{options}}) {
+            check_unfold(@unfold, $match->{options}, $key);
         }
     }
 
-    sub dofr($@) {
-        my $rule = shift;
-        my $current = shift;
+    check_unfold(@unfold, $fw, 'sport');
+    check_unfold(@unfold, $fw, 'dport');
 
-        my ($key, $value_string) = @$current;
+    if (@unfold == 0) {
+        printrule($fw);
+        return;
+    }
 
-        unless (ref $value_string and
-                $key ne 'target_options' and
-                ref $value_string ne 'params' and
-                ref $value_string ne 'negated') {
-                # set this one and recurse
-            $rule->{$key} = $value_string;
+    sub dofr {
+        my $fw = shift;
+        my $u = shift;
+
+        foreach my $value (@{$u->{values}}) {
+            $u->{parent}{$u->{key}} = $value;
 
             if (@_) {
-                dofr($rule, @_);
+                dofr($fw, @_);
             } else {
-                printrule($rule);
+                printrule($fw);
             }
-
-            delete $rule->{$key};
-        } elsif (ref $value_string eq 'ARRAY') {
-            # recurse for every value
-            foreach my $value (@$value_string) {
-                # set this one and recurse
-                $rule->{$key} = $value;
-
-                if (@_) {
-                    dofr($rule, @_);
-                } else {
-                    printrule($rule);
-                }
-            }
-
-            delete $rule->{$key};
-        } elsif (ref $value_string eq 'HASH') {
-            # merge hashes
-            my $old = $rule->{$key};
-
-            $rule->{$key} = { ( defined $old
-                                ? %$old
-                                : ()
-                              ),
-                              %$value_string
-                            };
-
-            # recurse
-            if (@_) {
-                dofr($rule, @_);
-            } else {
-                printrule($rule);
-            }
-
-            # restore old value
-            if (defined $old) {
-                $rule->{$key} = $old;
-            } else {
-                delete $rule->{$key};
-            }
-        } else {
-            die ref $value_string;
         }
     }
 
-    dofr({}, @fr);
+    dofr($fw, @unfold);
 }
 
 # find an option in the rule stack
@@ -1614,12 +1590,14 @@ sub filter_domains($) {
 }
 
 # parse tokens from builtin match modules
-sub parse_builtin_matches($$$$$) {
-    my ($fw, $current, $domain_family, $keyword, $negated_ref) = @_;
+sub parse_builtin_matches($$$) {
+    my ($current, $keyword, $negated_ref) = @_;
+
+    my $domain_family = $current->{domain_family};
 
     if (exists $match_defs{$domain_family}) {
-        parse_option('builtin', $match_defs{$domain_family}, '',
-                     $fw, $current,
+        parse_option($match_defs{$domain_family}, '',
+                     $current, $current->{builtin},
                      $keyword, $negated_ref)
           and return 1;
     }
@@ -1629,7 +1607,7 @@ sub parse_builtin_matches($$$$$) {
 
 # parse a keyword from a module definition
 sub parse_keyword($$$$) {
-    my ($fw, $def, $keyword, $negated_ref) = @_;
+    my ($current, $def, $keyword, $negated_ref) = @_;
 
     my $params = $def->{params};
 
@@ -1644,7 +1622,7 @@ sub parse_keyword($$$$) {
     unless (defined $params) {
         undef $value;
     } elsif (ref $params && ref $params eq 'CODE') {
-        $value = &$params($fw);
+        $value = &$params($current);
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
@@ -1706,8 +1684,8 @@ sub parse_keyword($$$$) {
 }
 
 # parse options of a module
-sub parse_option($$$$$$$) {
-    my ($type, $defs, $name, $fw, $current, $keyword, $negated_ref) = @_;
+sub parse_option($$$$$$) {
+    my ($defs, $name, $current, $store, $keyword, $negated_ref) = @_;
 
     my $def = $defs->{$name};
     return unless defined $def;
@@ -1722,43 +1700,66 @@ sub parse_option($$$$$$$) {
         die unless defined $k;
     }
 
-    $current->{"${type}__${name}__${keyword}"}
-      = parse_keyword($fw, $k,
+    $store->{$keyword}
+      = parse_keyword($current, $k,
                       $keyword, $negated_ref);
+    $current->{has_rule} = 1;
     return 1;
 }
 
 # parse options for a protocol module definition
-sub parse_protocol_options($$$$$) {
-    my ($fw, $current, $proto, $keyword, $negated_ref) = @_;
+sub parse_protocol_options($$$$) {
+    my ($current, $proto, $keyword, $negated_ref) = @_;
 
-    my $domain_family = find_option($fw, 'domain_family');
+    my $domain_family = $current->{'domain_family'};
     my $proto_defs = $proto_defs{$domain_family};
     return unless defined $proto_defs;
 
-    return parse_option('protocol', $proto_defs, $proto, $fw, $current,
+    my $proto_def = $proto_defs->{$proto};
+    return unless defined $proto_def;
+
+    return unless exists $proto_def->{keywords}{$keyword};
+
+    my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
+    my @m = grep { $_->{name} eq $proto } @{$current->{match}};
+    my $module;
+    if (@m == 0) {
+        $module = { name => $module_name,
+                    options => {},
+                    defs => $proto_def,
+                  };
+        push @{$current->{match}}, $module;
+    } else {
+        die unless @m == 1;
+        $module = $m[0];
+    }
+
+    return parse_option($proto_defs, $proto,
+                        $current, $module->{options},
                         $keyword, $negated_ref);
 }
 
 # parse options of a match module
 sub parse_match_option($$$$$$) {
-    my ($match_defs, $name, $fw, $current, $keyword, $negated_ref) = @_;
+    my ($match_defs, $name, $current, $store, $keyword, $negated_ref) = @_;
 
-    return parse_option('module', $match_defs, $name, $fw, $current,
+    return parse_option($match_defs, $name,
+                        $current, $store,
                         $keyword, $negated_ref);
 }
 
 # parse options for a match module definition
-sub parse_module_options($$$$$) {
-    my ($fw, $current, $modules, $keyword, $negated_ref) = @_;
+sub parse_module_options($$$) {
+    my ($current, $keyword, $negated_ref) = @_;
 
-    my $domain_family = find_option($fw, 'domain_family');
+    my $domain_family = $current->{'domain_family'};
     my $match_defs = $match_defs{$domain_family};
     return unless defined $match_defs;
 
     # modules stored in %match_defs
-    foreach my $name (keys %$modules) {
-        parse_match_option($match_defs, $name, $fw, $current,
+    foreach my $module (@{$current->{match}}) {
+        parse_match_option($match_defs, $module->{name},
+                           $current, $module->{options},
                            $keyword, $negated_ref)
           and do {
               # reset hash
@@ -1771,10 +1772,10 @@ sub parse_module_options($$$$$) {
 }
 
 # parse options for a target module definition
-sub parse_target_options($$$$) {
-    my ($fw, $current, $target, $keyword) = @_;
+sub parse_target_options($$$) {
+    my ($current, $target, $keyword) = @_;
 
-    my $domain_family = find_option($fw, 'domain_family');
+    my $domain_family = $current->{'domain_family'};
     my $target_defs = $target_defs{$domain_family};
     return unless defined $target_defs &&
       exists $target_defs->{$target}{keywords}{$keyword};
@@ -1790,10 +1791,47 @@ sub parse_target_options($$$$) {
 
     my $negated_dummy;
     $current->{target_options}{$keyword}
-      = parse_keyword($fw, $k,
+      = parse_keyword($current, $k,
                       $keyword, \$negated_dummy);
 
     return 1;
+}
+
+sub clone_match($) {
+    my $match = shift;
+    return { name => $match->{name},
+             options => { %{$match->{options}} },
+             defs => $match->{defs},
+           };
+}
+
+sub new_level(\@\%) {
+    my ($fw, $current) = @_;
+
+    %$current = ();
+    if (@$fw > 1) {
+        # copy data from previous level
+        my $prev = $fw->[-2];
+        $current->{builtin} = { %{$prev->{builtin}} };
+        $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
+        $current->{action} = { %{$prev->{action}} };
+        foreach my $key (qw(domain domain_family table chain proto sport dport)) {
+            $current->{$key} = $prev->{$key}
+              if exists $prev->{$key};
+        }
+    } else {
+        $current->{builtin} = {};
+        $current->{match} = [];
+        $current->{action} = {};
+    }
+}
+
+sub rule_defined(\%) {
+    my $rule = shift;
+    return defined($rule->{domain}) or
+      keys(%{$rule->{builtin}}) > 0 or
+      keys(%{$rule->{match}}) > 0 or
+      keys(%{$rule->{action}}) > 0;
 }
 
 # the main parser loop: read tokens, convert them into internal rule
@@ -1812,12 +1850,9 @@ sub enter($@) {
     my $base_level = $script->{base_level} || 0;
     die if $base_level > $lev;
 
-    my $current = {};
-    push @fw, $current;
-
-    my $domain_family = find_option(\@fw, 'domain_family');
-
-    my %modules = map { $_->{modules} ? %{$_->{modules}} : () } @fw;
+    my %current;
+    push @fw, \%current;
+    new_level(@fw, %current);
 
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
@@ -1844,28 +1879,22 @@ sub enter($@) {
 
             # effectuation operator
             if ($keyword eq ';') {
-                my $has_rule = find_option(\@fw, 'has_rule');
-                my $action = find_option(\@fw, 'action');
-                my $policy = find_option(\@fw, 'policy');
-                my $chain = find_option(\@fw, 'chain');
-
-                if ($has_rule and not defined $action) {
+                if ($current{has_rule} and not $current{action}{type}) {
                     # something is wrong when a rule was specifiedd,
                     # but no action
                     error('No action defined; did you mean "NOP"?');
                 }
 
-                error('No chain defined') unless defined $chain;
+                error('No chain defined') unless defined $current{chain};
 
-                $current->{script} = { filename => $script->{filename},
-                                       line => $script->{line},
-                                     };
+                $current{script} = { filename => $script->{filename},
+                                     line => $script->{line},
+                                   };
 
-                mkrules(\@fw)
-                  if $has_rule or defined $policy;
+                mkrules(\%current);
 
                 # and clean up variables set in this level
-                %$current = ();
+                new_level(@fw, %current);
 
                 next;
             }
@@ -1892,7 +1921,7 @@ sub enter($@) {
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
                 error('"hook" must be the first token in a command')
-                  if keys %$current;
+                  if rule_defined(%current);
 
                 my $position = getvar();
                 my $hooks;
@@ -1929,7 +1958,7 @@ sub enter($@) {
 
                 # after a block, the command is finished, clear this
                 # level
-                %$current = ();
+                new_level(@fw, %current);
 
                 next;
             }
@@ -1941,7 +1970,7 @@ sub enter($@) {
                 # consistency check: check if they havn't forgotten
                 # the ';' before the last statement
                 error('Missing semicolon before "}"')
-                  if keys %$current;
+                  if $current{has_rule};
 
                 # and exit
                 return;
@@ -1991,7 +2020,7 @@ sub enter($@) {
             # definition of a variable or function
             if ($keyword eq '@def' or $keyword eq 'def') {
                 error('"def" must be the first token in a command')
-                  if keys %$current;
+                  if $current{has_rule};
 
                 my $type = require_next_token();
                 if ($type eq '$') {
@@ -2125,10 +2154,11 @@ sub enter($@) {
             # where to put the rule?
             if ($keyword eq 'domain') {
                 error('Domain is already specified')
-                  if exists $current->{domain};
+                  if exists $current{domain};
 
                 my $domain = getvalues();
                 my $filtered_domain = filter_domains($domain);
+                my $domain_family;
                 unless (ref $domain) {
                     $domain_family = $domain eq 'ip6' ? 'ip' : $domain;
                 } elsif (@$domain == 0) {
@@ -2138,21 +2168,21 @@ sub enter($@) {
                 } else {
                     $domain_family = 'ip';
                 }
-                $current->{domain_family} = $domain_family;
+                $current{domain_family} = $domain_family;
 
-                $current->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
+                $current{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 
                 next;
             }
 
             if ($keyword eq 'table') {
                 error('Table is already specified')
-                  if exists $current->{table};
-                $current->{table} = $stack[0]{auto}{TABLE} = getvalues();
+                  if exists $current{table};
+                $current{table} = $stack[0]{auto}{TABLE} = getvalues();
 
                 unless (defined find_option(\@fw, 'domain')) {
-                    $current->{domain} = filter_domains('ip');
-                    $current->{domain_family} = $domain_family = 'ip';
+                    $current{domain} = filter_domains('ip');
+                    $current{domain_family} = 'ip';
                 }
 
                 next;
@@ -2160,35 +2190,34 @@ sub enter($@) {
 
             if ($keyword eq 'chain') {
                 error('Chain is already specified')
-                  if exists $current->{chain};
-                $current->{chain} = $stack[0]{auto}{CHAIN} = getvalues();
+                  if exists $current{chain};
+                $current{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
                 # ferm 1.1 allowed lower case built-in chain names
-                foreach (ref $current->{chain} ? @{$current->{chain}} : $current->{chain}) {
+                foreach (ref $current{chain} ? @{$current{chain}} : $current{chain}) {
                     error('Please write built-in chain names in upper case')
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
 
-                my $domain = find_option(\@fw, 'domain');
-                unless (defined find_option(\@fw, 'domain')) {
-                    $current->{domain} = filter_domains('ip');
-                    $current->{domain_family} = $domain_family = 'ip';
+                unless (exists $current{domain}) {
+                    $current{domain} = filter_domains('ip');
+                    $current{domain_family} = 'ip';
                 }
 
-                $current->{table} = 'filter'
-                  unless defined find_option(\@fw, 'table');
+                $current{table} = 'filter'
+                  unless exists $current{table};
 
                 next;
             }
 
+            error('Chain must be specified')
+              unless exists $current{chain};
+
             # policy for built-in chain
             if ($keyword eq 'policy') {
-                my $domains = find_option(\@fw, 'domain');
-                my $tables = find_option(\@fw, 'table');
-                my $chains = find_option(\@fw, 'chain');
-
-                error('Chain must be specified')
-                  unless defined $chains;
+                my $domains = $current{domain};
+                my $tables = $current{table};
+                my $chains = $current{chain};
 
                 my $policy = uc getvar();
                 error("Invalid policy target: $policy")
@@ -2212,14 +2241,16 @@ sub enter($@) {
                     }
                 }
 
-                $current->{policy} = $policy;
+                $current{action} = { type => 'policy',
+                                     policy => $policy,
+                                   };
                 next;
             }
 
             # create a subchain
             if ($keyword eq '@subchain' or $keyword eq 'subchain') {
                 error('No rule specified before "@subchain"')
-                  unless find_option(\@fw, 'has_rule');
+                  unless $current{has_rule};
 
                 my $subchain;
                 $keyword = next_token();
@@ -2236,63 +2267,62 @@ sub enter($@) {
 
                 # create a deep copy of @fw, only containing values
                 # which must be in the subchain
-                my @fw2;
-                foreach my $fw (@fw) {
-                    my $fw2 = {};
-                    foreach my $key (qw(domain domain_family table builtin____protocol)) {
-                        my $value = $fw->{$key};
-                        next unless defined $value;
-                        $value = ref $value
-                          ? ( ref $value eq 'HASH'
-                              ? {%$value}
-                              : [@$value]
-                            )
-                            : $value;
-                        $fw2->{$key} = $value;
-                    }
-                    push @fw2, $fw2;
-                }
-
-                $fw2[-1]->{chain} = $fw2[-1]->{auto}{CHAIN} = $subchain;
+                my %inner = ( builtin => {},
+                              action => {},
+                            );
+                $inner{domain} = $current{domain};
+                $inner{domain_family} = $current{domain_family};
+                $inner{table} = $current{table};
+                $inner{chain} = $inner{auto}{CHAIN} = $subchain;
+                $inner{builtin}{protocol} = $current{builtin}{protocol}
+                  if exists $current{builtin}{protocol};
 
                 # enter the block
-                enter($lev + 1, @fw2);
+                enter(1, \%inner);
 
                 # now handle the parent - it's a jump to the sub chain
-                $current->{action} = { type => 'jump',
-                                       chain => $subchain,
-                                     };
+                $current{action} = { type => 'jump',
+                                     chain => $subchain,
+                                   };
 
-                $current->{script} = { filename => $script->{filename},
-                                       line => $script->{line},
-                                     };
+                $current{script} = { filename => $script->{filename},
+                                     line => $script->{line},
+                                   };
 
-                mkrules(\@fw);
+                mkrules(\%current);
 
                 # and clean up variables set in this level
-                %$current = ();
+                new_level(@fw, %current);
 
                 next;
             }
 
             # everything else must be part of a "real" rule, not just
             # "policy only"
-            $current->{has_rule}++;
+            $current{has_rule}++;
 
             # extended parameters:
             if ($keyword =~ /^mod(?:ule)?$/) {
-                my $domains = find_option(\@fw, 'domain');
-
                 foreach my $module (to_array getvalues) {
-                    $current->{modules}{$module} = 1;
-                    $modules{$module} = 1;
+                    next if grep { $_->{name} eq $module } @{$current{match}};
+
+                    my $domain_family = $current{domain_family};
+                    my $defs = $match_defs{$domain_family}{$module};
+                    if (not defined $defs and exists $current{builtin}{protocol}) {
+                        my $proto = netfilter_canonical_protocol($current{builtin}{protocol});
+                        $defs = $proto_defs{$domain_family}{$proto};
+                    }
+
+                    push @{$current{match}}, { name => $module,
+                                               options => {},
+                                               defs => $defs,
+                                             };
                 }
 
                 next;
             }
 
-            parse_builtin_matches(\@fw, $current, $domain_family,
-                                  $keyword, \$negated)
+            parse_builtin_matches(\%current, $keyword, \$negated)
               and next;
 
             ###
@@ -2302,19 +2332,17 @@ sub enter($@) {
             # jump action
             if ($keyword eq 'jump') {
                 error('There can only one action per rule')
-                  if exists $current->{action};
-                warning('Please declare the policy in a separate statement')
-                  if find_option(\@fw, 'policy');
+                  if defined $current{action}{type};
                 my $chain = getvar();
                 if (is_netfilter_core_target($chain) or
-                    is_netfilter_module_target($domain_family, $chain)) {
-                    $current->{action} = { type => 'target',
-                                           target => $chain,
-                                         };
+                    is_netfilter_module_target($current{domain_family}, $chain)) {
+                    $current{action} = { type => 'target',
+                                         target => $chain,
+                                       };
                 } else {
-                    $current->{action} = { type => 'jump',
-                                           chain => $chain,
-                                         };
+                    $current{action} = { type => 'jump',
+                                         chain => $chain,
+                                       };
                 }
                 next;
             };
@@ -2322,45 +2350,37 @@ sub enter($@) {
             # goto action
             if ($keyword eq 'realgoto') {
                 error('There can only one action per rule')
-                  if exists $current->{action};
-                warning('Please declare the policy in a separate statement')
-                  if find_option(\@fw, 'policy');
-                $current->{action} = { type => 'goto',
-                                       chain => getvar(),
-                                     };
+                  if defined $current{action}{type};
+                $current{action} = { type => 'goto',
+                                     chain => getvar(),
+                                   };
                 next;
             };
 
             # action keywords
             if (is_netfilter_core_target($keyword)) {
                 error('There can only one action per rule')
-                  if exists $current->{action};
-                warning('Please declare the policy in a separate statement')
-                  if find_option(\@fw, 'policy');
-                $current->{action} = { type => 'target',
-                                       target => $keyword,
-                                     };
+                  if defined $current{action}{type};
+                $current{action} = { type => 'target',
+                                     target => $keyword,
+                                   };
                 next;
             }
 
             if ($keyword eq 'NOP') {
                 error('There can only one action per rule')
-                  if exists $current->{action};
-                warning('Please declare the policy in a separate statement')
-                  if find_option(\@fw, 'policy');
-                $current->{action} = { type => 'nop',
-                                     };
+                  if defined $current{action}{type};
+                $current{action} = { type => 'nop',
+                                   };
                 next;
             }
 
-            if (is_netfilter_module_target($domain_family, $keyword)) {
+            if (is_netfilter_module_target($current{domain_family}, $keyword)) {
                 error('There can only one action per rule')
-                  if exists $current->{action};
-                warning('Please declare the policy in a separate statement')
-                  if find_option(\@fw, 'policy');
+                  if defined $current{action}{type};
 
                 if ($keyword eq 'TCPMSS') {
-                    my $protos = find_option(\@fw, 'builtin____protocol');
+                    my $protos = $current{builtin}{protocol};
                     error('No protocol specified before TCPMSS')
                       unless defined $protos;
                     foreach my $proto (to_array $protos) {
@@ -2369,26 +2389,34 @@ sub enter($@) {
                     }
                 }
 
-                $current->{action} = { type => 'target',
-                                       target => $keyword,
-                                     };
+                $current{action} = { type => 'target',
+                                     target => $keyword,
+                                   };
                 next;
             }
+
+            my $proto = $current{builtin}{protocol};
+
+            ###
+            # module specific options
+            #
+
+            parse_module_options(\%current, $keyword, \$negated)
+              and next;
 
             ###
             # protocol specific options
             #
 
-            my $proto = find_option(\@fw, 'builtin____protocol');
             if (defined $proto and not ref $proto) {
                 $proto = netfilter_canonical_protocol($proto);
 
                 if ($proto eq 'icmp') {
-                    my $domains = find_option(\@fw, 'domain');
+                    my $domains = $current{domain};
                     $proto = 'icmpv6' if not ref $domains and $domains eq 'ip6';
                 }
 
-                parse_protocol_options(\@fw, $current, $proto, $keyword, \$negated)
+                parse_protocol_options(\%current, $proto, $keyword, \$negated)
                   and next;
             }
 
@@ -2397,28 +2425,19 @@ sub enter($@) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
-                $current->{$keyword} = getvalues(undef, undef,
-                                                 allow_negation => 1);
+                $current{$keyword} = getvalues(undef, undef,
+                                               allow_negation => 1);
                 next;
-            }
-
-            ###
-            # module specific options
-            #
-
-            if (keys %modules) {
-                parse_module_options(\@fw, $current, \%modules, $keyword, \$negated)
-                  and next;
             }
 
             ###
             # target specific options
             #
 
-            my $action = find_option(\@fw, 'action');
-            if (defined $action and $action->{type} eq 'target') {
-                parse_target_options(\@fw, $current,
-                                     $action->{target}, $keyword);
+            if (exists $current{action}{type} and
+                $current{action}{type} eq 'target') {
+                parse_target_options(\%current, $current{action}{target},
+                                     $keyword);
                 next;
             }
 
@@ -2438,7 +2457,7 @@ sub enter($@) {
     # consistency check: check if they havn't forgotten
     # the ';' before the last statement
     error("Missing semicolon before end of file")
-      if keys %$current;
+      if $current{has_rule}; # XXX
 }
 
 sub check() {

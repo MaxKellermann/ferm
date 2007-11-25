@@ -21,6 +21,8 @@ v2.0 - not yet released
       --createchains, --location
     - comma in array is forbidden
     - removed "source" and "destination" as prefix for "addr" and "port" 
+  - rewrote the internal rule storage
+    - honor the order of match modules
 
 
 v1.3.0 - not yet released

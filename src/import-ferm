@@ -245,13 +245,9 @@ sub module_match_count {
 }
 
 sub prefix_matches {
-    my ($prefix, $rule) = @_;
-    return unless exists $rule->{match};
-    while (my ($key, $value) = each %$prefix) {
-        return unless exists $rule->{match}{$key}
-          and Dumper($rule->{match}{$key}) eq Dumper($value);
-    }
-    return 1;
+    my ($a, $b) = @_;
+    return @{$b->{match}} > 0 &&
+      (Dumper($a->{match}[0]) eq Dumper($b->{match}[0]));
 }
 
 sub prefix_match_count {
@@ -271,24 +267,27 @@ sub is_merging_array_member {
        ref $value eq 'ARRAY');
 }
 
-sub array_matches {
-    my ($key, $rule1, $rule2) = @_;
-    return unless is_merging_array_member($rule1->{match}{$key});
-    return unless is_merging_array_member($rule2->{match}{$key});
+sub array_matches($$) {
+    my ($rule1, $rule2) = @_;
+    return unless is_merging_array_member($rule1->{match}[0][1]);
+    return unless is_merging_array_member($rule2->{match}[0][1]);
+    return unless @{$rule2->{match}} > 0;
+    return unless $rule1->{match}[0][0] eq $rule2->{match}[0][0];
     my %r1 = %$rule1;
     my %r2 = %$rule2;
-    $r1{match} = {%{$r1{match}}};
-    $r2{match} = {%{$r2{match}}};
-    delete $r1{match}{$key};
-    delete $r2{match}{$key};
+    $r1{match} = [ @{$r1{match}} ];
+    $r2{match} = [ @{$r2{match}} ];
+    shift @{$r1{match}};
+    shift @{$r2{match}};
     return Dumper(\%r1) eq Dumper(\%r2);
 }
 
-sub array_match_count {
-    my ($key, $first, $rules) = @_;
+sub array_match_count($\@) {
+    my ($first, $rules) = @_;
+    return 0 unless @{$first->{match}} > 0;
     my $count = 0;
     foreach (@$rules) {
-        last unless array_matches($key, $first, $_);
+        last unless array_matches($first, $_);
         $count++;
     }
     return $count;
@@ -304,72 +303,21 @@ sub optimize {
     # saddr (1.2.3.4 5.6.7.8) proto tcp ACCEPT;
     while (@_ > 0) {
         my $rule = shift;
-        if (exists $rule->{match}) {
-            my $match_key;
-            my $match_count = 0;
-            my %match_copy = %{$rule->{match}};
-            while (my ($key, $value) = each %match_copy) {
-                next unless defined $value;
-                next if ref $value and ref $value eq 'HASH';
-                my $match_count2 = array_match_count($key, $rule, \@_);
-                if ($match_count2 > $match_count) {
-                    $match_key = $key;
-                    $match_count = $match_count2;
-                }
-            }
+        my $match_count = array_match_count($rule, @_);
 
-            if ($match_count > 0) {
-                my @values = map {
-                    my $value = $_->{match}{$match_key};
-                    ref $value ? @$value : $value;
-                } ($rule, splice(@_, 0, $match_count));
-                $rule->{match}{$match_key} = \@values;
-                unshift @_, $rule;
-            } else {
-                push @result, $rule;
-            }
-        } else {
-            push @result, $rule;
+        if ($match_count > 0) {
+            my $option = $rule->{match}[0][0];
+            my @matching = ( $rule, splice(@_, 0, $match_count) );
+            my @params = map {
+                (ref $_ and ref $_ eq 'ARRAY') ? @$_ : $_
+            } map {
+                $_->{match}[0][1]
+            } @matching;
+
+            $rule->{match}[0][1] = \@params;
         }
-    }
 
-    @_ = @result;
-    undef @result;
-
-    # try to find a common prefix for modules
-    # mod state state INVALID DROP;
-    # mod state state (ESTABLISHED RELATED) ACCEPT;
-    # ->
-    # mod state {
-    #     state INVALID DROP;
-    #     state (ESTABLISHED RELATED) ACCEPT;
-    # }
-    while (@_ > 0) {
-        my $rule = shift;
-        if (exists $rule->{mod}) {
-            my $match_module;
-            my $match_count = 0;
-            foreach my $module (keys %{$rule->{mod}}) {
-                my $match_count2 = module_match_count($module, \@_);
-                if ($match_count2 > $match_count) {
-                    $match_module = $module;
-                    $match_count = $match_count2;
-                }
-            }
-            if ($match_count > 0) {
-                my @block = map {
-                    delete $_->{mod}{$match_module};
-                    $_;
-                } ($rule, splice(@_, 0, $match_count));
-                push @result, { mod => { $match_module => 1 },
-                                block => [ optimize(@block) ],
-                              };
-            } else {
-                push @result, $rule;
-            }
-        } else {
-            push @result, $rule;
-        }
+        push @result, $rule;
     }
 
     @_ = @result;
@@ -385,27 +333,16 @@ sub optimize {
     # }
     while (@_ > 0) {
         my $rule = shift;
-        if (exists $rule->{match}) {
-            my %prefix;
-            my $match_count = 0;
-            while (my ($key, $value) = each %{$rule->{match}}) {
-                my $prefix2 = { $key => $value };
-                my $match_count2 = prefix_match_count($prefix2, \@_);
-                if ($match_count2 > $match_count) {
-                    %prefix = %$prefix2;
-                    $match_count = $match_count2;
-                }
-            }
+        if (@{$rule->{match}} > 0) {
+            my $match_count = prefix_match_count($rule, \@_);
+
             if ($match_count > 0) {
-                my @block = map {
-                    foreach my $key (keys %prefix) {
-                        delete $_->{match}{$key};
-                    }
-                    #delete @_->{match}{keys %prefix};
-                    $_;
-                } ($rule, splice(@_, 0, $match_count));
-                push @result, { match => \%prefix,
-                                block => [ optimize(@block) ]
+                my $match = $rule->{match}[0];
+                my @matching = ( $rule, splice(@_, 0, $match_count) );
+                map { shift @{$_->{match}} } @matching;
+
+                push @result, { match => [ $match ],
+                                block => [ optimize(@matching) ],
                               };
             } else {
                 push @result, $rule;
@@ -426,21 +363,16 @@ sub optimize {
         my $inner = $rule->{block}[0];
         delete $rule->{block};
 
-        # merge modules
-
         # merge rule
-        foreach (qw(match jump target)) {
-            next unless exists $inner->{$_};
-            while (my ($key, $value) = each %{$inner->{$_}}) {
-                $rule->{$_}{$key} = $value;
-            }
-            delete $inner->{$_};
-        }
-
-        # inherit everything else
-        while (my ($key, $value) = each %$inner) {
-            $rule->{$key} = $value;
-        }
+        push @{$rule->{match}}, @{$inner->{match}};
+        $rule->{jump} = $inner->{jump}
+          if exists $inner->{jump};
+        $rule->{goto} = $inner->{goto}
+          if exists $inner->{goto};
+        $rule->{block} = $inner->{block}
+          if exists $inner->{block};
+        push @{$rule->{target} ||= []}, @{$inner->{target}}
+          if exists $inner->{target};
     }
 
     return @result;
@@ -481,23 +413,28 @@ sub flush {
     foreach my $rule (@r) {
         my @line;
         # assemble the line, match stuff first, then target parameters
-        foreach my $mod (keys %{$rule->{mod} || {}}) {
-            push @line, 'mod', $mod;
-        }
-
-        if ($rule->{match}{proto}) {
-            flush_option(\@line, 'proto', $rule->{match}{proto});
-            delete $rule->{match}{proto};
-        }
-
-        foreach (qw(match jump target)) {
-            unless (exists $rule->{$_}) {
-                push @line, 'NOP' if $_ eq 'jump' and not exists $rule->{block};
-                next;
+        if (exists $rule->{match}) {
+            foreach (@{$rule->{match}}) {
+                flush_option(\@line, @$_);
             }
+        }
 
-            while (my ($key, $value) = each %{$rule->{$_}}) {
-                flush_option(\@line, $key, $value);
+        if (exists $rule->{jump}) {
+            if (is_netfilter_core_target($rule->{jump}) ||
+                is_netfilter_module_target($rule->{jump})) {
+                push @line, $rule->{jump};
+            } else {
+                flush_option(\@line, 'jump', $rule->{jump});
+            }
+        } elsif (exists $rule->{goto}) {
+            flush_option(\@line, 'realgoto', $rule->{goto});
+        } elsif (not exists $rule->{block}) {
+            push @line, 'NOP';
+        }
+
+        if (exists $rule->{target}) {
+            foreach (@{$rule->{target}}) {
+                flush_option(\@line, @$_);
             }
         }
 
@@ -608,61 +545,63 @@ sub parse_option {
             my $mod = $param eq 'ipv6-icmp' ? 'icmp6' : $param;
             delete $line->{mod}{$mod};
         }
-        $cur->{proto} = $param;
+        $line->{proto} = $param;
+        push @$cur, [ 'proto', $param ];
     } elsif ($option eq 'm') {
         die unless @$tokens;
         my $param = shift @$tokens;
+        $line->{mod}{$param} = 1;
         # we don't need this module if the protocol with the
         # same name is already specified
-        $line->{mod}{$param} = 1
-          unless exists $cur->{proto} and
-            ($cur->{proto} eq $param or
-             $cur->{proto} =~ /^(ipv6-icmp|icmpv6)$/s and $param eq 'icmp6');
+        push @$cur, [ 'mod', $param ]
+          unless exists $line->{proto} and
+            ($line->{proto} eq $param or
+             $line->{proto} =~ /^(ipv6-icmp|icmpv6)$/s and $param eq 'icmp6');
     } elsif ($option eq 'set' and exists $line->{mod}{set}) {
-        $cur->{$option} = fetch_two_tokens_comma($option, $tokens);
+        push @$cur, [ $option, fetch_two_tokens_comma($option, $tokens) ];
     } elsif (exists $p0{$option}) {
         my $keyword = $p0{$option};
-        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, undef);
+        push @$cur, [ $keyword, wrap_pre_negated($keyword, \$pre_negated, undef) ];
     } elsif (exists $p1{$option}) {
         my $keyword = $p1{$option};
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);
-        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
-        delete $cur->{$keyword}
-          if $keyword =~ /^[sd]addr$/ && $cur->{$keyword} eq '::/0';
+        my $value = wrap_pre_negated($keyword, \$pre_negated, $param);
+        unless ($keyword =~ /^[sd]addr$/ && $value eq '::/0') {
+            push @$cur, [ $keyword, $value ];
+        }
     } elsif (exists $p1c{$option}) {
         my $keyword = $p1c{$option};
         my $param = wrap_negated($keyword, $tokens, \&fetch_token_comma);
-        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
+        push @$cur, [ $keyword, wrap_pre_negated($keyword, \$pre_negated, $param) ];
     } elsif (exists $p1multi{$option}) {
         my $keyword = $p1multi{$option};
+        my $values;
+        my @v = grep { $_->[0] eq $keyword } @$cur;
+        if (@v == 0) {
+            $values = [];
+            push @$cur, [ $keyword, $values ];
+        } else {
+            $values = $v[0][1];
+        }
         my $param = wrap_negated($keyword, $tokens, \&fetch_token);
-        $cur->{$keyword} ||= [];
-        push @{$cur->{$keyword}},
-          wrap_pre_negated($option, \$pre_negated, $param);
+        push @$values, wrap_pre_negated($option, \$pre_negated, $param);
     } elsif (exists $p2c{$option}) {
         my $keyword = $p2c{$option};
         my $param = wrap_negated($keyword, $tokens, \&fetch_two_tokens_comma);
-        $cur->{$keyword} = wrap_pre_negated($keyword, \$pre_negated, $param);
+        push @$cur, [ $keyword, wrap_pre_negated($keyword, \$pre_negated, $param) ];
     } elsif ($option eq 'j') {
         die unless @$tokens;
         my $target = shift @$tokens;
         # store the target in $line->{jump}
-        $cur = $line->{jump} = {};
-        unless (is_netfilter_core_target($target) ||
-                is_netfilter_module_target($target)) {
-            $cur->{jump} = $target;
-        } else {
-            $cur->{$target} = undef;
-        }
+        $line->{jump} = $target;
         # what now follows is target parameters; set $cur
         # correctly
-        $line->{cur} = $line->{target} = {};
+        $line->{cur} = $line->{target} = [];
     } elsif ($option eq 'g') {
         die unless @$tokens;
         my $target = shift @$tokens;
         # store the target in $line->{jump}
-        $cur = $line->{jump} = {};
-        $cur->{realgoto} = $target;
+        $line->{goto} = $target;
     } else {
         die "option '$option' in line $. not understood\n";
     }
@@ -734,7 +673,7 @@ while (<>) {
         my %line;
         # separate 'match' parameters from 'targe't parameters; $cur
         # points to the current position
-        $line{cur} = $line{match} = {};
+        $line{cur} = $line{match} = [];
         while (@tokens) {
             local $_ = shift @tokens;
             if (/^-(\w)$/ || /^--(\S+)$/) {
