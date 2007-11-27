@@ -1443,7 +1443,6 @@ sub tables($) {
         }
 
         my $defs = $match->{defs} || $match_defs{$domain_family}{$module_name};
-        die unless defined $defs;
 
         while (my ($keyword, $value) = each %{$match->{options}}) {
             my $def = $defs->{keywords}{$keyword};
