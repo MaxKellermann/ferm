@@ -1320,23 +1320,22 @@ sub reset_domain($) {
 # convert an internal rule structure into an iptables call
 sub tables($) {
     my $rule = shift;
-    my %rule = %$rule;
 
-    my $domain = $rule{domain};
+    my $domain = $rule->{domain};
     my $domain_info = $domains{$domain};
-    my $domain_family = $rule{domain_family};
+    my $domain_family = $rule->{domain_family};
 
-    my $table = $rule{table};
+    my $table = $rule->{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
 
     my $rules = $rules{$domain} ||= [];
 
-    my $chain = $rule{chain};
+    my $chain = $rule->{chain};
     my $chain_info = $table_info->{chains}{$chain} ||= {};
 
     return if $option{flush};
 
-    my $action = $rule{action};
+    my $action = $rule->{action};
 
     my $rr = shell_escape($domain_info->{tools}{tables});
     shell_append(\$rr, '-t', $table);
@@ -1368,20 +1367,20 @@ sub tables($) {
         shell_append(\$rr, '-P', $chain, $action->{policy});
         $rr .= "\n";
         push @$rules, { rule => $rr,
-                        script => $rule{script},
+                        script => $rule->{script},
                       };
         return;
     }
 
     # return if this is a declaration-only rule
     return
-      unless $rule{has_rule};
+      unless $rule->{has_rule};
 
     shell_append(\$rr, '-A', $chain);
 
     # general iptables options
 
-    while (my ($keyword, $value) = each %{$rule{builtin}}) {
+    while (my ($keyword, $value) = each %{$rule->{builtin}}) {
         my $def = $match_defs{$domain_family}{''}{keywords}{$keyword};
         die unless defined $def;
 
@@ -1394,14 +1393,14 @@ sub tables($) {
 
     my %modules;
 
-    if (defined $rule{builtin}{protocol}) {
-        my $proto = netfilter_canonical_protocol($rule{builtin}{protocol});
+    if (defined $rule->{builtin}{protocol}) {
+        my $proto = netfilter_canonical_protocol($rule->{builtin}{protocol});
 
         if (exists $proto_defs{$domain_family}{$proto}) {
             my $def = $proto_defs{$domain_family}{$proto};
             while (my ($keyword, $k) = each %{$def->{keywords}}) {
                 my $key = "protocol__${proto}__$keyword";
-                next unless exists $rule{$key};
+                next unless exists $rule->{$key};
                 my $value = $rule->{$key};
 
                 my $module = netfilter_protocol_module($proto);
@@ -1416,7 +1415,7 @@ sub tables($) {
 
         # special case: --dport and --sport for TCP/UDP
         if ($domain_family eq 'ip' and
-            (exists $rule{dport} or exists $rule{sport}) and
+            (exists $rule->{dport} or exists $rule->{sport}) and
             $proto =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
             unless (exists $modules{$proto}) {
                 shell_append(\$rr, '-m', $proto);
@@ -1425,18 +1424,18 @@ sub tables($) {
 
             shell_append_option(\$rr, { params => 1,
                                         negation => 1,
-                                      }, 'dport', $rule{dport})
-              if exists $rule{dport};
+                                      }, 'dport', $rule->{dport})
+              if exists $rule->{dport};
             shell_append_option(\$rr, { params => 1,
                                         negation => 1,
-                                      }, 'sport', $rule{sport})
-              if exists $rule{sport};
+                                      }, 'sport', $rule->{sport})
+              if exists $rule->{sport};
         }
     }
 
     # modules stored in %match_defs
 
-    foreach my $match (@{$rule{match}}) {
+    foreach my $match (@{$rule->{match}}) {
         my $module_name = $match->{name};
         unless (exists $modules{$module_name}) {
             shell_append(\$rr, '-m', $module_name);
@@ -1466,7 +1465,7 @@ sub tables($) {
 
         # targets stored in %target_defs
 
-        while (my ($keyword, $value) = each %{$rule{target_options}}) {
+        while (my ($keyword, $value) = each %{$rule->{target_options}}) {
             my $def = $target_defs{$domain_family}{$action->{target}}{keywords}{$keyword};
             die unless defined $def;
 
@@ -1479,7 +1478,7 @@ sub tables($) {
     # this line is done
     $rr .= "\n";
     push @$rules, { rule => $rr,
-                    script => $rule{script},
+                    script => $rule->{script},
                   };
 };
 
