@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -m ttl --ttl-eq 10 -j ACCEPT
+iptables -t filter -A INPUT -m ttl --ttl-gt 15 -j DROP
+iptables -t filter -A INPUT -m ttl --ttl-lt 2 -j REJECT

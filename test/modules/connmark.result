@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m connmark --mark 7/15 -j DROP

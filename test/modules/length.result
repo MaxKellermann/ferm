@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -m length --length 0:1024 -j ACCEPT
+iptables -t filter -A INPUT -m length --length 16384 -j DROP
+iptables -t filter -A INPUT -m length --length ! 8192 -j ACCEPT

@@ -67,12 +67,9 @@ SAVE2_SED += -e 's!--rt-0-addrs ::1,::2 --rt-0-not-strict!--rt-0-not-strict --rt
 
 FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
-$(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
-$(STAMPDIR)/%.OLD: % $(OLD_FERM) test/canonical.pl
+$(STAMPDIR)/%.ferm.OLD: %.result test/canonical.pl
 	@mkdir -p $(dir $@)
-	if test -f $(basename $<).result; then cp $(basename $<).result $@.tmp1; else $(PERL) $(OLD_FERM) $(OLD_OPTIONS) $< >$@.tmp1; fi
-	if test -n "$(PATCHFILE)"; then patch -i$(PATCHFILE) $@.tmp1; fi
-	$(PERL) test/canonical.pl <$@.tmp1 >$@.tmp2
+	$(PERL) test/canonical.pl <$< >$@.tmp2
 	@mv $@.tmp2 $@
 
 $(STAMPDIR)/%.NEW: % $(NEW_FERM) test/canonical.pl

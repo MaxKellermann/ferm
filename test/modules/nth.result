@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m nth --every 5 -j DROP
+iptables -t filter -A INPUT -m nth --every 3 --counter 1 --start 2 --packet 1 -j REJECT

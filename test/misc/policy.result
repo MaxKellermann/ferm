@@ -1,0 +1,5 @@
+iptables -t nat -P FORWARD DROP
+iptables -t nat -A FORWARD -j ACCEPT
+iptables -t filter -P INPUT DROP
+iptables -t filter -P OUTPUT ACCEPT
+iptables -t filter -P FORWARD DROP

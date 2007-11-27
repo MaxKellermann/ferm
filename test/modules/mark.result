@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m mark --mark 7 -j DROP

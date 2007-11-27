@@ -1,0 +1,1 @@
+iptables -t nat -A PREROUTING -i ppp0 -p tcp -m tcp --dport 22 -j DNAT --to-destination 10.0.0.1

@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -j REJECT
+iptables -t filter -A INPUT -j REJECT --reject-with icmp-host-prohibited

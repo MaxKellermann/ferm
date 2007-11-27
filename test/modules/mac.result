@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m mac --mac-source 00:00:00:00:00:00 -j DROP

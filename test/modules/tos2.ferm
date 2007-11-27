@@ -1,7 +1,0 @@
-table filter chain INPUT mod tos {
-    tos interactive ACCEPT;
-    tos max-throughput ACCEPT;
-    tos reliable ACCEPT;
-    tos min-cost ACCEPT;
-    tos clear ACCEPT;
-}

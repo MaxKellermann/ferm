@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -m pkttype --pkt-type unicast -j ACCEPT
