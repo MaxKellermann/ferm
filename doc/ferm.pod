@@ -1334,7 +1334,7 @@ example does not contain a block, thus you may write 'ACCEPT' after
 the call. To circumvent this, you can reorder the keywords:
 
     @def &IPSEC() = { proto (esp ah); proto udp dport 500; }
-    ACCEPT &IPSEC();
+    chain INPUT ACCEPT &IPSEC();
 
 =head2 Backticks
 
