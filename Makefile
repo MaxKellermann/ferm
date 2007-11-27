@@ -70,10 +70,12 @@ $(STAMPDIR)/%.OLD: %.result test/canonical.pl
 	@mkdir -p $(dir $@)
 	$(PERL) test/canonical.pl <$< >$@
 
-$(STAMPDIR)/%.NEW: %.ferm $(NEW_FERM) test/canonical.pl
+$(STAMPDIR)/%.result: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
-	$(PERL) test/canonical.pl <$@.tmp1 >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@
+
+$(STAMPDIR)/%.NEW: $(STAMPDIR)/%.result test/canonical.pl
+	$(PERL) test/canonical.pl <$< >$@
 
 $(STAMPDIR)/%.SAVE: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
