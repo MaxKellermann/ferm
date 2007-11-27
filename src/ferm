@@ -1560,16 +1560,6 @@ sub mkrules($) {
     dofr($fw, @unfold);
 }
 
-# find an option in the rule stack
-sub find_option($$) {
-    my ($fw, $key) = @_;
-
-    my $item = (grep { exists $_->{$key} } reverse @$fw)[0];
-    return unless defined $item;
-
-    return $item->{$key};
-}
-
 sub filter_domains($) {
     my $domains = shift;
     my $result = [];
@@ -2180,7 +2170,7 @@ sub enter($@) {
                   if exists $current{table};
                 $current{table} = $stack[0]{auto}{TABLE} = getvalues();
 
-                unless (defined find_option(\@fw, 'domain')) {
+                unless (exists $current{domain}) {
                     $current{domain} = filter_domains('ip');
                     $current{domain_family} = 'ip';
                 }
