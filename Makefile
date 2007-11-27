@@ -68,14 +68,12 @@ FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.
 
 $(STAMPDIR)/%.ferm.OLD: %.result test/canonical.pl
 	@mkdir -p $(dir $@)
-	$(PERL) test/canonical.pl <$< >$@.tmp2
-	@mv $@.tmp2 $@
+	$(PERL) test/canonical.pl <$< >$@
 
 $(STAMPDIR)/%.NEW: % $(NEW_FERM) test/canonical.pl
 	@mkdir -p $(dir $@)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
-	$(PERL) test/canonical.pl <$@.tmp1 >$@.tmp2
-	@mv $@.tmp2 $@
+	$(PERL) test/canonical.pl <$@.tmp1 >$@
 
 $(STAMPDIR)/%.SAVE: % $(NEW_FERM)
 	@mkdir -p $(dir $@)
@@ -98,8 +96,7 @@ $(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
 
 $(STAMPDIR_20)/%.result: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp
-	-mv $@.tmp $@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@
 
 $(STAMPDIR_20)/%.check: %.result $(STAMPDIR_20)/%.result
 	diff -u $^
