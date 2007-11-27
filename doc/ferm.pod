@@ -1340,7 +1340,7 @@ the call. To circumvent this, you can reorder the keywords:
 
 With backticks, you may use the output of an external command:
 
-    @def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`
+    @def $DNSSERVERS = `grep nameserver /etc/resolv.conf | awk '{print $2}'`;
     chain INPUT proto tcp saddr $DNSSERVERS ACCEPT;
 
 The command is executed with the shell (F</bin/sh>), just like
