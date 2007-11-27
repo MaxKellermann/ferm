@@ -75,7 +75,7 @@ $(STAMPDIR)/%.NEW: % $(NEW_FERM) test/canonical.pl
 	@mkdir -p $(dir $@)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
 	$(PERL) test/canonical.pl <$@.tmp1 >$@.tmp2
-	-mv $@.tmp2 $@
+	@mv $@.tmp2 $@
 
 $(STAMPDIR)/%.SAVE: % $(NEW_FERM)
 	@mkdir -p $(dir $@)
