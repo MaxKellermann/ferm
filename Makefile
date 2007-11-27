@@ -79,14 +79,16 @@ $(STAMPDIR)/%.NEW: $(STAMPDIR)/%.result test/canonical.pl
 
 $(STAMPDIR)/%.SAVE: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< >$@.tmp
+	grep -v '^#' <$@.tmp >$@
 
 $(STAMPDIR)/test/ipv6/%.IMPORT: export FERM_DOMAIN=ip6
 $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 	$(PERL) src/import-ferm $< >$@
 
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' |sed $(SAVE2_SED) >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< >$@.tmp
+	grep -v '^#' <$@.tmp |sed $(SAVE2_SED) >$@
 
 $(STAMPDIR)/%.check: $(STAMPDIR)/%.OLD $(STAMPDIR)/%.NEW
 	diff -u $^
