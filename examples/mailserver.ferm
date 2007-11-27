@@ -1,0 +1,43 @@
+# -*- shell-script -*-
+#
+# Ferm example script
+#
+# Firewall configuration for a dedicated mail server.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+@def $NET_TRUSTED = 195.135.144.144/28;
+
+table filter {
+    chain INPUT {
+        policy DROP;
+
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # allow local connections
+        interface lo ACCEPT;
+
+        # respond to ping
+        proto icmp icmp-type echo-request ACCEPT;
+
+        # remote administration from the company network
+        saddr $NET_TRUSTED proto tcp dport ssh ACCEPT;
+
+        # our services to the world
+        proto tcp dport (smtp ssmtp qmtp pop3 pop3s imap2 imap3 imaps) ACCEPT;
+
+        # some SMTP servers use ident
+        proto tcp dport auth REJECT;
+
+        # the rest is dropped by the above policy
+    }
+
+    # outgoing connections are not limited
+    chain OUTPUT policy ACCEPT;
+
+    # this is not a router
+    chain FORWARD policy DROP;
+}
