@@ -18,11 +18,8 @@ table filter {
         # allow local connections
         interface lo ACCEPT;
 
-        # respond to ping, but limit that
-        proto icmp {
-            icmp-type echo-request mod limit limit 10/s ACCEPT;
-            DROP;
-        }
+        # respond to ping
+        proto icmp icmp-type echo-request ACCEPT;
 
         # remote administration
         proto tcp dport ssh ACCEPT;
