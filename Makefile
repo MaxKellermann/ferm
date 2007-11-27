@@ -66,16 +66,16 @@ SAVE2_SED += -e 's!--rt-0-addrs ::1,::2 --rt-0-not-strict!--rt-0-not-strict --rt
 
 FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
-$(STAMPDIR)/%.ferm.OLD: %.result test/canonical.pl
+$(STAMPDIR)/%.OLD: %.result test/canonical.pl
 	@mkdir -p $(dir $@)
 	$(PERL) test/canonical.pl <$< >$@
 
-$(STAMPDIR)/%.NEW: % $(NEW_FERM) test/canonical.pl
+$(STAMPDIR)/%.NEW: %.ferm $(NEW_FERM) test/canonical.pl
 	@mkdir -p $(dir $@)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@.tmp1
 	$(PERL) test/canonical.pl <$@.tmp1 >$@
 
-$(STAMPDIR)/%.SAVE: % $(NEW_FERM)
+$(STAMPDIR)/%.SAVE: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
@@ -104,9 +104,9 @@ $(STAMPDIR_20)/%.check: %.result $(STAMPDIR_20)/%.result
 
 .PHONY : check-ferm check-import check
 
-check-ferm: $(patsubst %,$(STAMPDIR)/%.check,$(FERM_SCRIPTS)) $(patsubst %.ferm,$(STAMPDIR_20)/%.check,$(FERM_20_SCRIPTS))
+check-ferm: $(patsubst %.ferm,$(STAMPDIR)/%.check,$(FERM_SCRIPTS)) $(patsubst %.ferm,$(STAMPDIR_20)/%.check,$(FERM_20_SCRIPTS))
 
-check-import: $(patsubst %,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
+check-import: $(patsubst %.ferm,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
 
 check: check-ferm check-import
 
