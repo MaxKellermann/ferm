@@ -1795,13 +1795,12 @@ sub clone_match($) {
            };
 }
 
-sub new_level(\@\%) {
-    my ($fw, $current) = @_;
+sub new_level(\%$) {
+    my ($current, $prev) = @_;
 
     %$current = ();
-    if (@$fw > 1) {
+    if (defined $prev) {
         # copy data from previous level
-        my $prev = $fw->[-2];
         $current->{builtin} = { %{$prev->{builtin}} };
         $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
         $current->{action} = { %{$prev->{action}} };
@@ -1826,11 +1825,9 @@ sub rule_defined(\%) {
 
 # the main parser loop: read tokens, convert them into internal rule
 # structures
-sub enter($@) {
+sub enter($$) {
     my $lev = shift;  # current recursion depth
-    my @fw = @_; # fwset in list of hashes
-
-    die unless @fw == $lev;
+    my $prev = shift; # previous rule hash
 
     # enter is the core of the firewall setup, it is a
     # simple parser program that recognizes keywords and
@@ -1841,8 +1838,7 @@ sub enter($@) {
     die if $base_level > $lev;
 
     my %current;
-    push @fw, \%current;
-    new_level(@fw, %current);
+    new_level(%current, $prev);
 
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
@@ -1884,7 +1880,7 @@ sub enter($@) {
                 mkrules(\%current);
 
                 # and clean up variables set in this level
-                new_level(@fw, %current);
+                new_level(%current, $prev);
 
                 next;
             }
@@ -1940,7 +1936,7 @@ sub enter($@) {
                 unshift @stack, { auto => { %{$stack[0]{auto} || {}} } };
 
                 # recurse
-                enter($lev + 1, @fw);
+                enter($lev + 1, \%current);
 
                 # pop stack
                 shift @stack;
@@ -1948,7 +1944,7 @@ sub enter($@) {
 
                 # after a block, the command is finished, clear this
                 # level
-                new_level(@fw, %current);
+                new_level(%current, $prev);
 
                 next;
             }
@@ -1994,7 +1990,7 @@ sub enter($@) {
                     unshift @stack, $stack;
 
                     # parse the script
-                    enter($lev + 1, @fw);
+                    enter($lev + 1, \%current);
 
                     # pop stack
                     shift @stack;
@@ -2255,7 +2251,7 @@ sub enter($@) {
                 error('"{" or chain name expected after "sub"')
                   unless $keyword eq '{';
 
-                # create a deep copy of @fw, only containing values
+                # create a deep copy of %current, only containing values
                 # which must be in the subchain
                 my %inner = ( builtin => {},
                               action => {},
@@ -2282,7 +2278,7 @@ sub enter($@) {
                 mkrules(\%current);
 
                 # and clean up variables set in this level
-                new_level(@fw, %current);
+                new_level(%current, $prev);
 
                 next;
             }
