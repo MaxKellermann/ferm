@@ -1341,15 +1341,6 @@ sub tables($) {
     my $rr = shell_escape($domain_info->{tools}{tables});
     shell_append(\$rr, '-t', $table);
 
-    # should we set a policy?
-    if (exists $chain_info->{set_policy}) {
-        my $policy = $chain_info->{policy};
-
-        push @$rules, "$rr -P $chain $policy\n";
-
-        delete $chain_info->{set_policy};
-    }
-
     # mark this chain as "non-empty" because we will add stuff to
     # it now; this flag is later used to check if a custom chain
     # referenced by "jump" was actually defined
@@ -1372,7 +1363,17 @@ sub tables($) {
         $table_info->{chains}{$chain}{was_created} = 1;
     }
 
-    # return if this is a policy-only rule
+    # target=policy is a special case
+    if ($action->{type} eq 'policy') {
+        shell_append(\$rr, '-P', $chain, $action->{policy});
+        $rr .= "\n";
+        push @$rules, { rule => $rr,
+                        script => $rule{script},
+                      };
+        return;
+    }
+
+    # return if this is a declaration-only rule
     return
       unless $rule{has_rule};
 
@@ -2200,31 +2201,9 @@ sub enter($$) {
 
             # policy for built-in chain
             if ($keyword eq 'policy') {
-                my $domains = $current{domain};
-                my $tables = $current{table};
-                my $chains = $current{chain};
-
                 my $policy = uc getvar();
                 error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
-
-                foreach my $domain (to_array $domains) {
-                    foreach my $table (to_array $tables) {
-                        my $chains_info = $domains{$domain}{tables}{$table}{chains} ||= {};
-
-                        foreach my $chain (to_array $chains) {
-                            error("cannot set the policy for non-builtin chain '$chain'")
-                              unless is_netfilter_builtin_chain($table, $chain);
-
-                            if (exists $chains_info->{$chain}{policy}) {
-                                warning('policy for this chain is specified for the second time');
-                            } else {
-                                $chains_info->{$chain}{policy} = $policy;
-                                $chains_info->{$chain}{set_policy} = 1;
-                            }
-                        }
-                    }
-                }
 
                 $current{action} = { type => 'policy',
                                      policy => $policy,
