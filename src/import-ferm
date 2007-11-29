@@ -141,6 +141,7 @@ EOT
 
 my %p1multi = parse_table(<<EOT);
 to-source
+u32
 EOT
 
 my %p2c = parse_table(<<EOT);

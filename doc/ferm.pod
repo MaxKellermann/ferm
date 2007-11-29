@@ -1051,6 +1051,14 @@ Matches the ttl (time to live) field in the IP header.
     mod ttl ttl-gt 10; # ttl greater than
     mod ttl ttl-lt 16; # ttl less than
 
+=item B<u32>
+
+Compares raw data from the packet.  You can specify more than one
+filter in a ferm list; these are not expanded into multiple rules.
+
+    mod u32 u32 '6&0xFF=1' ACCEPT;
+    mod u32 u32 ('27&0x8f=7' '31=0x527c4833') DROP;
+
 =item B<unclean>
 
 Matches packets which seem malformed or unusual. This match has no

@@ -30,6 +30,7 @@ v1.3.0 - not yet released
   - support netfilter modules:
     * connbytes
     * connlimit
+    * u32
   - support netfilter targets:
     * CONNSECMARK
     * SECMARK
