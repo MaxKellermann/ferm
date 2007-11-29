@@ -36,6 +36,7 @@ v1.3.0 - not yet released
   - abort when there is an unrecognized command line option (reported by
     Han Holl)
   - import-ferm: don't generate NOP action before a block
+  - import-ferm: quote array values
   - quote the ampersand
 
 

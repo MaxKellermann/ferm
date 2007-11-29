@@ -213,7 +213,7 @@ sub format_array {
     my $a = shift;
     return ferm_escape($a) unless ref $a;
     return ferm_escape($a->[0]) if @$a == 1;
-    return '(' . join(' ', @$a) . ')';
+    return '(' . join(' ', map { ferm_escape($_) } @$a) . ')';
 }
 
 sub write_line {
