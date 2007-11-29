@@ -215,6 +215,9 @@ use vars qw(%proto_defs %match_defs %target_defs);
 #               to-source (1.2.3.4 5.6.7.8)  translates to:
 #               --to-source 1.2.3.4 --to-source 5.6.7.8
 #
+# u32=m         an array which renders into multiple iptables options in one
+#               rule
+#
 # ctstate=c     one argument, if it's an array, pass it to iptables as a
 #               single comma separated value; example:
 #                 ctstate (ESTABLISHED RELATED)  translates to:
@@ -247,7 +250,7 @@ sub add_def {
 
         my $params = 1;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
-        $params = $1 if $keyword =~ s,=([acs]+)$,,;
+        $params = $1 if $keyword =~ s,=([acs]+|m)$,,;
         if ($keyword =~ s,&(\S+)$,,) {
             $params = eval "\\&$1";
             die $@ if $@;
@@ -1859,6 +1862,8 @@ sub parse_keyword($$$$) {
         undef $value;
     } elsif (ref $params && ref $params eq 'CODE') {
         $value = &$params($fw);
+    } elsif ($params eq 'm') {
+        $value = [ getvalues() ];
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
