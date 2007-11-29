@@ -1404,13 +1404,13 @@ sub shell_escape($) {
 
         $token =~ s,",',g;
         $token = '"' . $token . '"'
-          if $token =~ /[\s\'\\;]/s;
+          if $token =~ /[\s\'\\;&]/s;
     } else {
         return $token
           if $token =~ /^\`.*\`$/;
         $token =~ s/'/\\'/g;
         $token = '\'' . $token . '\''
-          if $token =~ /[\s\"\\;<>|]/s;
+          if $token =~ /[\s\"\\;<>&|]/s;
     }
 
     return $token;
