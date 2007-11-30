@@ -58,6 +58,7 @@ IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 
 # just a hack because ferm/import-ferm scramble the keyword order
 SAVE2_SED = -e 's,-m mh -p ipv6-mh,-p ipv6-mh -m mh,'
+SAVE2_SED += -e 's,--fragfirst --fragres,--fragres --fragfirst,'
 
 $(STAMPDIR)/%.OLD: PATCHFILE = $(shell test -f "test/patch/$(patsubst test/%,%,$(<)).iptables" && echo "test/patch/$(patsubst test/%,%,$(<)).iptables" )
 $(STAMPDIR)/%.OLD: % $(OLD_FERM) test/canonical.pl
