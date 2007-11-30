@@ -1,0 +1,4 @@
+table filter chain INPUT mod u32 {
+    u32 '1&0xff=42' REJECT;
+    u32 ('27&0x8f=7' '31=0x527c4833') DROP;
+}

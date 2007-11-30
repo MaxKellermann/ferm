@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m u32 --u32 '1&0xff=42' -j REJECT
+iptables -t filter -A INPUT -m u32 --u32 '27&0x8f=7' --u32 31=0x527c4833 -j DROP

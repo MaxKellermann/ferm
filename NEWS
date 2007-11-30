@@ -49,12 +49,15 @@ v1.3.0 - not yet released
   - support netfilter modules:
     * connbytes
     * connlimit
+    * u32
   - support netfilter targets:
     * CONNSECMARK
     * SECMARK
   - abort when there is an unrecognized command line option (reported by
     Han Holl)
   - import-ferm: don't generate NOP action before a block
+  - import-ferm: quote array values
+  - quote the ampersand
 
 
 v1.2.5 - 14 Oct 2007

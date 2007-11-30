@@ -2,10 +2,12 @@
 #
 # Ferm example script
 #
-# Firewall configuration for a workstation which accepts remote ssh login.
+# Firewall configuration for a dedicated mail server.
 #
 # Author: Max Kellermann <max@duempel.org>
 #
+
+@def $NET_TRUSTED = 195.135.144.144/28;
 
 table filter {
     chain INPUT {
@@ -21,11 +23,14 @@ table filter {
         # respond to ping
         proto icmp icmp-type echo-request ACCEPT;
 
-        # allow SSH connections
-        proto tcp dport ssh ACCEPT;
+        # remote administration from the company network
+        saddr $NET_TRUSTED proto tcp dport ssh ACCEPT;
 
-        # ident connections are also allowed
-        proto tcp dport auth ACCEPT;
+        # our services to the world
+        proto tcp dport (smtp ssmtp qmtp pop3 pop3s imap2 imap3 imaps) ACCEPT;
+
+        # some SMTP servers use ident
+        proto tcp dport auth REJECT;
 
         # the rest is dropped by the above policy
     }

@@ -116,6 +116,9 @@ use vars qw(%proto_defs %match_defs %target_defs);
 #               to-source (1.2.3.4 5.6.7.8)  translates to:
 #               --to-source 1.2.3.4 --to-source 5.6.7.8
 #
+# u32=m         an array which renders into multiple iptables options in one
+#               rule
+#
 # ctstate=c     one argument, if it's an array, pass it to iptables as a
 #               single comma separated value; example:
 #                 ctstate (ESTABLISHED RELATED)  translates to:
@@ -149,7 +152,7 @@ sub add_def_x {
 
         my $params = 1;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
-        $params = $1 if $keyword =~ s,=([acs]+)$,,;
+        $params = $1 if $keyword =~ s,=([acs]+|m)$,,;
         if ($keyword =~ s,&(\S+)$,,) {
             $params = eval "\\&$1";
             die $@ if $@;
@@ -274,6 +277,7 @@ add_match_def 'tcpmss', qw(!mss);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s);
 add_match_def 'tos', qw(!tos);
 add_match_def 'ttl', qw(ttl-eq ttl-lt=s ttl-gt=s);
+add_match_def 'u32', qw(u32=m);
 
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
 add_target_def 'CLASSIFY', qw(set-class);
@@ -1234,13 +1238,13 @@ sub shell_escape($) {
 
         $token =~ s,",',g;
         $token = '"' . $token . '"'
-          if $token =~ /[\s\'\\;]/s;
+          if $token =~ /[\s\'\\;&]/s;
     } else {
         return $token
           if $token =~ /^\`.*\`$/;
         $token =~ s/'/\\'/g;
         $token = '\'' . $token . '\''
-          if $token =~ /[\s\"\\;<>|]/s;
+          if $token =~ /[\s\"\\;<>&|]/s;
     }
 
     return $token;
@@ -1612,6 +1616,8 @@ sub parse_keyword($$$$) {
         undef $value;
     } elsif (ref $params && ref $params eq 'CODE') {
         $value = &$params($current);
+    } elsif ($params eq 'm') {
+        $value = [ getvalues() ];
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
