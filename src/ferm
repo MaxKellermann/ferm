@@ -210,11 +210,6 @@ use vars qw(%proto_defs %match_defs %target_defs);
 # foo=s         one argument which must not be a ferm array ('s' stands for
 #               'scalar')
 #
-# to-source=a   one argument, may be a ferm array ('a'='array'); this forces
-#               ferm to accept arrays, even in a target declaration; example:
-#               to-source (1.2.3.4 5.6.7.8)  translates to:
-#               --to-source 1.2.3.4 --to-source 5.6.7.8
-#
 # u32=m         an array which renders into multiple iptables options in one
 #               rule
 #
@@ -1879,8 +1874,6 @@ sub parse_keyword($$$$) {
         foreach my $p (split(//, $params)) {
             if ($p eq 's') {
                 push @params, getvar();
-            } elsif ($p eq 'a') {
-                push @params, getvalues();
             } elsif ($p eq 'c') {
                 my @v = to_array getvalues(undef, undef,
                                            non_empty => 1);
