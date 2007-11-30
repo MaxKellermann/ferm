@@ -369,7 +369,7 @@ add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SAME', qw(to nodst*0);
 add_target_def 'SECMARK', qw(selctx);
 add_target_def 'SET', qw(add-set=sc del-set=sc);
-add_target_def 'SNAT', qw(to-source=a to:=to-source);
+add_target_def 'SNAT', qw(to-source=m to:=to-source);
 add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TOS', qw(set-tos&compat_tos_params);
@@ -1450,7 +1450,7 @@ sub shell_append_option($$$$) {
         shell_append($ref, "--$keyword");
     } elsif (ref $value and ref $value eq 'params') {
         shell_append($ref, "--$keyword", @negated, @$value);
-    } elsif (ref $value and ref $value eq 'ARRAY') {
+    } elsif (ref $value and ref $value eq 'multi') {
         foreach (@$value) {
             shell_append($ref, "--$keyword", $_);
         }
@@ -1711,6 +1711,7 @@ sub mkrules($) {
         unless (ref $value_string and
                 $key ne 'target_options' and
                 ref $value_string ne 'params' and
+                ref $value_string ne 'multi' and
                 ref $value_string ne 'negated') {
                 # set this one and recurse
             $rule->{$key} = $value_string;
@@ -1864,7 +1865,7 @@ sub parse_keyword($$$$) {
     } elsif (ref $params && ref $params eq 'CODE') {
         $value = &$params($fw);
     } elsif ($params eq 'm') {
-        $value = [ getvalues() ];
+        $value = bless [ to_array getvalues() ], 'multi';
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
