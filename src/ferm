@@ -111,11 +111,6 @@ use vars qw(%proto_defs %match_defs %target_defs);
 # foo=s         one argument which must not be a ferm array ('s' stands for
 #               'scalar')
 #
-# to-source=a   one argument, may be a ferm array ('a'='array'); this forces
-#               ferm to accept arrays, even in a target declaration; example:
-#               to-source (1.2.3.4 5.6.7.8)  translates to:
-#               --to-source 1.2.3.4 --to-source 5.6.7.8
-#
 # u32=m         an array which renders into multiple iptables options in one
 #               rule
 #
@@ -302,7 +297,7 @@ add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SAME', qw(to nodst*0);
 add_target_def 'SECMARK', qw(selctx);
 add_target_def 'SET', qw(add-set=sc del-set=sc);
-add_target_def 'SNAT', qw(to-source=a to:=to-source);
+add_target_def 'SNAT', qw(to-source=m to:=to-source);
 add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TOS', qw(set-tos);
@@ -1280,7 +1275,7 @@ sub shell_append_option($$$$) {
         shell_append($ref, "--$keyword");
     } elsif (ref $value and ref $value eq 'params') {
         shell_append($ref, "--$keyword", @negated, @$value);
-    } elsif (ref $value and ref $value eq 'ARRAY') {
+    } elsif (ref $value and ref $value eq 'multi') {
         foreach (@$value) {
             shell_append($ref, "--$keyword", $_);
         }
@@ -1617,7 +1612,7 @@ sub parse_keyword($$$$) {
     } elsif (ref $params && ref $params eq 'CODE') {
         $value = &$params($current);
     } elsif ($params eq 'm') {
-        $value = [ getvalues() ];
+        $value = bless [ to_array getvalues() ], 'multi';
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
@@ -1631,8 +1626,6 @@ sub parse_keyword($$$$) {
         foreach my $p (split(//, $params)) {
             if ($p eq 's') {
                 push @params, getvar();
-            } elsif ($p eq 'a') {
-                push @params, getvalues();
             } elsif ($p eq 'c') {
                 my @v = to_array getvalues(undef, undef,
                                            non_empty => 1);
