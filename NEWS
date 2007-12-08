@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.3.1 - not yet released
+
+
 v1.3 - 6 Dec 2007
   - reserve tokens starting with "@" as ferm keywords
   - implemented conditionals with @if/@else
