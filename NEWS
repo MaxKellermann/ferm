@@ -8,6 +8,7 @@
 
 
 v1.3.1 - not yet released
+  - require IO::Handle, this fixes the interactive mode
 
 
 v1.3 - 6 Dec 2007
