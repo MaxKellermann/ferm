@@ -1281,12 +1281,10 @@ sub shell_append_option($$$$) {
         shell_append($ref, @$value);
     } elsif (ref $value and ref $value eq 'multi') {
         foreach (@$value) {
-            $$ref .= " --$keyword";
-            shell_append($ref, $_);
+            $$ref .= " --$keyword " . shell_escape($_);
         }
     } else {
-        $$ref .= " --$keyword$negated";
-        shell_append($ref, $value);
+        $$ref .= " --$keyword$negated " . shell_escape($value);
     }
 }
 
