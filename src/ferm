@@ -34,6 +34,8 @@ BEGIN {
         # we need no vars.pm if there is not even strict.pm
         $INC{'vars.pm'} = 1;
         *vars::import = sub {};
+    } else {
+        require IO::Handle;
     }
 
     eval { require Getopt::Long; import Getopt::Long; };
@@ -481,6 +483,7 @@ if ($has_getopt) {
         } elsif ($_ eq '--fast') {
             $option{fast} = 1;
         } elsif ($_ eq '--test') {
+            $option{test} = 1;
             $option{noexec} = 1;
             $option{lines} = 1;
         } elsif ($_ eq '--shell') {
