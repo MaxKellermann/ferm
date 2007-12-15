@@ -1227,6 +1227,8 @@ sub netfilter_protocol_module($) {
 sub shell_escape($) {
     my $token = shift;
 
+    return $token if $token =~ /^[-_a-zA-Z0-9]+$/s;
+
     if ($option{fast}) {
         # iptables-save/iptables-restore are quite buggy concerning
         # escaping and special characters... we're trying our best
