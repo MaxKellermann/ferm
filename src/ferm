@@ -1248,16 +1248,6 @@ sub shell_escape($) {
     return $token;
 }
 
-# append parameters to a shell command line, with the correct escape
-# sequences
-sub shell_append($@) {
-    my $ref = shift;
-
-    foreach (@_) {
-        $$ref .= ' ' . shell_escape($_);
-    }
-}
-
 # append an option to the shell command line, using information from
 # the module definition (see %match_defs etc.)
 sub shell_append_option($$$$) {
@@ -1277,8 +1267,8 @@ sub shell_append_option($$$$) {
     unless (defined $value) {
         $$ref .= " --$keyword";
     } elsif (ref $value and ref $value eq 'params') {
-        $$ref .= " --$keyword$negated";
-        shell_append($ref, @$value);
+        $$ref .= " --$keyword$negated ";
+        $$ref .= join(' ', map { shell_escape($_) } @$value);
     } elsif (ref $value and ref $value eq 'multi') {
         foreach (@$value) {
             $$ref .= " --$keyword " . shell_escape($_);
@@ -1371,7 +1361,7 @@ sub tables($) {
             (exists $rule->{dport} or exists $rule->{sport}) and
             $proto =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
             unless (exists $modules{$proto}) {
-                shell_append(\$rr, '-m', $proto);
+                $rr .= " -m $proto";
                 $modules{$proto} = 1;
             }
 
@@ -1391,7 +1381,7 @@ sub tables($) {
     foreach my $match (@{$rule->{match}}) {
         my $module_name = $match->{name};
         unless (exists $modules{$module_name}) {
-            shell_append(\$rr, '-m', $module_name);
+            $rr .= " -m $module_name";
             $modules{$module_name} = 1;
         }
 
@@ -1410,11 +1400,11 @@ sub tables($) {
     #
 
     if ($action->{type} eq 'jump') {
-        shell_append(\$rr, '-j', $action->{chain});
+        $rr .= " -j " . shell_escape($action->{chain});
     } elsif ($action->{type} eq 'goto') {
-        shell_append(\$rr, '-g', $action->{chain});
+        $rr .= " -g " . shell_escape($action->{chain});
     } elsif ($action->{type} eq 'target') {
-        shell_append(\$rr, '-j', $action->{target});
+        $rr .= " -j " . shell_escape($action->{target});
 
         # targets stored in %target_defs
 
