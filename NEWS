@@ -21,6 +21,7 @@ v2.0 - not yet released
       --createchains, --location
     - comma in array is forbidden
     - removed "source" and "destination" as prefix for "addr" and "port" 
+  - don't allow match rules before "policy"
   - removed support for deprecated netfilter modules
     - dst
     - frag

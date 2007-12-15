@@ -2199,6 +2199,9 @@ sub enter($$) {
 
             # policy for built-in chain
             if ($keyword eq 'policy') {
+                error('Cannot specify matches for policy')
+                  if $current{has_rule};
+
                 my $policy = uc getvar();
                 error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
