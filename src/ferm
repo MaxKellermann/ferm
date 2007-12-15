@@ -2440,6 +2440,31 @@ sub check() {
     }
 }
 
+sub execute_command {
+    my ($command, $script) = @_;
+
+    print LINES $command
+      if $option{lines};
+    return if $option{noexec};
+
+    my $ret = system($_);
+    unless ($ret == 0) {
+        if ($? == -1) {
+            print STDERR "failed to execute: $!\n";
+            exit 1;
+        } elsif ($? & 0x7f) {
+            printf STDERR "child died with signal %d\n", $? & 0x7f;
+            return 1;
+        } else {
+            print STDERR "(rule declared in $script->{filename}:$script->{line})\n"
+              if defined $script;
+            return $? >> 8;
+        }
+    }
+
+    return;
+}
+
 sub execute_slow($$) {
     my ($domain, $rules) = @_;
 
@@ -2453,25 +2478,10 @@ sub execute_slow($$) {
         }
 
         s/^\s+//s;
-        print LINES $_
-          if $option{lines};
-        next if $option{noexec};
         next if /^#/;
 
-        my $ret = system($_);
-        unless ($ret == 0) {
-            if ($? == -1) {
-                print STDERR "failed to execute: $!\n";
-                exit 1;
-            } elsif ($? & 0x7f) {
-                printf STDERR "child died with signal %d\n", $? & 0x7f;
-                $status = 1;
-            } else {
-                print STDERR "(rule declared in $script->{filename}:$script->{line})\n"
-                  if defined $script;
-                $status = $? >> 8;
-            }
-        }
+        my $ret = execute_command($_, $script);
+        $status = $ret if defined $ret;
     }
 
     return $status;
