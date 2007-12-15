@@ -1363,23 +1363,6 @@ sub tables($) {
     if (defined $rule->{builtin}{protocol}) {
         my $proto = netfilter_canonical_protocol($rule->{builtin}{protocol});
 
-        if (exists $proto_defs{$domain_family}{$proto}) {
-            my $def = $proto_defs{$domain_family}{$proto};
-            while (my ($keyword, $k) = each %{$def->{keywords}}) {
-                my $key = "protocol__${proto}__$keyword";
-                next unless exists $rule->{$key};
-                my $value = $rule->{$key};
-
-                my $module = netfilter_protocol_module($proto);
-                unless (exists $modules{$module}) {
-                    shell_append(\$rr, '-m', $module);
-                    $modules{$module} = 1;
-                }
-
-                shell_append_option(\$rr, $k, $keyword, $value);
-            }
-        }
-
         # special case: --dport and --sport for TCP/UDP
         if ($domain_family eq 'ip' and
             (exists $rule->{dport} or exists $rule->{sport}) and
