@@ -63,7 +63,7 @@ use vars qw(@pre_hooks @post_hooks);
 # $script: current script file
 # @stack = ferm's parser stack containing local variables
 # $auto_chain = index for the next auto-generated chain
-use vars qw($script %rules @stack $auto_chain);
+use vars qw($script @stack $auto_chain);
 
 ## netfilter variables
 # %domains = state information about all domains ("ip" and "ip6")
@@ -532,11 +532,12 @@ foreach my $cmd (@pre_hooks) {
     system($cmd) unless $option{noexec};
 }
 
-while (my ($domain, $rules) = each %rules) {
+while (my ($domain, $domain_info) = each %domains) {
+    next unless $domain_info->{enabled};
     my $s = $option{fast} &&
-      defined $domains{$domain}{tools}{'tables-restore'}
-      ? execute_fast($domain, rules_to_save($domain, $rules))
-        : execute_slow($domain, $rules);
+      defined $domain_info->{tools}{'tables-restore'}
+      ? execute_fast($domain, $domain_info)
+        : execute_slow($domain, $domain_info);
     $status = $s if defined $s;
 }
 
@@ -1292,52 +1293,25 @@ sub extract_negation($) {
         : $_;
 }
 
-# reset a netfilter domain: set all policies to ACCEPT, clear all
-# rules, delete custom chains
-sub reset_domain($) {
-    my $domain = shift;
-    my $domain_info = $domains{$domain};
-
-    my $path = $domain_info->{tools}{tables};
-
-    my @rules;
-    while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
-        while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
-            next unless $chain_info->{builtin} or
-              (not $table_info->{has_builtin} and
-               is_netfilter_builtin_chain($table, $chain));
-            push @rules, "$path -t $table -P $chain ACCEPT\n";
-        }
-
-        push @rules,
-          "$path -t $table -F\n", "$path -t $table -X\n";
-    }
-
-    return @rules;
-}
-
 # convert an internal rule structure into an iptables call
 sub tables($) {
     my $rule = shift;
 
     my $domain = $rule->{domain};
     my $domain_info = $domains{$domain};
+    $domain_info->{enabled} = 1;
     my $domain_family = $rule->{domain_family};
 
     my $table = $rule->{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
 
-    my $rules = $rules{$domain} ||= [];
-
     my $chain = $rule->{chain};
     my $chain_info = $table_info->{chains}{$chain} ||= {};
+    my $chain_rules = $chain_info->{rules} ||= [];
 
     return if $option{flush};
 
     my $action = $rule->{action};
-
-    my $rr = shell_escape($domain_info->{tools}{tables});
-    shell_append(\$rr, '-t', $table);
 
     # mark this chain as "non-empty" because we will add stuff to
     # it now; this flag is later used to check if a custom chain
@@ -1345,29 +1319,23 @@ sub tables($) {
     $chain_info->{non_empty} = 1;
 
     # check if the chain is already defined
-    unless (exists $chain_info->{was_created} or
+    unless (exists $chain_info->{create} or
             is_netfilter_builtin_chain($table, $chain)) {
-        push @$rules, "$rr -N $chain\n";
-        $chain_info->{was_created} = 1;
+        $chain_info->{create} = 1;
     }
 
     # check for unknown jump target
     if (defined $action and
         ($action->{type} eq 'jump' or
          $action->{type} eq 'goto') and
-        not exists $table_info->{chains}{$action->{chain}}{was_created}) {
+        not exists $table_info->{chains}{$action->{chain}}{create}) {
         my $chain = $action->{chain};
-        push @$rules, "$rr -N $chain\n";
-        $table_info->{chains}{$chain}{was_created} = 1;
+        $table_info->{chains}{$chain}{create} = 1;
     }
 
     # target=policy is a special case
     if ($action->{type} eq 'policy') {
-        shell_append(\$rr, '-P', $chain, $action->{policy});
-        $rr .= "\n";
-        push @$rules, { rule => $rr,
-                        script => $rule->{script},
-                      };
+        $chain_info->{policy} = $action->{policy};
         return;
     }
 
@@ -1375,7 +1343,7 @@ sub tables($) {
     return
       unless $rule->{has_rule};
 
-    shell_append(\$rr, '-A', $chain);
+    my $rr = '';
 
     # general iptables options
 
@@ -1475,10 +1443,9 @@ sub tables($) {
     }
 
     # this line is done
-    $rr .= "\n";
-    push @$rules, { rule => $rr,
-                    script => $rule->{script},
-                  };
+    push @$chain_rules, { rule => $rr,
+                          script => $rule->{script},
+                        };
 };
 
 sub transform_rule($) {
@@ -2443,7 +2410,7 @@ sub check() {
 sub execute_command {
     my ($command, $script) = @_;
 
-    print LINES $command
+    print LINES "$command\n"
       if $option{lines};
     return if $option{noexec};
 
@@ -2466,84 +2433,75 @@ sub execute_command {
 }
 
 sub execute_slow($$) {
-    my ($domain, $rules) = @_;
+    my ($domain, $domain_info) = @_;
 
-    my $status;
-    foreach (reset_domain($domain), @$rules) {
-        my $script;
+    my $domain_cmd = $domain_info->{tools}{tables};
 
-        if (ref) {
-            $script = $_->{script};
-            $_ = $_->{rule};
+    while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
+        my $table_cmd = "$domain_cmd -t $table";
+
+        # reset chain policies
+        while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
+            next unless $chain_info->{builtin} or
+              (not $table_info->{has_builtin} and
+               is_netfilter_builtin_chain($table, $chain));
+            $status ||= execute_command("$table_cmd -P $chain ACCEPT");
         }
 
-        s/^\s+//s;
-        next if /^#/;
+        # clear
+        $status ||= execute_command("$table_cmd -F");
+        $status ||= execute_command("$table_cmd -X");
 
-        my $ret = execute_command($_, $script);
-        $status = $ret if defined $ret;
+        # create chains / set policy
+        while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
+            if ($chain_info->{create}) {
+                $status ||= execute_command("$table_cmd -N $chain");
+            } elsif (exists $chain_info->{policy}) {
+                $status ||= execute_command("$table_cmd -P $chain $chain_info->{policy}");
+            }
+        }
+
+        # dump rules
+        while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
+            my $chain_cmd = "$table_cmd -A $chain";
+            foreach my $rule (@{$chain_info->{rules}}) {
+                $status ||= execute_command($chain_cmd . $rule->{rule});
+            }
+        }
     }
 
     return $status;
 }
 
 sub rules_to_save($$) {
-    my ($domain, $rules) = @_;
-
-    # parse the current ruleset, ignore -X and -F, handle policies and
-    # custom chains
-    my %policies;
-    my %rules;
-    foreach my $rule (reset_domain($domain), @$rules) {
-        $rule = $rule->{rule}
-          if ref $rule;
-
-        $rule =~ s/^\S+\s+//;
-        my $table = $rule =~ s/-t\s+(\w+)\s*//
-          ? $1 : 'filter';
-        if ($rule =~ /-P\s+(\S+)\s+(\w+)\s*/) {
-            $policies{$table}{$1} = $2;
-        } elsif ($rule =~ /-A\s+(\w+)/) {
-            push @{$rules{$table}{$1}}, $rule;
-        } elsif ($rule =~ /-N\s+(\S+)\s*/) {
-            $policies{$table}{$1} = '-';
-        }
-    }
+    my ($domain, $domain_info) = @_;
 
     # convert this into an iptables-save text
     my $result = "# Generated by ferm $VERSION on " . localtime() . "\n";
 
-    foreach my $table (qw(nat filter mangle raw)) {
-        my $policies = $policies{$table};
-        my $r = $rules{$table};
-
-        next
-          unless defined $policies or defined $r;
-
+    while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
         # select table
         $result .= '*' . $table . "\n";
 
         # create chains / set policy
-        if (defined $policies) {
-            foreach my $chain (sort keys %$policies) {
-                my $policy = $policies->{$chain};
-                $result .= ":$chain $policy\ [0:0]\n";
-            }
+        foreach my $chain (sort keys %{$table_info->{chains}}) {
+            my $chain_info = $table_info->{chains}{$chain};
+            my $policy = $chain_info->{create}
+              ? '-' : ($chain_info->{policy} || 'ACCEPT');
+            $result .= ":$chain $policy\ [0:0]\n";
         }
 
         # dump rules
-        if (defined $r) {
-            foreach my $chain (sort keys %$r) {
-                my $rs = $r->{$chain};
-                foreach (@$rs) {
-                    $result .= $_;
-                }
+        foreach my $chain (sort keys %{$table_info->{chains}}) {
+            my $chain_info = $table_info->{chains}{$chain};
+            foreach my $rule (@{$chain_info->{rules}}) {
+                $result .= "-A $chain$rule->{rule}\n";
             }
         }
 
         # do it
         $result .= "COMMIT\n";
-   }
+    }
 
     return $result;
 }
@@ -2564,10 +2522,12 @@ sub restore_domain($$) {
 }
 
 sub execute_fast($$) {
-    my ($domain, $save) = @_;
+    my ($domain, $domain_info) = @_;
+
+    my $save = rules_to_save($domain, $domain_info);
 
     if ($option{lines}) {
-        print LINES "$domains{$domain}{tools}{'tables-restore'} <<EOT\n"
+        print LINES "$domain_info->{tools}{'tables-restore'} <<EOT\n"
           if $option{shell};
         print LINES $save;
         print LINES "EOT\n"
@@ -2589,14 +2549,15 @@ sub execute_fast($$) {
 
 sub rollback() {
     my $error;
-    foreach my $domain (keys %rules) {
-        unless (defined $domains{$domain}{tools}{'tables-restore'}) {
+    while (my ($domain, $domain_info) = each %domains) {
+        next unless $domain_info->{enabled};
+        unless (defined $domain_info->{tools}{'tables-restore'}) {
             print STDERR "Cannot rollback domain '$domain' because there is no ${domain}tables-restore\n";
             next;
         }
 
         my $reset = '';
-        while (my ($table, $table_info) = each %{$domains{$domain}{tables}}) {
+        while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
             my $reset_chain = '';
             foreach my $chain (keys %{$table_info->{chains}{$table}}) {
                 next unless is_netfilter_builtin_chain($table, $chain);
@@ -2606,8 +2567,8 @@ sub rollback() {
               if length $reset_chain;
         }
 
-        $reset .= $domains{$domain}{previous}
-          if defined $domains{$domain}{previous};
+        $reset .= $domain_info->{previous}
+          if defined $domain_info->{previous};
 
         restore_domain($domain, $reset);
     }
