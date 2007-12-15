@@ -1263,30 +1263,30 @@ sub shell_append($@) {
 sub shell_append_option($$$$) {
     my ($ref, $def, $keyword, $value) = @_;
 
-    my @negated;
+    my $negated = '';
     if (ref $value and ref $value eq 'negated') {
         $value = $value->[0];
 
         if (exists $def->{pre_negation}) {
             $$ref .= ' !';
         } else {
-            push @negated, '!';
+            $negated = ' !';
         }
     }
 
     unless (defined $value) {
         $$ref .= " --$keyword";
     } elsif (ref $value and ref $value eq 'params') {
-        $$ref .= " --$keyword";
-        shell_append($ref, @negated, @$value);
+        $$ref .= " --$keyword$negated";
+        shell_append($ref, @$value);
     } elsif (ref $value and ref $value eq 'multi') {
         foreach (@$value) {
             $$ref .= " --$keyword";
             shell_append($ref, $_);
         }
     } else {
-        $$ref .= " --$keyword";
-        shell_append($ref, @negated, $value);
+        $$ref .= " --$keyword$negated";
+        shell_append($ref, $value);
     }
 }
 
