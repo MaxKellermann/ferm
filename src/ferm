@@ -2206,6 +2206,10 @@ sub enter($$) {
                 error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
+                $keyword = peek_token();
+                error('";" expected after policy declaration')
+                  unless defined $keyword and $keyword eq ';';
+
                 $current{action} = { type => 'policy',
                                      policy => $policy,
                                    };
