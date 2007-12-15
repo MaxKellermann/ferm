@@ -1471,10 +1471,7 @@ sub check_unfold(\@$$) {
     return unless ref $parent->{$key} and
       ref $parent->{$key} eq 'ARRAY';
 
-    push @$unfold, { parent => $parent,
-                     key => $key,
-                     values => [ @{$parent->{$key}} ],
-                   };
+    push @$unfold, $parent, $key, $parent->{$key};
 }
 
 # convert a bunch of internal rule structures in iptables calls,
@@ -1509,10 +1506,10 @@ sub mkrules($) {
 
     sub dofr {
         my $fw = shift;
-        my $u = shift;
+        my ($parent, $key, $values) = (shift, shift, shift);
 
-        foreach my $value (@{$u->{values}}) {
-            $u->{parent}{$u->{key}} = $value;
+        foreach my $value (@$values) {
+            $parent->{$key} = $value;
 
             if (@_) {
                 dofr($fw, @_);
