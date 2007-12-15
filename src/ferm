@@ -702,12 +702,7 @@ sub next_array_token {
 
 # read some more tokens from the input file into a buffer
 sub prepare_tokens() {
-    return
-      unless defined $script;
-
     my $tokens = $script->{tokens};
-    die unless ref $tokens eq 'ARRAY';
-
     while (@$tokens == 0) {
         my $handle = $script->{handle};
         my $line = <$handle>;
@@ -720,8 +715,6 @@ sub prepare_tokens() {
         # the next parser stage eats this
         push @$tokens, @line;
     }
-
-    return 1;
 }
 
 # open a ferm sub script
