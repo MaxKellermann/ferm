@@ -1,4 +1,0 @@
-iptables -A INPUT -m dst --dst-len 5 -j ACCEPT
-iptables -A INPUT -m dst --dst-len ! 7 -j DROP
-iptables -A INPUT -m dst --dst-opts 4:5 -j REJECT
-iptables -A INPUT -m dst --dst-opts 6:7,8:9,10:11 -j ACCEPT

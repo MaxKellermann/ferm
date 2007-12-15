@@ -21,6 +21,10 @@ v2.0 - not yet released
       --createchains, --location
     - comma in array is forbidden
     - removed "source" and "destination" as prefix for "addr" and "port" 
+  - removed support for deprecated netfilter modules
+    - dst
+    - frag
+    - iplimit
   - rewrote the internal rule storage
     - honor the order of match modules
   - import-ferm: write policy in chain block

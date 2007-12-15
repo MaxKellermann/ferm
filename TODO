@@ -7,7 +7,6 @@ Roadmap for ferm 2.0
 
 * support arptables and ebtables
 * remove support for legacy 1.1 syntax
-* remove support for obsolete netfilter modules: dst, frag, iplimit, mport
 * import-ferm should use ferm's %XY_defs
 * policy parameters
 

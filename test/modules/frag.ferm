@@ -1,6 +1,0 @@
-table filter chain INPUT mod frag {
-    fragid 1 ACCEPT;
-    fragid !2 ACCEPT;
-    fragres fragfirst DROP;
-    fragmore fraglast REJECT;
-}

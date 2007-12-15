@@ -1,4 +1,0 @@
-iptables -A INPUT -m frag --fragid 1 -j ACCEPT
-iptables -A INPUT -m frag --fragid ! 2 -j ACCEPT
-iptables -A INPUT -m frag --fragres --fragfirst -j DROP
-iptables -A INPUT -m frag --fragmore --fraglast -j REJECT

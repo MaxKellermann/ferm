@@ -1,6 +1,0 @@
-table filter chain INPUT mod dst {
-    dst-len 5 ACCEPT;
-    dst-len !7 DROP;
-    dst-opts 4:5 REJECT;
-    dst-opts (6:7 8:9 10:11) ACCEPT;
-}
