@@ -2144,7 +2144,8 @@ sub enter($$) {
                         my $proto = $current{builtin}{protocol};
                         unless (ref $proto) {
                             $proto = netfilter_canonical_protocol($current{builtin}{protocol});
-                            $defs = $proto_defs{$domain_family}{$proto};
+                            $defs = $proto_defs{$domain_family}{$proto}
+                              if netfilter_protocol_module($proto) eq $module;
                         }
                     }
 
