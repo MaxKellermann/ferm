@@ -1152,7 +1152,6 @@ sub is_netfilter_builtin_chain($$) {
 
 sub netfilter_canonical_protocol($) {
     my $proto = shift;
-    return unless defined $proto;
     return 'icmpv6'
       if $proto eq 'ipv6-icmp';
     return 'mh'
