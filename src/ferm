@@ -1648,7 +1648,6 @@ sub parse_module_options($$$) {
 sub parse_target_options($$$) {
     my ($current, $target, $keyword) = @_;
 
-    my $domain_family = $current->{'domain_family'};
     my $target_defs = $current->{action}{defs};
     return unless defined $target_defs &&
       exists $target_defs->{keywords}{$keyword};
