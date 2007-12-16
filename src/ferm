@@ -2141,8 +2141,11 @@ sub enter($$) {
                     my $domain_family = $current{domain_family};
                     my $defs = $match_defs{$domain_family}{$module};
                     if (not defined $defs and exists $current{builtin}{protocol}) {
-                        my $proto = netfilter_canonical_protocol($current{builtin}{protocol});
-                        $defs = $proto_defs{$domain_family}{$proto};
+                        my $proto = $current{builtin}{protocol};
+                        unless (ref $proto) {
+                            $proto = netfilter_canonical_protocol($current{builtin}{protocol});
+                            $defs = $proto_defs{$domain_family}{$proto};
+                        }
                     }
 
                     push @{$current{match}}, { name => $module,
