@@ -815,8 +815,8 @@ sub next_token() {
     # update $script->{past_tokens}
     my $past_tokens = $script->{past_tokens};
 
-    my $prev_token = @$past_tokens > 0 && $past_tokens->[-1][-1];
-    if (defined $prev_token) {
+    if (@$past_tokens > 0) {
+        my $prev_token = $past_tokens->[-1][-1];
         $past_tokens->[-1] = $past_tokens->[-1][0] eq '{' ? ['{'] : []
           if $prev_token eq ';';
         pop @$past_tokens
