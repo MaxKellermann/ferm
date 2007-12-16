@@ -1354,7 +1354,7 @@ sub tables($) {
         # targets stored in %target_defs
 
         while (my ($keyword, $value) = each %{$rule->{target_options}}) {
-            my $def = $target_defs{$domain_family}{$action->{target}}{keywords}{$keyword};
+            my $def = $action->{defs}{keywords}{$keyword};
             die unless defined $def;
 
             shell_append_option(\$rr, $def, $keyword, $value);
@@ -1649,16 +1649,16 @@ sub parse_target_options($$$) {
     my ($current, $target, $keyword) = @_;
 
     my $domain_family = $current->{'domain_family'};
-    my $target_defs = $target_defs{$domain_family};
+    my $target_defs = $current->{action}{defs};
     return unless defined $target_defs &&
-      exists $target_defs->{$target}{keywords}{$keyword};
+      exists $target_defs->{keywords}{$keyword};
 
-    my $k = $target_defs->{$target}{keywords}{$keyword};
+    my $k = $target_defs->{keywords}{$keyword};
 
     while (exists $k->{alias}) {
         die if $k->{alias} eq $keyword;
         $keyword = $k->{alias};
-        $k = $target_defs->{$target}{keywords}{$keyword};
+        $k = $target_defs->{keywords}{$keyword};
         die unless defined $k;
     }
 
@@ -2190,8 +2190,11 @@ sub enter($$) {
                 my $chain = getvar();
                 if (is_netfilter_core_target($chain) or
                     is_netfilter_module_target($current{domain_family}, $chain)) {
+                    my $defs = $target_defs{$current{domain_family}} &&
+                      $target_defs{$current{domain_family}}{$chain};
                     $current{action} = { type => 'target',
                                          target => $chain,
+                                         defs => $defs,
                                        };
                 } else {
                     $current{action} = { type => 'jump',
@@ -2245,6 +2248,7 @@ sub enter($$) {
 
                 $current{action} = { type => 'target',
                                      target => $keyword,
+                                     defs => $target_defs{$current{domain_family}}{$keyword},
                                    };
                 next;
             }
