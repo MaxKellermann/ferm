@@ -1247,12 +1247,8 @@ sub tables($) {
     # referenced by "jump" was actually defined
     $chain_info->{non_empty} = 1;
 
-    # check if the chain is already defined
-    $chain_info->{create} = 1
-      unless is_netfilter_builtin_chain($table, $chain);
-
     # check for unknown jump target
-    $table_info->{chains}{$action->{chain}}{create} = 1
+    $table_info->{chains}{$action->{chain}}{rules} ||= []
       if $action->{type} eq 'jump' or $action->{type} eq 'goto';
 
     # target=policy is a special case
@@ -2303,10 +2299,10 @@ sub execute_slow($$) {
 
         # create chains / set policy
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
-            if ($chain_info->{create}) {
-                $status ||= execute_command("$table_cmd -N $chain");
-            } elsif (exists $chain_info->{policy}) {
+            if (exists $chain_info->{policy}) {
                 $status ||= execute_command("$table_cmd -P $chain $chain_info->{policy}");
+            } elsif (not is_netfilter_builtin_chain($table, $chain)) {
+                $status ||= execute_command("$table_cmd -N $chain");
             }
         }
 
@@ -2335,8 +2331,14 @@ sub rules_to_save($$) {
         # create chains / set policy
         foreach my $chain (sort keys %{$table_info->{chains}}) {
             my $chain_info = $table_info->{chains}{$chain};
-            my $policy = $chain_info->{create}
-              ? '-' : ($chain_info->{policy} || 'ACCEPT');
+            my $policy = $chain_info->{policy};
+            unless (defined $policy) {
+                if (is_netfilter_builtin_chain($table, $chain)) {
+                    $policy = 'ACCEPT';
+                } else {
+                    $policy = '-';
+                }
+            }
             $result .= ":$chain $policy\ [0:0]\n";
         }
 
