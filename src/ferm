@@ -1586,9 +1586,8 @@ sub parse_protocol_options($$$$) {
     return unless defined $proto_defs;
 
     my $proto_def = $proto_defs->{$proto};
-    return unless defined $proto_def;
-
-    return unless exists $proto_def->{keywords}{$keyword};
+    return unless defined $proto_def and
+      exists $proto_def->{keywords}{$keyword};
 
     my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
     my $module = { name => $module_name,
