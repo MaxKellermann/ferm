@@ -1609,15 +1609,6 @@ sub parse_protocol_options($$$$) {
                         $keyword, $negated_ref);
 }
 
-# parse options of a match module
-sub parse_match_option($$$$$$) {
-    my ($name, $match_def, $current, $store, $keyword, $negated_ref) = @_;
-
-    return parse_option($name, $match_def,
-                        $current, $store,
-                        $keyword, $negated_ref);
-}
-
 # parse options for a match module definition
 sub parse_module_options($$$) {
     my ($current, $keyword, $negated_ref) = @_;
@@ -1627,9 +1618,9 @@ sub parse_module_options($$$) {
         my $def = $module->{defs};
         next unless defined $def;
 
-        parse_match_option($module->{name}, $def,
-                           $current, $module->{options},
-                           $keyword, $negated_ref)
+        parse_option($module->{name}, $def,
+                     $current, $module->{options},
+                     $keyword, $negated_ref)
           and do {
               # reset hash
               keys %{$module->{defs}};
