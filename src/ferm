@@ -715,6 +715,8 @@ sub prepare_tokens() {
         # the next parser stage eats this
         push @$tokens, @line;
     }
+
+    return 1;
 }
 
 # open a ferm sub script
@@ -801,29 +803,14 @@ sub collect_filenames(@) {
 
 # peek a token from the queue, but don't remove it
 sub peek_token() {
-    # get a token
-    prepare_tokens();
-
-    my $tokens = $script->{tokens};
-    die unless ref $tokens eq 'ARRAY';
-
-    return
-      unless @$tokens;
-
-    return $tokens->[0];
+    return unless prepare_tokens();
+    return $script->{tokens}[0];
 }
 
 # get a token from the queue
 sub next_token() {
-    prepare_tokens();
-
-    my $tokens = $script->{tokens};
-    die unless ref $tokens eq 'ARRAY';
-
-    return
-      unless @$tokens;
-
-    my $token = shift @$tokens;
+    return unless prepare_tokens();
+    my $token = shift @{$script->{tokens}};
 
     # update $script->{past_tokens}
     my $past_tokens = $script->{past_tokens};
