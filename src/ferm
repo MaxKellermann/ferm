@@ -804,9 +804,6 @@ sub peek_token() {
     # get a token
     prepare_tokens();
 
-    return
-      unless defined $script;
-
     my $tokens = $script->{tokens};
     die unless ref $tokens eq 'ARRAY';
 
@@ -819,9 +816,6 @@ sub peek_token() {
 # get a token from the queue
 sub next_token() {
     prepare_tokens();
-
-    return
-      unless defined $script;
 
     my $tokens = $script->{tokens};
     die unless ref $tokens eq 'ARRAY';
