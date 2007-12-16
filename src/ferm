@@ -1570,53 +1570,6 @@ sub parse_protocol_options($$$$) {
                         $keyword, $negated_ref);
 }
 
-# parse options for a match module definition
-sub parse_module_options($$$) {
-    my ($current, $keyword, $negated_ref) = @_;
-
-    # modules stored in %match_defs
-    foreach my $module (@{$current->{match}}) {
-        my $def = $module->{defs};
-        next unless defined $def;
-
-        parse_option($module->{name}, $def,
-                     $current, $module->{options},
-                     $keyword, $negated_ref)
-          and do {
-              # reset hash
-              keys %{$module->{defs}};
-              return 1;
-          }
-    }
-
-    return;
-}
-
-# parse options for a target module definition
-sub parse_target_options($$$) {
-    my ($current, $target, $keyword) = @_;
-
-    my $target_defs = $current->{action}{defs};
-    return unless defined $target_defs &&
-      exists $target_defs->{keywords}{$keyword};
-
-    my $k = $target_defs->{keywords}{$keyword};
-
-    while (exists $k->{alias}) {
-        die if $k->{alias} eq $keyword;
-        $keyword = $k->{alias};
-        $k = $target_defs->{keywords}{$keyword};
-        die unless defined $k;
-    }
-
-    my $negated_dummy;
-    $current->{target_options}{$keyword}
-      = parse_keyword($current, $k,
-                      $keyword, \$negated_dummy);
-
-    return 1;
-}
-
 sub clone_match($) {
     my $match = shift;
     return { name => $match->{name},
@@ -1631,6 +1584,7 @@ sub new_level(\%$) {
     %$current = ();
     if (defined $prev) {
         # copy data from previous level
+        $current->{keywords} = { %{$prev->{keywords}} };
         $current->{builtin} = { %{$prev->{builtin}} };
         $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
         $current->{action} = { %{$prev->{action}} };
@@ -1639,6 +1593,7 @@ sub new_level(\%$) {
               if exists $prev->{$key};
         }
     } else {
+        $current->{keywords} = {};
         $current->{builtin} = {};
         $current->{match} = [];
         $current->{action} = {};
@@ -2068,7 +2023,8 @@ sub enter($$) {
 
                 # create a deep copy of %current, only containing values
                 # which must be in the subchain
-                my %inner = ( builtin => {},
+                my %inner = ( keywords => {},
+                              builtin => {},
                               action => {},
                             );
                 $inner{domain} = $current{domain};
@@ -2122,6 +2078,12 @@ sub enter($$) {
                                                options => {},
                                                defs => $defs,
                                              };
+
+                    if (defined $defs) {
+                        foreach my $k (keys %{$defs->{keywords}}) {
+                            $current{keywords}{$k} = [ 'match', $module, $defs ];
+                        }
+                    }
                 }
 
                 next;
@@ -2129,6 +2091,23 @@ sub enter($$) {
 
             parse_builtin_matches(\%current, $keyword, \$negated)
               and next;
+
+            # keywords from $current{keywords}
+
+            if (exists $current{keywords}{$keyword}) {
+                my ($type, $module, $defs) = @{$current{keywords}{$keyword}};
+                my $store;
+                if ($type eq 'match') {
+                    $store = (grep { $_->{name} eq $module } @{$current{match}})[-1]->{options};
+                } elsif ($type eq 'target') {
+                    $store = $current{target_options} ||= {};
+                } else {
+                    die;
+                }
+
+                parse_option($module, $defs, \%current, $store, $keyword, \$negated);
+                next;
+            }
 
             ###
             # actions
@@ -2147,6 +2126,12 @@ sub enter($$) {
                                          target => $chain,
                                          defs => $defs,
                                        };
+
+                    if (defined $defs) {
+                        foreach my $k (keys %{$defs->{keywords}}) {
+                            $current{keywords}{$k} = [ 'target', $chain, $defs ];
+                        }
+                    }
                 } else {
                     $current{action} = { type => 'jump',
                                          chain => $chain,
@@ -2197,21 +2182,23 @@ sub enter($$) {
                     }
                 }
 
+                my $defs = $target_defs{$current{domain_family}}{$keyword};
+
                 $current{action} = { type => 'target',
                                      target => $keyword,
-                                     defs => $target_defs{$current{domain_family}}{$keyword},
+                                     defs => $defs,
                                    };
+
+                if (defined $defs) {
+                    foreach my $k (keys %{$defs->{keywords}}) {
+                        $current{keywords}{$k} = [ 'target', $keyword, $defs ];
+                    }
+                }
+
                 next;
             }
 
             my $proto = $current{builtin}{protocol};
-
-            ###
-            # module specific options
-            #
-
-            parse_module_options(\%current, $keyword, \$negated)
-              and next;
 
             ###
             # protocol specific options
@@ -2236,17 +2223,6 @@ sub enter($$) {
 
                 $current{$keyword} = getvalues(undef, undef,
                                                allow_negation => 1);
-                next;
-            }
-
-            ###
-            # target specific options
-            #
-
-            if (exists $current{action}{type} and
-                $current{action}{type} eq 'target') {
-                parse_target_options(\%current, $current{action}{target},
-                                     $keyword);
                 next;
             }
 
