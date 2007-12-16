@@ -1197,11 +1197,10 @@ sub shell_escape($) {
 sub shell_append_option($$$) {
     my ($ref, $keyword, $value) = @_;
 
-    my $negated = '';
     if (ref $value) {
         if (ref $value eq 'negated') {
             $value = $value->[0];
-            $negated = ' !';
+            $keyword .= ' !';
         } elsif (ref $value eq 'pre_negated') {
             $value = $value->[0];
             $$ref .= ' !';
@@ -1211,14 +1210,14 @@ sub shell_append_option($$$) {
     unless (defined $value) {
         $$ref .= " --$keyword";
     } elsif (ref $value and ref $value eq 'params') {
-        $$ref .= " --$keyword$negated ";
+        $$ref .= " --$keyword ";
         $$ref .= join(' ', map { shell_escape($_) } @$value);
     } elsif (ref $value and ref $value eq 'multi') {
         foreach (@$value) {
             $$ref .= " --$keyword " . shell_escape($_);
         }
     } else {
-        $$ref .= " --$keyword$negated " . shell_escape($value);
+        $$ref .= " --$keyword " . shell_escape($value);
     }
 }
 
