@@ -1209,12 +1209,16 @@ sub shell_append_option($$$) {
 
     unless (defined $value) {
         $$ref .= " --$keyword";
-    } elsif (ref $value and ref $value eq 'params') {
-        $$ref .= " --$keyword ";
-        $$ref .= join(' ', map { shell_escape($_) } @$value);
-    } elsif (ref $value and ref $value eq 'multi') {
-        foreach (@$value) {
-            $$ref .= " --$keyword " . shell_escape($_);
+    } elsif (ref $value) {
+        if (ref $value eq 'params') {
+            $$ref .= " --$keyword ";
+            $$ref .= join(' ', map { shell_escape($_) } @$value);
+        } elsif (ref $value eq 'multi') {
+            foreach (@$value) {
+                $$ref .= " --$keyword " . shell_escape($_);
+            }
+        } else {
+            die;
         }
     } else {
         $$ref .= " --$keyword " . shell_escape($value);
