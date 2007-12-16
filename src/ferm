@@ -1438,7 +1438,7 @@ sub parse_builtin_matches($$$) {
     my $domain_family = $current->{domain_family};
 
     if (exists $match_defs{$domain_family}) {
-        parse_option('', $match_defs{$domain_family}{''},
+        parse_option($match_defs{$domain_family}{''},
                      $current, $current->{builtin},
                      $keyword, $negated_ref)
           and return 1;
@@ -1526,8 +1526,8 @@ sub parse_keyword($$$$) {
 }
 
 # parse options of a module
-sub parse_option($$$$$$) {
-    my ($name, $def, $current, $store, $keyword, $negated_ref) = @_;
+sub parse_option($$$$$) {
+    my ($def, $current, $store, $keyword, $negated_ref) = @_;
 
     my $k = $def->{keywords}{$keyword};
     return unless defined $k;
@@ -1565,7 +1565,7 @@ sub parse_protocol_options($$$$) {
                  };
     push @{$current->{match}}, $module;
 
-    return parse_option($proto, $proto_def,
+    return parse_option($proto_def,
                         $current, $module->{options},
                         $keyword, $negated_ref);
 }
@@ -2105,7 +2105,7 @@ sub enter($$) {
                     die;
                 }
 
-                parse_option($module, $defs, \%current, $store, $keyword, \$negated);
+                parse_option($defs, \%current, $store, $keyword, \$negated);
                 next;
             }
 
