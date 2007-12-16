@@ -1277,11 +1277,10 @@ sub tables($) {
 
     # general iptables options
 
+    my $builtin_keywords = $match_defs{$domain_family}{''}{keywords};
     while (my ($keyword, $value) = each %{$rule->{builtin}}) {
-        my $def = $match_defs{$domain_family}{''}{keywords}{$keyword};
-        die unless defined $def;
-
-        shell_append_option(\$rr, $def, $keyword, $value);
+        shell_append_option(\$rr, $builtin_keywords->{$keyword},
+                            $keyword, $value);
     }
 
     #
