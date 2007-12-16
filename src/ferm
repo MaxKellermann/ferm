@@ -1469,7 +1469,7 @@ sub parse_builtin_matches($$$) {
     my $domain_family = $current->{domain_family};
 
     if (exists $match_defs{$domain_family}) {
-        parse_option($match_defs{$domain_family}, '',
+        parse_option('', $match_defs{$domain_family}{''},
                      $current, $current->{builtin},
                      $keyword, $negated_ref)
           and return 1;
@@ -1558,10 +1558,7 @@ sub parse_keyword($$$$) {
 
 # parse options of a module
 sub parse_option($$$$$$) {
-    my ($defs, $name, $current, $store, $keyword, $negated_ref) = @_;
-
-    my $def = $defs->{$name};
-    return unless defined $def;
+    my ($name, $def, $current, $store, $keyword, $negated_ref) = @_;
 
     my $k = $def->{keywords}{$keyword};
     return unless defined $k;
@@ -1569,7 +1566,7 @@ sub parse_option($$$$$$) {
     while (exists $k->{alias}) {
         die if $k->{alias} eq $keyword;
         $keyword = $k->{alias};
-        $k = $defs->{$name}{keywords}{$keyword};
+        $k = $def->{keywords}{$keyword};
         die unless defined $k;
     }
 
@@ -1607,16 +1604,16 @@ sub parse_protocol_options($$$$) {
         $module = $m[0];
     }
 
-    return parse_option($proto_defs, $proto,
+    return parse_option($proto, $proto_def,
                         $current, $module->{options},
                         $keyword, $negated_ref);
 }
 
 # parse options of a match module
 sub parse_match_option($$$$$$) {
-    my ($match_defs, $name, $current, $store, $keyword, $negated_ref) = @_;
+    my ($name, $match_def, $current, $store, $keyword, $negated_ref) = @_;
 
-    return parse_option($match_defs, $name,
+    return parse_option($name, $match_def,
                         $current, $store,
                         $keyword, $negated_ref);
 }
@@ -1631,7 +1628,10 @@ sub parse_module_options($$$) {
 
     # modules stored in %match_defs
     foreach my $module (@{$current->{match}}) {
-        parse_match_option($match_defs, $module->{name},
+        my $def = $match_defs->{$module->{name}};
+        next unless defined $def;
+
+        parse_match_option($module->{name}, $def,
                            $current, $module->{options},
                            $keyword, $negated_ref)
           and do {
