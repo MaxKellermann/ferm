@@ -1299,7 +1299,7 @@ sub tables($) {
     my %modules;
 
     if (defined $rule->{builtin}{protocol}) {
-        my $proto = netfilter_canonical_protocol($rule->{builtin}{protocol});
+        my $proto = $rule->{builtin}{protocol};
 
         # special case: --dport and --sport for TCP/UDP
         if ($domain_family eq 'ip' and
