@@ -583,7 +583,7 @@ sub error {
     my $tabs = 0;
     my @lines;
     my $l = 0;
-    my @words = @{$script->{past_tokens}};
+    my @words = map { @$_ } @{$script->{past_tokens}};
 
     for my $w ( 0 .. $#words ) {
         if ($words[$w] eq "\x29")
@@ -814,46 +814,17 @@ sub next_token() {
 
     # update $script->{past_tokens}
     my $past_tokens = $script->{past_tokens};
-    die unless ref $past_tokens eq 'ARRAY';
 
-    if (@$past_tokens and
-        ($past_tokens->[@$past_tokens - 1] eq '}' or
-         $past_tokens->[@$past_tokens - 1] eq ';')) {
-        # now this is tricky: $script->{past_tokens} is used in error
-        # messages. in the following lines, we filter out everything
-        # which has become irrelevant for error messages,
-        # i.e. previous (completed) commands
-
-        my $t = pop @$past_tokens;
-
-        # track the current level - a '}' means one level up (we are
-        # going backwards)
-        my $level = $t eq '}' ? 1 : 0;
-
-        while (@$past_tokens and $level >= 0) {
-            $t = pop @$past_tokens;
-
-            if ($level == 0 and ($t eq '}' or $t eq ';')) {
-                # don't delete another command
-                push @$past_tokens, $t;
-                last;
-            } elsif ($t eq '}') {
-                # one level up
-                $level++;
-            } elsif ($t eq '{') {
-                # one level down. stop here if we're already at level
-                # zero
-                if ($level == 0) {
-                    push @$past_tokens, $t;
-                    last;
-                }
-
-                $level--;
-            }
-        }
+    my $prev_token = @$past_tokens > 0 && $past_tokens->[-1][-1];
+    if (defined $prev_token) {
+        $past_tokens->[-1] = $past_tokens->[-1][0] eq '{' ? ['{'] : []
+          if $prev_token eq ';';
+        pop @$past_tokens
+          if $prev_token eq '}';
     }
 
-    push @$past_tokens, $token;
+    push @$past_tokens, [] if $token eq '{' or @$past_tokens == 0;
+    push @{$past_tokens->[-1]}, $token;
 
     # return
     return $token;
