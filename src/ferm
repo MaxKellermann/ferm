@@ -1198,13 +1198,13 @@ sub shell_append_option($$$$) {
     my ($ref, $def, $keyword, $value) = @_;
 
     my $negated = '';
-    if (ref $value and ref $value eq 'negated') {
-        $value = $value->[0];
-
-        if (exists $def->{pre_negation}) {
-            $$ref .= ' !';
-        } else {
+    if (ref $value) {
+        if (ref $value eq 'negated') {
+            $value = $value->[0];
             $negated = ' !';
+        } elsif (ref $value eq 'pre_negated') {
+            $value = $value->[0];
+            $$ref .= ' !';
         }
     }
 
@@ -1533,7 +1533,7 @@ sub parse_keyword($$$$) {
         } (1..$params) ], 'params';
     }
 
-    $value = bless [ $value ], 'negated'
+    $value = bless [ $value ], exists $def->{pre_negation} ? 'pre_negated' : 'negated'
       if $negated;
 
     return $value;
