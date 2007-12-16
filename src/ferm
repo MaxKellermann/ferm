@@ -1256,19 +1256,12 @@ sub tables($) {
     $chain_info->{non_empty} = 1;
 
     # check if the chain is already defined
-    unless (exists $chain_info->{create} or
-            is_netfilter_builtin_chain($table, $chain)) {
-        $chain_info->{create} = 1;
-    }
+    $chain_info->{create} = 1
+      unless is_netfilter_builtin_chain($table, $chain);
 
     # check for unknown jump target
-    if (defined $action and
-        ($action->{type} eq 'jump' or
-         $action->{type} eq 'goto') and
-        not exists $table_info->{chains}{$action->{chain}}{create}) {
-        my $chain = $action->{chain};
-        $table_info->{chains}{$chain}{create} = 1;
-    }
+    $table_info->{chains}{$action->{chain}}{create} = 1
+      if $action->{type} eq 'jump' or $action->{type} eq 'goto';
 
     # target=policy is a special case
     if ($action->{type} eq 'policy') {
