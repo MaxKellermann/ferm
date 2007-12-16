@@ -1591,18 +1591,11 @@ sub parse_protocol_options($$$$) {
     return unless exists $proto_def->{keywords}{$keyword};
 
     my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
-    my @m = grep { $_->{name} eq $proto } @{$current->{match}};
-    my $module;
-    if (@m == 0) {
-        $module = { name => $module_name,
-                    options => {},
-                    defs => $proto_def,
-                  };
-        push @{$current->{match}}, $module;
-    } else {
-        die unless @m == 1;
-        $module = $m[0];
-    }
+    my $module = { name => $module_name,
+                   options => {},
+                   defs => $proto_def,
+                 };
+    push @{$current->{match}}, $module;
 
     return parse_option($proto, $proto_def,
                         $current, $module->{options},
