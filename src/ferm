@@ -1222,14 +1222,6 @@ sub shell_append_option($$$$) {
     }
 }
 
-# dereference a bless'negated'
-sub extract_negation($) {
-    local $_ = shift;
-    ref && ref eq 'negated'
-      ? ( '!', $_->[0] )
-        : $_;
-}
-
 # convert an internal rule structure into an iptables call
 sub tables($) {
     my $rule = shift;
