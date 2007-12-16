@@ -1194,8 +1194,8 @@ sub shell_escape($) {
 
 # append an option to the shell command line, using information from
 # the module definition (see %match_defs etc.)
-sub shell_append_option($$$$) {
-    my ($ref, $def, $keyword, $value) = @_;
+sub shell_append_option($$$) {
+    my ($ref, $keyword, $value) = @_;
 
     my $negated = '';
     if (ref $value) {
@@ -1269,10 +1269,8 @@ sub tables($) {
 
     # general iptables options
 
-    my $builtin_keywords = $match_defs{$domain_family}{''}{keywords};
     while (my ($keyword, $value) = each %{$rule->{builtin}}) {
-        shell_append_option(\$rr, $builtin_keywords->{$keyword},
-                            $keyword, $value);
+        shell_append_option(\$rr, $keyword, $value);
     }
 
     #
@@ -1293,13 +1291,9 @@ sub tables($) {
                 $modules{$proto} = 1;
             }
 
-            shell_append_option(\$rr, { params => 1,
-                                        negation => 1,
-                                      }, 'dport', $rule->{dport})
+            shell_append_option(\$rr, 'dport', $rule->{dport})
               if exists $rule->{dport};
-            shell_append_option(\$rr, { params => 1,
-                                        negation => 1,
-                                      }, 'sport', $rule->{sport})
+            shell_append_option(\$rr, 'sport', $rule->{sport})
               if exists $rule->{sport};
         }
     }
@@ -1313,13 +1307,8 @@ sub tables($) {
             $modules{$module_name} = 1;
         }
 
-        my $defs = $match->{defs};
-
         while (my ($keyword, $value) = each %{$match->{options}}) {
-            my $def = $defs->{keywords}{$keyword};
-            die unless defined $def;
-
-            shell_append_option(\$rr, $def, $keyword, $value);
+            shell_append_option(\$rr, $keyword, $value);
         }
     }
 
@@ -1337,10 +1326,7 @@ sub tables($) {
         # targets stored in %target_defs
 
         while (my ($keyword, $value) = each %{$rule->{target_options}}) {
-            my $def = $action->{defs}{keywords}{$keyword};
-            die unless defined $def;
-
-            shell_append_option(\$rr, $def, $keyword, $value);
+            shell_append_option(\$rr, $keyword, $value);
         }
     } elsif ($action->{type} ne 'nop') {
         die;
