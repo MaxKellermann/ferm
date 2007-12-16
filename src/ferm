@@ -1622,13 +1622,9 @@ sub parse_match_option($$$$$$) {
 sub parse_module_options($$$) {
     my ($current, $keyword, $negated_ref) = @_;
 
-    my $domain_family = $current->{'domain_family'};
-    my $match_defs = $match_defs{$domain_family};
-    return unless defined $match_defs;
-
     # modules stored in %match_defs
     foreach my $module (@{$current->{match}}) {
-        my $def = $match_defs->{$module->{name}};
+        my $def = $module->{defs};
         next unless defined $def;
 
         parse_match_option($module->{name}, $def,
@@ -1636,7 +1632,7 @@ sub parse_module_options($$$) {
                            $keyword, $negated_ref)
           and do {
               # reset hash
-              keys %$match_defs;
+              keys %{$module->{defs}};
               return 1;
           }
     }
