@@ -1254,12 +1254,6 @@ sub tables($) {
     $table_info->{chains}{$action->{chain}}{rules} ||= []
       if $action->{type} eq 'jump' or $action->{type} eq 'goto';
 
-    # target=policy is a special case
-    if ($action->{type} eq 'policy') {
-        $chain_info->{policy} = $action->{policy};
-        return;
-    }
-
     # return if this is a declaration-only rule
     return
       unless $rule->{has_rule};
@@ -1992,13 +1986,18 @@ sub enter($$) {
                 error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
-                $keyword = peek_token();
+                $keyword = next_token();
                 error('";" expected after policy declaration')
                   unless defined $keyword and $keyword eq ';';
 
-                $current{action} = { type => 'policy',
-                                     policy => $policy,
-                                   };
+                foreach my $domain (to_array $current{domain}) {
+                    foreach my $table (to_array $current{table}) {
+                        foreach my $chain (to_array $current{chain}) {
+                            $domains{$domain}{tables}{$table}{chains}{$chain}{policy} = $policy;
+                        }
+                    }
+                }
+
                 next;
             }
 
