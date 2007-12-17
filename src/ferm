@@ -159,7 +159,7 @@ sub add_def_x {
         $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
         $k->{negation} = 1 if $keyword =~ s,!$,,;
 
-        $k->{alias} = $1 if $keyword =~ s,:=(\S+)$,,;
+        $k->{alias} = [$1, $def->{keywords}{$1} || die] if $keyword =~ s,:=(\S+)$,,;
 
         $def->{keywords}{$keyword} = $k;
     }
@@ -1525,9 +1525,7 @@ sub parse_option($$$$$) {
     return unless defined $k;
 
     while (exists $k->{alias}) {
-        die if $k->{alias} eq $keyword;
-        $keyword = $k->{alias};
-        $k = $def->{keywords}{$keyword};
+        ($keyword, $k) = @{$k->{alias}};
         die unless defined $k;
     }
 
