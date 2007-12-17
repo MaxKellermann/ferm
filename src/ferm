@@ -2313,7 +2313,8 @@ sub execute_slow($$) {
         # create chains / set policy
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
             if (exists $chain_info->{policy}) {
-                $status ||= execute_command("$table_cmd -P $chain $chain_info->{policy}");
+                $status ||= execute_command("$table_cmd -P $chain $chain_info->{policy}")
+                  unless $chain_info->{policy} eq 'ACCEPT';
             } elsif (not is_netfilter_builtin_chain($table, $chain)) {
                 $status ||= execute_command("$table_cmd -N $chain");
             }
