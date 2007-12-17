@@ -354,6 +354,23 @@ add_target_def_x 'eb', 'mark', qw(set-mark mark-target);
 add_target_def_x 'eb', 'redirect', qw(redirect-target);
 add_target_def_x 'eb', 'snat', qw(to-source snat-target);
 
+use vars qw(%builtin_keywords);
+
+sub get_builtin_keywords($) {
+    my $domain_family = shift;
+    return {} unless defined $domain_family;
+
+    return {%{$builtin_keywords{$domain_family}}}
+      if exists $builtin_keywords{$domain_family};
+
+    return {} unless exists $match_defs{$domain_family};
+    my $defs = $match_defs{$domain_family}{''};
+    my %keywords = map { $_ => ['builtin', '', $defs] } keys %{$defs->{keywords}};
+
+    $builtin_keywords{$domain_family} = \%keywords;
+    return {%keywords};
+}
+
 # parameter parser for ipt_multiport
 sub multiport_params {
     my $fw = shift;
@@ -1418,22 +1435,6 @@ sub filter_domains($) {
     return @$result == 1 ? $result->[0] : $result;
 }
 
-# parse tokens from builtin match modules
-sub parse_builtin_matches($$$) {
-    my ($current, $keyword, $negated_ref) = @_;
-
-    my $domain_family = $current->{domain_family};
-
-    if (exists $match_defs{$domain_family}) {
-        parse_option($match_defs{$domain_family}{''},
-                     $current, $current->{builtin},
-                     $keyword, $negated_ref)
-          and return 1;
-    }
-
-    return;
-}
-
 # parse a keyword from a module definition
 sub parse_keyword($$$$) {
     my ($current, $def, $keyword, $negated_ref) = @_;
@@ -1927,6 +1928,7 @@ sub enter($$) {
                     $domain_family = 'ip';
                 }
                 $current{domain_family} = $domain_family;
+                $current{keywords} = get_builtin_keywords($domain_family);
 
                 $current{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 
@@ -1941,6 +1943,7 @@ sub enter($$) {
                 unless (exists $current{domain}) {
                     $current{domain} = filter_domains('ip');
                     $current{domain_family} = 'ip';
+                    $current{keywords} = get_builtin_keywords('ip');
                 }
 
                 next;
@@ -1960,6 +1963,7 @@ sub enter($$) {
                 unless (exists $current{domain}) {
                     $current{domain} = filter_domains('ip');
                     $current{domain_family} = 'ip';
+                    $current{keywords} = get_builtin_keywords('ip');
                 }
 
                 $current{table} = 'filter'
@@ -2015,7 +2019,7 @@ sub enter($$) {
 
                 # create a deep copy of %current, only containing values
                 # which must be in the subchain
-                my %inner = ( keywords => {},
+                my %inner = ( keywords => {%{$current{keywords}}},
                               builtin => {},
                               action => {},
                             );
@@ -2081,15 +2085,14 @@ sub enter($$) {
                 next;
             }
 
-            parse_builtin_matches(\%current, $keyword, \$negated)
-              and next;
-
             # keywords from $current{keywords}
 
             if (exists $current{keywords}{$keyword}) {
                 my ($type, $module, $defs) = @{$current{keywords}{$keyword}};
                 my $store;
-                if ($type eq 'match') {
+                if ($type eq 'builtin') {
+                    $store = $current{builtin};
+                } elsif ($type eq 'match') {
                     $store = (grep { $_->{name} eq $module } @{$current{match}})[-1]->{options};
                 } elsif ($type eq 'target') {
                     $store = $current{target_options} ||= {};
