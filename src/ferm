@@ -845,6 +845,14 @@ sub next_token() {
     return $token;
 }
 
+sub expect_token($;$) {
+    my $expect = shift;
+    my $msg = shift;
+    my $token = next_token();
+    error($msg || "'$expect' expected")
+      unless defined $token and $token eq $expect;
+}
+
 # require that another token exists, and that it's not a "special"
 # token, e.g. ";" and "{"
 sub require_next_token {
@@ -1053,11 +1061,9 @@ sub getvar {
 }
 
 sub get_function_params(%) {
-    my $token = next_token();
-    error('function name must be followed by "()"')
-      unless defined $token and $token eq '(';
+    expect_token('(', 'function name must be followed by "()"');
 
-    $token = peek_token();
+    my $token = peek_token();
     if ($token eq ')') {
         require_next_token;
         return;
@@ -1700,10 +1706,7 @@ sub enter($$) {
 
                 push @$hooks, getvar();
 
-                $keyword = next_token();
-                error('";" expected after hook declaration')
-                  unless defined $keyword and $keyword eq ';';
-
+                expect_token(';');
                 next;
             }
 
@@ -1793,15 +1796,11 @@ sub enter($$) {
                     error('invalid variable name')
                       unless $name =~ /^\w+$/;
 
-                    $keyword = require_next_token();
-                    error('"=" expected after variable name')
-                      unless $keyword eq '=';
+                    expect_token('=');
 
                     my $value = getvalues(undef, undef, allow_negation => 1);
 
-                    $keyword = next_token();
-                    error('";" expected after variable declaration')
-                      unless defined $keyword and $keyword eq ';';
+                    expect_token(';');
 
                     $stack[0]{vars}{$name} = $value
                       unless exists $stack[-1]{vars}{$name};
@@ -1810,12 +1809,11 @@ sub enter($$) {
                     error('invalid function name')
                       unless $name =~ /^\w+$/;
 
+                    expect_token('(', 'function parameter list or "()" expected');
+
                     my @params;
-                    my $token = next_token();
-                    error('function parameter list or "()" expected')
-                      unless defined $token and $token eq '(';
                     while (1) {
-                        $token = require_next_token();
+                        my $token = require_next_token();
                         last if $token eq ')';
 
                         if (@params > 0) {
@@ -1839,9 +1837,7 @@ sub enter($$) {
 
                     $function{params} = \@params;
 
-                    $keyword = require_next_token;
-                    error('"=" expected')
-                      unless $keyword eq '=';
+                    expect_token('=');
 
                     my $tokens = collect_tokens();
                     $function{block} = 1 if grep { $_ eq '{' } @$tokens;
@@ -1892,9 +1888,7 @@ sub enter($$) {
                     # block {} always ends the current rule, so if the
                     # function contains a block, we have to require
                     # the calling rule also ends here
-                    my $token = next_token();
-                    error("';' expected after block function call '\&$name'")
-                      unless defined $token and $token eq ';';
+                    expect_token(';');
                 }
 
                 my @tokens = @{$function->{tokens}};
@@ -1993,9 +1987,7 @@ sub enter($$) {
                 error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 
-                $keyword = next_token();
-                error('";" expected after policy declaration')
-                  unless defined $keyword and $keyword eq ';';
+                expect_token(';');
 
                 foreach my $domain (to_array $current{domain}) {
                     foreach my $table (to_array $current{table}) {
