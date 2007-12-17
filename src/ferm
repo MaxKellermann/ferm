@@ -1563,13 +1563,21 @@ sub clone_match($) {
            };
 }
 
+sub copy_on_write($$) {
+    my ($rule, $key) = @_;
+    return unless exists $rule->{cow}{$key};
+    $rule->{$key} = {%{$rule->{$key}}};
+    delete $rule->{cow}{$key};
+}
+
 sub new_level(\%$) {
     my ($current, $prev) = @_;
 
     %$current = ();
     if (defined $prev) {
         # copy data from previous level
-        $current->{keywords} = { %{$prev->{keywords}} };
+        $current->{cow} = { keywords => 1, };
+        $current->{keywords} = $prev->{keywords};
         $current->{builtin} = { %{$prev->{builtin}} };
         $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
         $current->{action} = { %{$prev->{action}} };
@@ -1578,6 +1586,7 @@ sub new_level(\%$) {
               if exists $prev->{$key};
         }
     } else {
+        $current->{cow} = {};
         $current->{keywords} = {};
         $current->{builtin} = {};
         $current->{match} = [];
@@ -1926,6 +1935,7 @@ sub enter($$) {
                 }
                 $current{domain_family} = $domain_family;
                 $current{keywords} = get_builtin_keywords($domain_family);
+                delete $current{cow}{keywords};
 
                 $current{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 
@@ -1941,6 +1951,7 @@ sub enter($$) {
                     $current{domain} = filter_domains('ip');
                     $current{domain_family} = 'ip';
                     $current{keywords} = get_builtin_keywords('ip');
+                    delete $current{cow}{keywords};
                 }
 
                 next;
@@ -1961,6 +1972,7 @@ sub enter($$) {
                     $current{domain} = filter_domains('ip');
                     $current{domain_family} = 'ip';
                     $current{keywords} = get_builtin_keywords('ip');
+                    delete $current{cow}{keywords};
                 }
 
                 $current{table} = 'filter'
@@ -2017,7 +2029,8 @@ sub enter($$) {
 
                 # create a deep copy of %current, only containing values
                 # which must be in the subchain
-                my %inner = ( keywords => {%{$current{keywords}}},
+                my %inner = ( cow => { keywords => 1, },
+                              keywords => $current{keywords},
                               builtin => {},
                               action => {},
                             );
@@ -2074,6 +2087,7 @@ sub enter($$) {
                                              };
 
                     if (defined $defs) {
+                        copy_on_write(\%current, 'keywords');
                         while (my ($k, $def) = each %{$defs->{keywords}}) {
                             $current{keywords}{$k} = [ 'match', $module, $def ];
                         }
@@ -2121,6 +2135,7 @@ sub enter($$) {
                                        };
 
                     if (defined $defs) {
+                        copy_on_write(\%current, 'keywords');
                         while (my ($k, $def) = each %{$defs->{keywords}}) {
                             $current{keywords}{$k} = [ 'target', $keyword, $def ];
                         }
@@ -2183,6 +2198,7 @@ sub enter($$) {
                                    };
 
                 if (defined $defs) {
+                    copy_on_write(\%current, 'keywords');
                     while (my ($k, $def) = each %{$defs->{keywords}}) {
                         $current{keywords}{$k} = [ 'target', $keyword, $def ];
                     }
