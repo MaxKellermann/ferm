@@ -1267,6 +1267,10 @@ sub tables($) {
     # referenced by "jump" was actually defined
     $chain_info->{non_empty} = 1;
 
+    # return if this is a declaration-only rule
+    return
+      unless $rule->{has_rule};
+
     my $rr = '';
 
     # general iptables options
