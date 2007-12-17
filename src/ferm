@@ -1989,7 +1989,7 @@ sub enter($$) {
                 error('Cannot specify matches for policy')
                   if $current{has_rule};
 
-                my $policy = uc getvar();
+                my $policy = getvar();
                 error("Invalid policy target: $policy")
                   unless $policy =~ /^(?:ACCEPT|DROP)$/;
 

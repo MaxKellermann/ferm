@@ -16,7 +16,7 @@ v2.0 - not yet released
     - cleared the deprecated keyword translation table
     - removed TOS parameter shortcuts
     - don't default to policy if no action is specified
-    - don't allow lower case bult-in chain names
+    - don't allow lower case built-in chain or policy names
     - removed --automod, --use, --clearall, --flushall, --flushchains,
       --createchains, --location
     - comma in array is forbidden
