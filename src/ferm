@@ -1561,19 +1561,19 @@ sub parse_protocol_options($$$$) {
                         $keyword, $negated_ref);
 }
 
+sub copy_on_write($$) {
+    my ($rule, $key) = @_;
+    return unless exists $rule->{cow}{$key};
+    $rule->{$key} = {%{$rule->{$key}}};
+    delete $rule->{cow}{$key};
+}
+
 sub clone_match($) {
     my $match = shift;
     return { name => $match->{name},
              options => { %{$match->{options}} },
              defs => $match->{defs},
            };
-}
-
-sub copy_on_write($$) {
-    my ($rule, $key) = @_;
-    return unless exists $rule->{cow}{$key};
-    $rule->{$key} = {%{$rule->{$key}}};
-    delete $rule->{cow}{$key};
 }
 
 sub new_level(\%$) {
