@@ -1250,14 +1250,6 @@ sub tables($) {
     # referenced by "jump" was actually defined
     $chain_info->{non_empty} = 1;
 
-    # check for unknown jump target
-    $table_info->{chains}{$action->{chain}}{rules} ||= []
-      if $action->{type} eq 'jump' or $action->{type} eq 'goto';
-
-    # return if this is a declaration-only rule
-    return
-      unless $rule->{has_rule};
-
     my $rr = '';
 
     # general iptables options
@@ -1310,8 +1302,10 @@ sub tables($) {
     #
 
     if ($action->{type} eq 'jump') {
+        $table_info->{chains}{$action->{chain}}{rules} ||= [];
         $rr .= " -j " . shell_escape($action->{chain});
     } elsif ($action->{type} eq 'goto') {
+        $table_info->{chains}{$action->{chain}}{rules} ||= [];
         $rr .= " -g " . shell_escape($action->{chain});
     } elsif ($action->{type} eq 'target') {
         $rr .= " -j " . shell_escape($action->{target});
