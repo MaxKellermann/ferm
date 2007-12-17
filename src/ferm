@@ -2310,6 +2310,8 @@ sub execute_slow($$) {
         $status ||= execute_command("$table_cmd -F");
         $status ||= execute_command("$table_cmd -X");
 
+        next if $option{flush};
+
         # create chains / set policy
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
             if (exists $chain_info->{policy}) {
@@ -2345,7 +2347,7 @@ sub rules_to_save($$) {
         # create chains / set policy
         foreach my $chain (sort keys %{$table_info->{chains}}) {
             my $chain_info = $table_info->{chains}{$chain};
-            my $policy = $chain_info->{policy};
+            my $policy = $option{flush} ? 'ACCEPT' : $chain_info->{policy};
             unless (defined $policy) {
                 if (is_netfilter_builtin_chain($table, $chain)) {
                     $policy = 'ACCEPT';
@@ -2355,6 +2357,8 @@ sub rules_to_save($$) {
             }
             $result .= ":$chain $policy\ [0:0]\n";
         }
+
+        next if $option{flush};
 
         # dump rules
         foreach my $chain (sort keys %{$table_info->{chains}}) {
