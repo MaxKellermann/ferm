@@ -422,10 +422,10 @@ if ($has_getopt) {
         die 'Invalid --def specification'
           unless $value =~ /^\$?(\w+)=(.*)$/s;
         my ($name, $unparsed_value) = ($1, $2);
-        my @tokens = tokenize_string($unparsed_value);
-        my $value = getvalues(\&next_array_token, \@tokens);
+        my $tokens = tokenize_string($unparsed_value);
+        my $value = getvalues(\&next_array_token, $tokens);
         die 'Extra tokens after --def'
-          if @tokens;
+          if @$tokens > 0;
         $stack[0]{vars}{$name} = $value;
     }
 
@@ -708,7 +708,7 @@ sub tokenize_string($) {
         push @ret, $word;
     }
 
-    return @ret;
+    return \@ret;
 }
 
 # shift an array; helper function to be passed to &getvar / &getvalues
@@ -727,10 +727,8 @@ sub prepare_tokens() {
 
         $script->{line} ++;
 
-        my @line = tokenize_string($line);
-
         # the next parser stage eats this
-        push @$tokens, @line;
+        push @$tokens, @{tokenize_string($line)};
     }
 
     return 1;
