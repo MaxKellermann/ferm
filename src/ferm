@@ -1627,7 +1627,7 @@ sub enter($$) {
         }
 
         # the core: parse all data
-        SWITCH: for ($keyword)
+        for ($keyword)
         {
             # deprecated keyword?
             if (exists $deprecated_keywords{$keyword}) {
