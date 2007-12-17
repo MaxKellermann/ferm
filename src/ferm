@@ -1587,7 +1587,7 @@ sub new_level(\%$) {
         $current->{builtin} = { %{$prev->{builtin}} };
         $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
         $current->{action} = { %{$prev->{action}} };
-        foreach my $key (qw(domain domain_family table chain proto sport dport)) {
+        foreach my $key (qw(domain domain_family table chain sport dport)) {
             $current->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
