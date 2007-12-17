@@ -1303,12 +1303,12 @@ sub tables($) {
 
     if ($action->{type} eq 'jump') {
         $table_info->{chains}{$action->{chain}}{rules} ||= [];
-        $rr .= " -j " . shell_escape($action->{chain});
+        $rr .= " -j " . $action->{chain};
     } elsif ($action->{type} eq 'goto') {
         $table_info->{chains}{$action->{chain}}{rules} ||= [];
-        $rr .= " -g " . shell_escape($action->{chain});
+        $rr .= " -g " . $action->{chain};
     } elsif ($action->{type} eq 'target') {
-        $rr .= " -j " . shell_escape($action->{target});
+        $rr .= " -j " . $action->{target};
 
         # targets stored in %target_defs
 
