@@ -364,8 +364,8 @@ sub get_builtin_keywords($) {
       if exists $builtin_keywords{$domain_family};
 
     return {} unless exists $match_defs{$domain_family};
-    my $defs = $match_defs{$domain_family}{''};
-    my %keywords = map { $_ => ['builtin', '', $defs] } keys %{$defs->{keywords}};
+    my $defs_kw = $match_defs{$domain_family}{''}{keywords};
+    my %keywords = map { $_ => ['builtin', '', $defs_kw->{$_} ] } keys %$defs_kw;
 
     $builtin_keywords{$domain_family} = \%keywords;
     return {%keywords};
@@ -1521,16 +1521,13 @@ sub parse_keyword($$$$) {
 sub parse_option($$$$$) {
     my ($def, $current, $store, $keyword, $negated_ref) = @_;
 
-    my $k = $def->{keywords}{$keyword};
-    return unless defined $k;
-
-    while (exists $k->{alias}) {
-        ($keyword, $k) = @{$k->{alias}};
-        die unless defined $k;
+    while (exists $def->{alias}) {
+        ($keyword, $def) = @{$def->{alias}};
+        die unless defined $def;
     }
 
     $store->{$keyword}
-      = parse_keyword($current, $k,
+      = parse_keyword($current, $def,
                       $keyword, $negated_ref);
     $current->{has_rule} = 1;
     return 1;
@@ -1555,7 +1552,7 @@ sub parse_protocol_options($$$$) {
                  };
     push @{$current->{match}}, $module;
 
-    return parse_option($proto_def,
+    return parse_option($proto_def->{keywords}{$keyword},
                         $current, $module->{options},
                         $keyword, $negated_ref);
 }
@@ -2079,8 +2076,8 @@ sub enter($$) {
                                              };
 
                     if (defined $defs) {
-                        foreach my $k (keys %{$defs->{keywords}}) {
-                            $current{keywords}{$k} = [ 'match', $module, $defs ];
+                        while (my ($k, $def) = each %{$defs->{keywords}}) {
+                            $current{keywords}{$k} = [ 'match', $module, $def ];
                         }
                     }
                 }
@@ -2091,7 +2088,7 @@ sub enter($$) {
             # keywords from $current{keywords}
 
             if (exists $current{keywords}{$keyword}) {
-                my ($type, $module, $defs) = @{$current{keywords}{$keyword}};
+                my ($type, $module, $def) = @{$current{keywords}{$keyword}};
                 my $store;
                 if ($type eq 'builtin') {
                     $store = $current{builtin};
@@ -2103,7 +2100,7 @@ sub enter($$) {
                     die;
                 }
 
-                parse_option($defs, \%current, $store, $keyword, \$negated);
+                parse_option($def, \%current, $store, $keyword, \$negated);
                 next;
             }
 
@@ -2126,8 +2123,8 @@ sub enter($$) {
                                        };
 
                     if (defined $defs) {
-                        foreach my $k (keys %{$defs->{keywords}}) {
-                            $current{keywords}{$k} = [ 'target', $chain, $defs ];
+                        while (my ($k, $def) = each %{$defs->{keywords}}) {
+                            $current{keywords}{$k} = [ 'target', $keyword, $def ];
                         }
                     }
                 } else {
@@ -2188,8 +2185,8 @@ sub enter($$) {
                                    };
 
                 if (defined $defs) {
-                    foreach my $k (keys %{$defs->{keywords}}) {
-                        $current{keywords}{$k} = [ 'target', $keyword, $defs ];
+                    while (my ($k, $def) = each %{$defs->{keywords}}) {
+                        $current{keywords}{$k} = [ 'target', $keyword, $def ];
                     }
                 }
 
