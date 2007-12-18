@@ -22,7 +22,6 @@ v2.0 - not yet released
     - comma in array is forbidden
     - removed "source" and "destination" as prefix for "addr" and "port" 
   - don't allow match rules before and after "policy"
-  - bugfix: verify the protocol/match module association
   - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
   - removed support for deprecated netfilter modules
     - dst
