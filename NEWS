@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.3.2 - not yet released
+
+
 v1.3.1 - 9 Dec 2007
   - require IO::Handle, this fixes the interactive mode
   - configure test mode properly when running on microperl
