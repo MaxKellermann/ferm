@@ -22,7 +22,6 @@ v2.0 - not yet released
     - comma in array is forbidden
     - removed "source" and "destination" as prefix for "addr" and "port" 
   - don't allow match rules before and after "policy"
-  - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
   - removed support for deprecated netfilter modules
     - dst
     - frag
@@ -30,6 +29,10 @@ v2.0 - not yet released
   - rewrote the internal rule storage
     - honor the order of match modules
   - import-ferm: write policy in chain block
+
+
+v1.3.2 - not yet released
+  - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
 
 
 v1.3.1 - 9 Dec 2007
