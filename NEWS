@@ -10,6 +10,7 @@
 v1.3.1 - 9 Dec 2007
   - require IO::Handle, this fixes the interactive mode
   - configure test mode properly when running on microperl
+  - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
 
 
 v1.3 - 6 Dec 2007

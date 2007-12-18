@@ -1820,7 +1820,7 @@ sub parse_builtin_matches($$$) {
         $current->{outerface} = getvalues(undef, undef, allow_negation => 1);
         return 1;
     }
-    if ($keyword =~ /^proto(?:col)?$/) {
+    if ($keyword eq 'protocol') {
         $current->{proto} = getvalues(undef, undef, allow_negation => 1);
         return 1;
     }
@@ -2484,6 +2484,11 @@ sub enter($@) {
 
                 next;
             }
+
+            # this is a workaround for the keyword overlap between
+            # "-p" (builtin) and "--proto" (xt_policy)
+            $keyword = 'protocol'
+              if $keyword eq 'proto' and not exists $modules{policy};
 
             parse_builtin_matches($current, $keyword, \$negated)
               and next;
