@@ -6,9 +6,7 @@ Roadmap for ferm 2.0
 --------------------
 
 * support arptables and ebtables
-* remove support for legacy 1.1 syntax
 * import-ferm should use ferm's %XY_defs
-* policy parameters
 
 
 Roadmap for ferm 3.0
