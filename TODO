@@ -5,7 +5,6 @@ TODO
 Roadmap for ferm 2.0
 --------------------
 
-* support arptables and ebtables
 * import-ferm should use ferm's %XY_defs
 
 
