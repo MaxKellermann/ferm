@@ -7,7 +7,7 @@
     Max Kellermann <max@foo-projects.org>
 
 
-v1.3.2 - not yet released
+v1.3.2 - 19 Dec 2007
   - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
   - bugfix: handle array after DNAT/to-destination correctly
   - target options cannot have arrays by default
