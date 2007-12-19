@@ -54,7 +54,7 @@ log-tcp-sequence log-tcp-options log-ip-options log-uid
 continue tee
 strict next
 fragres fragfirst fragmore fraglast
-nodst
+nodst random
 ecn-tcp-remove
 ahres
 soft
