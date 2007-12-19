@@ -1213,6 +1213,15 @@ machine itself.
 
     proto tcp dport http REDIRECT to-ports 3128;
 
+=item B<SAME>
+
+Similar to SNAT, but a client is mapped to the same source IP for all
+its connections.
+
+    SAME to 1.2.3.4-1.2.3.7;
+    SAME to 1.2.3.8-1.2.3.15 nodst;
+    SAME to 1.2.3.16-1.2.3.31 random;
+
 =item B<SECMARK>
 
 This is used to set the security mark value associated with the packet
