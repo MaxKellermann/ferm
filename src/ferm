@@ -238,6 +238,7 @@ use vars qw(%proto_defs %match_defs %target_defs);
 # add a module definition
 sub add_def {
     my $defs = shift;
+    my $params_default = shift;
     my $name = shift;
     die if exists $defs->{$name};
     my $def = $defs->{$name} = {};
@@ -245,7 +246,7 @@ sub add_def {
         my $keyword = $_;
         my $k = {};
 
-        my $params = 1;
+        my $params = $params_default;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
         $params = $1 if $keyword =~ s,=([acs]+|m)$,,;
         if ($keyword =~ s,&(\S+)$,,) {
@@ -267,17 +268,17 @@ sub add_def {
 
 # add a protocol module definition
 sub add_proto_def(@) {
-    add_def(\%proto_defs, @_);
+    add_def(\%proto_defs, 1, @_);
 }
 
 # add a match module definition
 sub add_match_def(@) {
-    add_def(\%match_defs, @_);
+    add_def(\%match_defs, 1, @_);
 }
 
 # add a target module definition
 sub add_target_def(@) {
-    add_def(\%target_defs, @_);
+    add_def(\%target_defs, 's', @_);
 }
 
 add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
