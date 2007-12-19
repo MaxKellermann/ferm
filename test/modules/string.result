@@ -1,0 +1,2 @@
+iptables -A INPUT -m string --string "foo bar" -j ACCEPT
+iptables -A INPUT -m string --algo kmp --from 64 --to 128 --hex-string "deadbeef" -j ACCEPT

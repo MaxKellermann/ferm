@@ -131,6 +131,7 @@ mh-type
 probability
 nflog-group nflog-prefix nflog-range nflog-threshold
 hashmode clustermac total-nodes local-node hash-init
+algo from string hex-string
 EOT
 
 my %p1c = parse_table(<<EOT);

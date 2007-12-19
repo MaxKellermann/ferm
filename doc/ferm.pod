@@ -1011,6 +1011,13 @@ iptables(8) man page.
     mod statistic mode random probability 0.8 ACCEPT;
     mod statistic mode nth every 5 packet 0 DROP;
 
+=item B<string>
+
+Matches a string.
+
+    mod string string "foo bar" ACCEPT;
+    mod string algo kmp from 64 to 128 hex-string "deadbeef" ACCEPT;
+
 =item B<tcp>
 
 Checks TCP specific attributes. This module is automatically loaded
