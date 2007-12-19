@@ -140,6 +140,7 @@ use vars qw(%proto_defs %match_defs %target_defs);
 sub add_def_x {
     my $defs = shift;
     my $domain_family = shift;
+    my $params_default = shift;
     my $name = shift;
     die if exists $defs->{$domain_family}{$name};
     my $def = $defs->{$domain_family}{$name} = {};
@@ -147,7 +148,7 @@ sub add_def_x {
         my $keyword = $_;
         my $k = {};
 
-        my $params = 1;
+        my $params = $params_default;
         $params = $1 if $keyword =~ s,\*(\d+)$,,;
         $params = $1 if $keyword =~ s,=([acs]+|m)$,,;
         if ($keyword =~ s,&(\S+)$,,) {
@@ -169,17 +170,20 @@ sub add_def_x {
 
 # add a protocol module definition
 sub add_proto_def_x(@) {
-    add_def_x(\%proto_defs, @_);
+    my $domain_family = shift;
+    add_def_x(\%proto_defs, $domain_family, 1, @_);
 }
 
 # add a match module definition
 sub add_match_def_x(@) {
-    add_def_x(\%match_defs, @_);
+    my $domain_family = shift;
+    add_def_x(\%match_defs, $domain_family, 1, @_);
 }
 
 # add a target module definition
 sub add_target_def_x(@) {
-    add_def_x(\%target_defs, @_);
+    my $domain_family = shift;
+    add_def_x(\%target_defs, $domain_family, 's', @_);
 }
 
 sub add_def {
@@ -189,17 +193,17 @@ sub add_def {
 
 # add a protocol module definition
 sub add_proto_def(@) {
-    add_def(\%proto_defs, @_);
+    add_def(\%proto_defs, 1, @_);
 }
 
 # add a match module definition
 sub add_match_def(@) {
-    add_def(\%match_defs, @_);
+    add_def(\%match_defs, 1, @_);
 }
 
 # add a target module definition
 sub add_target_def(@) {
-    add_def(\%target_defs, @_);
+    add_def(\%target_defs, 's', @_);
 }
 
 add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
