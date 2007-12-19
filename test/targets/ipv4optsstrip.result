@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -j IPV4OPTSSTRIP

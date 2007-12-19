@@ -1132,6 +1132,13 @@ Modify the IPv6 Hop Limit field (ip6/mangle only).
     HL hl-dec 2;
     HL hl-inc 1;
 
+=item B<IPV4OPTSSTRIP>
+
+Strip all the IP options from a packet.  This module does not take any
+options.
+
+    IPV4OPTSSTRIP;
+
 =item B<LOG>
 
 Log all packets that match this rule in the kernel log. Be carefull
