@@ -62,6 +62,7 @@ rt-0-res rt-0-not-strict
 ashort
 save restore
 new
+ssrr lsrr no-srr rr ts ra any-opt
 EOT
 
 my %p1 = parse_table(<<EOT);

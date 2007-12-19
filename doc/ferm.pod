@@ -792,6 +792,19 @@ Match a range of IPv4 addresses.
     mod iprange src-range 192.168.2.0-192.168.3.255;
     mod iprange dst-range ! 192.168.6.0-192.168.6.255;
 
+=item B<ipv4options>
+
+Match on IPv4 header options like source routing, record route,
+timestamp and router-alert.
+
+    mod ipv4options ssrr ACCEPT;
+    mod ipv4options lsrr ACCEPT;
+    mod ipv4options no-srr ACCEPT;
+    mod ipv4options !rr ACCEPT;
+    mod ipv4options !ts ACCEPT;
+    mod ipv4options !ra ACCEPT;
+    mod ipv4options !any-opt ACCEPT;
+
 =item B<ipv6header>
 
 Matches the IPv6 extension header (ip6).

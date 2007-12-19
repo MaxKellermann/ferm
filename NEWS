@@ -11,6 +11,8 @@ v1.3.2 - not yet released
   - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
   - bugfix: handle array after DNAT/to-destination correctly
   - target options cannot have arrays by default
+  - support netfilter modules:
+    * ipv4options
   - support netfilter targets:
     * CLASSIFY (documentation)
     * CLUSTERIP

@@ -1,0 +1,13 @@
+chain INPUT {
+    mod ipv4options ssrr ACCEPT;
+    mod ipv4options lsrr ACCEPT;
+    mod ipv4options no-srr ACCEPT;
+    mod ipv4options rr ACCEPT;
+    mod ipv4options !rr DROP;
+    mod ipv4options ts ACCEPT;
+    mod ipv4options !ts DROP;
+    mod ipv4options ra ACCEPT;
+    mod ipv4options !ra DROP;
+    mod ipv4options any-opt ACCEPT;
+    mod ipv4options !any-opt DROP;
+}
