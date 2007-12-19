@@ -61,6 +61,7 @@ soft
 rt-0-res rt-0-not-strict
 ashort
 save restore
+new
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -128,6 +129,7 @@ selctx
 mh-type
 probability
 nflog-group nflog-prefix nflog-range nflog-threshold
+hashmode clustermac total-nodes local-node hash-init
 EOT
 
 my %p1c = parse_table(<<EOT);

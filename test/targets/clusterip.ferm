@@ -1,0 +1,3 @@
+chain INPUT {
+    CLUSTERIP new hashmode sourceip clustermac 00:12:34:45:67:89 total-nodes 4 local-node 2 hash-init 12345;
+}

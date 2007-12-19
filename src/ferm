@@ -346,6 +346,7 @@ add_match_def 'u32', qw(u32=m);
 
 add_target_def 'BALANCE', qw(to-destination to:=to-destination);
 add_target_def 'CLASSIFY', qw(set-class);
+add_target_def 'CLUSTERIP', qw(new*0 hashmode clustermac total-nodes local-node hash-init);
 add_target_def 'CONNMARK', qw(set-mark save-mark*0 restore-mark*0 mask);
 add_target_def 'CONNSECMARK', qw(save*0 restore*0);
 add_target_def 'DNAT', qw(to-destination=m to:=to-destination);

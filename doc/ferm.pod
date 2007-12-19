@@ -1074,6 +1074,14 @@ you enabled them in your kernel:
 
 =over 8
 
+=item B<CLUSTERIP>
+
+Configure a simple cluster of nodes that share a certain IP and MAC
+address.  Connections are statically distributed between the nodes.
+
+    CLUSTERIP new hashmode sourceip clustermac 00:12:34:45:67:89
+      total-nodes 4 local-node 2 hash-init 12345;
+
 =item B<CONNMARK>
 
 Sets the netfilter mark value associated with a connection.
