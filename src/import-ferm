@@ -68,7 +68,7 @@ i=interface o=outerface
 s=saddr d=daddr
 dport sport
 reject-with icmp-type icmpv6-type
-to-destination to-ports to
+to-ports to
 tos mark
 tcp-option mss set-mss
 ttl-set
@@ -141,6 +141,7 @@ EOT
 
 my %p1multi = parse_table(<<EOT);
 to-source
+to-destination
 u32
 EOT
 
