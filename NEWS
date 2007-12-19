@@ -12,6 +12,7 @@ v1.3.2 - not yet released
   - bugfix: handle array after DNAT/to-destination correctly
   - target options cannot have arrays by default
   - support netfilter targets:
+    * CLASSIFY (documentation)
     * CLUSTERIP
 
 

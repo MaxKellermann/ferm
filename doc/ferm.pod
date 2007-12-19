@@ -1074,6 +1074,12 @@ you enabled them in your kernel:
 
 =over 8
 
+=item B<CLASSIFY>
+
+Set the CBQ class.
+
+    CLASSIFY set-class 3:50;
+
 =item B<CLUSTERIP>
 
 Configure a simple cluster of nodes that share a certain IP and MAC
