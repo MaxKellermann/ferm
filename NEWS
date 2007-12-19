@@ -9,6 +9,7 @@
 
 v1.3.2 - not yet released
   - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
+  - bugfix: handle array after DNAT/to-destination correctly
 
 
 v1.3.1 - 9 Dec 2007
