@@ -48,7 +48,7 @@ syn
 clamp-mss-to-pmtu
 ecn-tcp-cwr ecn-tcp-ece
 physdev-is-in physdev-is-out physdev-is-bridged
-set rcheck update remove rttl
+set rcheck update remove rttl rsource rdest
 save-mark restore-mark
 log-tcp-sequence log-tcp-options log-ip-options log-uid
 continue tee

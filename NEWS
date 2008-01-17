@@ -8,6 +8,8 @@
 
 
 v1.3.3 - not yet released
+  - updated netfilter modules:
+    * recent: support --rsource, --rdest
 
 
 v1.3.2 - 19 Dec 2007
