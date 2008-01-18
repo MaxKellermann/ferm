@@ -893,6 +893,9 @@ process id, session id and command name.
     mod owner sid-owner 6543;
     mod owner cmd-owner "sendmail";
 
+("cmd-owner", "pid-owner" and "sid-owner" require special kernel
+patches not included in the vanilla Linux kernel)
+
 =item B<physdev>
 
 Matches the physical device on which a packet entered or is about to
