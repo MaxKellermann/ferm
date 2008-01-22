@@ -1054,6 +1054,10 @@ Check if the time a packet arrives is in given range.
     mod time datestart 2005:01:01;
     mod time datestart 2005:01:01:23:59:59;
     mod time datestop 2005:04:01;
+    mod time monthday (30 31);
+    mod time weekdays (Wed Thu);
+    mod time timestart 12:00 utc;
+    mod time timestart 12:00 localtz;
 
 Type "iptables -m time -h" for details.
 
@@ -1178,6 +1182,10 @@ Sets the netfilter mark field for the packet (a 32 bit integer between
 0 and 4294967295):
 
     MARK set-mark 42;
+    MARK set-xmark 7/3;
+    MARK and-mark 31;
+    MARK or-mark 1;
+    MARK xor-mark 12;
 
 =item B<MASQUERADE>
 
@@ -1188,6 +1196,7 @@ connections should originate from.
 
     MASQUERADE;
     MASQUERADE to-ports 1234:2345;
+    MASQUERADE to-ports 1234:2345 random;
 
 =item B<MIRROR>
 
@@ -1235,6 +1244,7 @@ Transparent proxying: alter the destination IP of the packet to the
 machine itself.
 
     proto tcp dport http REDIRECT to-ports 3128;
+    proto tcp dport http REDIRECT to-ports 3128 random;
 
 =item B<SAME>
 
@@ -1265,6 +1275,7 @@ Change the source address of the packet.
 
     SNAT to 1.2.3.4;
     SNAT to 1.2.3.4:20000-30000;
+    SNAT to 1.2.3.4 random;
 
 =item B<TCPMSS>
 
@@ -1281,6 +1292,9 @@ linux-machine, but maybe more. The original tos-bits are blanked and
 overwritten by this value.
 
     TOS set-tos Maximize-Throughput;
+    TOS and-tos 7;
+    TOS or-tos 1;
+    TOS xor-tos 4;
 
 Type "iptables -j TOS -h" for details.
 
