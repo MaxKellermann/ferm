@@ -792,6 +792,19 @@ Match a range of IPv4 addresses.
     mod iprange src-range 192.168.2.0-192.168.3.255;
     mod iprange dst-range ! 192.168.6.0-192.168.6.255;
 
+=item B<ipv4options>
+
+Match on IPv4 header options like source routing, record route,
+timestamp and router-alert.
+
+    mod ipv4options ssrr ACCEPT;
+    mod ipv4options lsrr ACCEPT;
+    mod ipv4options no-srr ACCEPT;
+    mod ipv4options !rr ACCEPT;
+    mod ipv4options !ts ACCEPT;
+    mod ipv4options !ra ACCEPT;
+    mod ipv4options !any-opt ACCEPT;
+
 =item B<ipv6header>
 
 Matches the IPv6 extension header (ip6).
@@ -879,6 +892,9 @@ process id, session id and command name.
     mod owner pid-owner 5432;
     mod owner sid-owner 6543;
     mod owner cmd-owner "sendmail";
+
+("cmd-owner", "pid-owner" and "sid-owner" require special kernel
+patches not included in the vanilla Linux kernel)
 
 =item B<physdev>
 
@@ -998,6 +1014,13 @@ iptables(8) man page.
     mod statistic mode random probability 0.8 ACCEPT;
     mod statistic mode nth every 5 packet 0 DROP;
 
+=item B<string>
+
+Matches a string.
+
+    mod string string "foo bar" ACCEPT;
+    mod string algo kmp from 64 to 128 hex-string "deadbeef" ACCEPT;
+
 =item B<tcp>
 
 Checks TCP specific attributes. This module is automatically loaded
@@ -1031,6 +1054,10 @@ Check if the time a packet arrives is in given range.
     mod time datestart 2005:01:01;
     mod time datestart 2005:01:01:23:59:59;
     mod time datestop 2005:04:01;
+    mod time monthday (30 31);
+    mod time weekdays (Wed Thu);
+    mod time timestart 12:00 utc;
+    mod time timestart 12:00 localtz;
 
 Type "iptables -m time -h" for details.
 
@@ -1073,6 +1100,20 @@ The following additional targets are available in ferm, provided that
 you enabled them in your kernel:
 
 =over 8
+
+=item B<CLASSIFY>
+
+Set the CBQ class.
+
+    CLASSIFY set-class 3:50;
+
+=item B<CLUSTERIP>
+
+Configure a simple cluster of nodes that share a certain IP and MAC
+address.  Connections are statically distributed between the nodes.
+
+    CLUSTERIP new hashmode sourceip clustermac 00:12:34:45:67:89
+      total-nodes 4 local-node 2 hash-init 12345;
 
 =item B<CONNMARK>
 
@@ -1118,6 +1159,13 @@ Modify the IPv6 Hop Limit field (ip6/mangle only).
     HL hl-dec 2;
     HL hl-inc 1;
 
+=item B<IPV4OPTSSTRIP>
+
+Strip all the IP options from a packet.  This module does not take any
+options.
+
+    IPV4OPTSSTRIP;
+
 =item B<LOG>
 
 Log all packets that match this rule in the kernel log. Be carefull
@@ -1134,6 +1182,10 @@ Sets the netfilter mark field for the packet (a 32 bit integer between
 0 and 4294967295):
 
     MARK set-mark 42;
+    MARK set-xmark 7/3;
+    MARK and-mark 31;
+    MARK or-mark 1;
+    MARK xor-mark 12;
 
 =item B<MASQUERADE>
 
@@ -1144,6 +1196,7 @@ connections should originate from.
 
     MASQUERADE;
     MASQUERADE to-ports 1234:2345;
+    MASQUERADE to-ports 1234:2345 random;
 
 =item B<MIRROR>
 
@@ -1191,6 +1244,16 @@ Transparent proxying: alter the destination IP of the packet to the
 machine itself.
 
     proto tcp dport http REDIRECT to-ports 3128;
+    proto tcp dport http REDIRECT to-ports 3128 random;
+
+=item B<SAME>
+
+Similar to SNAT, but a client is mapped to the same source IP for all
+its connections.
+
+    SAME to 1.2.3.4-1.2.3.7;
+    SAME to 1.2.3.8-1.2.3.15 nodst;
+    SAME to 1.2.3.16-1.2.3.31 random;
 
 =item B<SECMARK>
 
@@ -1212,6 +1275,7 @@ Change the source address of the packet.
 
     SNAT to 1.2.3.4;
     SNAT to 1.2.3.4:20000-30000;
+    SNAT to 1.2.3.4 random;
 
 =item B<TCPMSS>
 
@@ -1228,6 +1292,9 @@ linux-machine, but maybe more. The original tos-bits are blanked and
 overwritten by this value.
 
     TOS set-tos Maximize-Throughput;
+    TOS and-tos 7;
+    TOS or-tos 1;
+    TOS xor-tos 4;
 
 Type "iptables -j TOS -h" for details.
 

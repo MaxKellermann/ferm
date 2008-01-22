@@ -1,4 +1,5 @@
 table nat chain PREROUTING {
     interface ppp0 proto tcp dport 22 DNAT to-destination 10.0.0.1;
     interface ppp0 proto tcp dport 443 DNAT to-destination (10.0.0.2 10.0.0.3);
+    interface ppp0 proto tcp dport 8080 DNAT to-destination 192.168.1.1 random;
 }

@@ -1,0 +1,3 @@
+chain INPUT {
+    IPV4OPTSSTRIP;
+}

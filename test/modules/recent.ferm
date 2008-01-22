@@ -1,4 +1,5 @@
 table filter chain INPUT mod recent {
     rcheck seconds 60 DROP;
     interface eth0 daddr 127.0.0.0/8 set DROP;
+    rsource rdest ACCEPT;
 }

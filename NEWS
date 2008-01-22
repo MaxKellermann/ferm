@@ -31,10 +31,33 @@ v2.0 - not yet released
   - import-ferm: write policy in chain block
 
 
-v1.3.2 - not yet released
+v1.3.3 - 22 Jan 2008
+  - updated netfilter modules:
+    * recent: support --rsource, --rdest
+    * time: support --monthday, --weekdays, --utc, --localtz
+    * u32: suport negated --u3
+    * DNAT: support --random
+    * MARK: support --set-xmark, --and-mark, --or-mark, --xor-mark
+    * MASQUERADE: support --random
+    * REDIRECT: support --random
+    * SNAT: support --random
+    * TOS: support --and-tos, --or-tos, --xor-tos
+  - check if chain was specified before @subchain
+  - suppress "not declared" warnings on empty custom chains
+
+
+v1.3.2 - 19 Dec 2007
   - bugfix: emit "--proto" instead of "--protocol" for xt_policy "proto"
   - bugfix: handle array after DNAT/to-destination correctly
   - target options cannot have arrays by default
+  - support netfilter modules:
+    * ipv4options
+    * string
+  - support netfilter targets:
+    * CLASSIFY (documentation)
+    * CLUSTERIP
+    * IPV4OPTSSTRIP
+    * SAME (--random, documentation)
 
 
 v1.3.1 - 9 Dec 2007

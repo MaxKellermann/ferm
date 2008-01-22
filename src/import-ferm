@@ -48,19 +48,22 @@ syn
 clamp-mss-to-pmtu
 ecn-tcp-cwr ecn-tcp-ece
 physdev-is-in physdev-is-out physdev-is-bridged
-set rcheck update remove rttl
+set rcheck update remove rttl rsource rdest
 save-mark restore-mark
 log-tcp-sequence log-tcp-options log-ip-options log-uid
 continue tee
 strict next
 fragres fragfirst fragmore fraglast
-nodst
+nodst random
 ecn-tcp-remove
 ahres
 soft
 rt-0-res rt-0-not-strict
 ashort
 save restore
+new
+ssrr lsrr no-srr rr ts ra any-opt
+utc localtz
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -102,7 +105,7 @@ timestart timestop days datestart datestop
 tos
 ttl-eq ttl-gt ttl-lt
 set-class
-set-mark mask
+set-mark set-xmark and-mark or-mark xor-mark mask
 log-level log-prefix
 oif iif gw
 set-tos
@@ -131,6 +134,9 @@ selctx
 mh-type
 probability
 nflog-group nflog-prefix nflog-range nflog-threshold
+hashmode clustermac total-nodes local-node hash-init
+algo from string hex-string
+and-tos or-tos xor-tos
 EOT
 
 my %p1c = parse_table(<<EOT);
@@ -140,6 +146,7 @@ dst-opts
 dccp-types
 header
 rt-0-addrs
+monthday weekdays
 EOT
 
 my %p1multi = parse_table(<<EOT);
