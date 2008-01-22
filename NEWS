@@ -12,6 +12,7 @@ v1.3.3 - not yet released
     * recent: support --rsource, --rdest
     * time: support --monthday, --weekdays, --utc, --localtz
     * u32: suport negated --u3
+    * DNAT: support --random
   - check if chain was specified before @subchain
 
 
