@@ -14,6 +14,7 @@ v1.3.3 - not yet released
     * u32: suport negated --u3
     * DNAT: support --random
     * MARK: support --set-xmark, --and-mark, --or-mark, --xor-mark
+    * MASQUERADE: support --random
   - check if chain was specified before @subchain
 
 
