@@ -4,4 +4,5 @@ table nat chain POSTROUTING {
     outerface eth2 SNAT to-source 172.17.0.1-172.17.0.10:10000-20000;
     outerface ethe SNAT to-source (172.17.0.1 172.17.0.1:20000-30000);
     outerface eth3 SNAT to 192.168.1.1;
+    outerface eth4 SNAT to-source 192.168.2.1 random;
 }

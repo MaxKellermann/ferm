@@ -16,6 +16,7 @@ v1.3.3 - not yet released
     * MARK: support --set-xmark, --and-mark, --or-mark, --xor-mark
     * MASQUERADE: support --random
     * REDIRECT: support --random
+    * SNAT: support --random
   - check if chain was specified before @subchain
 
 
