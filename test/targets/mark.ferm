@@ -1,3 +1,7 @@
 table filter chain INPUT {
     proto udp MARK set-mark 7;
+    proto udp MARK set-xmark 7/3;
+    proto udp MARK and-mark 31;
+    proto udp MARK or-mark 1;
+    proto udp MARK xor-mark 12;
 }

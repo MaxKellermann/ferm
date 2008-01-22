@@ -359,7 +359,7 @@ add_target_def 'HL', qw(hl-set hl-dec hl-inc);
 add_target_def 'IPV4OPTSSTRIP';
 add_target_def 'LOG', qw(log-level log-prefix),
   qw(log-tcp-sequence*0 log-tcp-options*0 log-ip-options*0 log-uid*0);
-add_target_def 'MARK', qw(set-mark);
+add_target_def 'MARK', qw(set-mark set-xmark and-mark or-mark xor-mark);
 add_target_def 'MASQUERADE', qw(to-ports);
 add_target_def 'MIRROR';
 add_target_def 'NETMAP', qw(to);

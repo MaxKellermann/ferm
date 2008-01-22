@@ -102,7 +102,7 @@ timestart timestop days datestart datestop
 tos
 ttl-eq ttl-gt ttl-lt
 set-class
-set-mark mask
+set-mark set-xmark and-mark or-mark xor-mark mask
 log-level log-prefix
 oif iif gw
 set-tos

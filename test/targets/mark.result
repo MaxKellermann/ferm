@@ -1,1 +1,5 @@
 iptables -t filter -A INPUT -p udp -j MARK --set-mark 7
+iptables -t filter -A INPUT -p udp -j MARK --set-xmark 7/3
+iptables -t filter -A INPUT -p udp -j MARK --and-mark 31
+iptables -t filter -A INPUT -p udp -j MARK --or-mark 1
+iptables -t filter -A INPUT -p udp -j MARK --xor-mark 12
