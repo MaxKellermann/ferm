@@ -17,6 +17,7 @@ v1.3.3 - not yet released
     * MASQUERADE: support --random
     * REDIRECT: support --random
     * SNAT: support --random
+    * TOS: support --and-tos, --or-tos, --xor-tos
   - check if chain was specified before @subchain
 
 

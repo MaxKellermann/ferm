@@ -3,3 +3,6 @@ iptables -t filter -A INPUT -j TOS --set-tos Maximize-Throughput
 iptables -t filter -A INPUT -j TOS --set-tos Maximize-Reliability
 iptables -t filter -A INPUT -j TOS --set-tos Minimize-Cost
 iptables -t filter -A INPUT -j TOS --set-tos Normal-Service
+iptables -t filter -A INPUT -j TOS --and-tos 7
+iptables -t filter -A INPUT -j TOS --or-tos 1
+iptables -t filter -A INPUT -j TOS --xor-tos 4

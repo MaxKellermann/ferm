@@ -4,4 +4,7 @@ table filter chain INPUT {
     TOS set-tos Maximize-Reliability;
     TOS set-tos Minimize-Cost;
     TOS set-tos Normal-Service;
+    TOS and-tos 7;
+    TOS or-tos 1;
+    TOS xor-tos 4;
 }

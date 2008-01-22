@@ -375,7 +375,7 @@ add_target_def 'SET', qw(add-set=sc del-set=sc);
 add_target_def 'SNAT', qw(to-source=m to:=to-source random*0);
 add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
-add_target_def 'TOS', qw(set-tos&compat_tos_params);
+add_target_def 'TOS', qw(set-tos&compat_tos_params and-tos or-tos xor-tos);
 add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
