@@ -7,6 +7,8 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.3.4 - not yet released
+
 v1.3.3 - 22 Jan 2008
   - updated netfilter modules:
     * recent: support --rsource, --rdest
