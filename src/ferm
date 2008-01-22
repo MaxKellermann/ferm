@@ -1416,7 +1416,7 @@ sub shell_escape($) {
     } else {
         return $token
           if $token =~ /^\`.*\`$/;
-        $token =~ s/'/\\'/g;
+        $token =~ s/'/'\\''/g;
         $token = '\'' . $token . '\''
           if $token =~ /[\s\"\\;<>&|]/s;
     }

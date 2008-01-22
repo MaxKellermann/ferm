@@ -8,6 +8,7 @@
 
 
 v1.3.4 - not yet released
+  - fixed single quote escaping
 
 v1.3.3 - 22 Jan 2008
   - updated netfilter modules:
