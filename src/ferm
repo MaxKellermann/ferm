@@ -309,7 +309,6 @@ add_match_def 'fuzzy', qw(lower-limit=s upper-limit=s);
 add_match_def 'hbh', qw(hbh-len! hbh-opts=c);
 add_match_def 'helper', qw(helper);
 add_match_def 'hl', qw(hl-eq! hl-lt=s hl-gt=s);
-add_match_def 'length', qw(length!);
 add_match_def 'hashlimit', qw(hashlimit=s hashlimit-burst=s hashlimit-mode=s hashlimit-name=s),
   qw(hashlimit-htable-size=s hashlimit-htable-max=s),
   qw(hashlimit-htable-expire=s hashlimit-htable-gcinterval=s);
@@ -317,6 +316,7 @@ add_match_def 'iprange', qw(!src-range !dst-range);
 add_match_def 'iplimit', qw(!iplimit-above=s iplimit-mask=s);
 add_match_def 'ipv4options', qw(ssrr*0 lsrr*0 no-srr*0 !rr*0 !ts*0 !ra*0 !any-opt*0);
 add_match_def 'ipv6header', qw(header!=c soft*0);
+add_match_def 'length', qw(length!);
 add_match_def 'limit', qw(limit=s limit-burst=s);
 add_match_def 'mac', qw(mac-source!);
 add_match_def 'mark', qw(mark);
