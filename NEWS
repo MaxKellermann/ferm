@@ -11,6 +11,7 @@ v1.3.3 - not yet released
   - updated netfilter modules:
     * recent: support --rsource, --rdest
     * time: support --monthday, --weekdays, --utc, --localtz
+    * u32: suport negated --u3
   - check if chain was specified before @subchain
 
 
