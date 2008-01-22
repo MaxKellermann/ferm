@@ -1,0 +1,4 @@
+table nat chain PREROUTING {
+    interface eth0 REDIRECT to-ports 10000:20000;
+    interface eth0 REDIRECT to-ports 20000:30000 random;
+}

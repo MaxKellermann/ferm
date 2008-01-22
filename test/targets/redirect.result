@@ -1,0 +1,2 @@
+iptables -t nat -A PREROUTING -i eth0 -j REDIRECT --to-ports 10000:20000
+iptables -t nat -A PREROUTING -i eth0 -j REDIRECT --to-ports 20000:30000 --random
