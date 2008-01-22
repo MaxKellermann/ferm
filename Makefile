@@ -63,6 +63,10 @@ SAVE2_SED += -e 's,--connlimit-above 4 --connlimit-mask 24,--connlimit-mask 24 -
 SAVE2_SED += -e 's,--hashlimit 10/minute --hashlimit-mode dstip,--hashlimit-mode dstip --hashlimit 10/minute,'
 SAVE2_SED += -e 's,--packet 1 --every 3 --counter 1,--packet 1 --counter 1 --every 3,'
 SAVE2_SED += -e 's!--rt-0-addrs ::1,::2 --rt-0-not-strict!--rt-0-not-strict --rt-0-addrs ::1,::2!'
+SAVE2_SED += -e 's!--to 128 --hex-string deadbeef!--hex-string deadbeef --to 128!'
+SAVE2_SED += -e 's!--datestop 2004/12/31 --timestart 09:00!--timestart 09:00 --datestop 2004/12/31!'
+SAVE2_SED += -e 's!--datestop 2004/12/31 --timestart 18:00!--timestart 18:00 --datestop 2004/12/31!'
+SAVE2_SED += -e 's!--total-nodes 4 --hash-init 12345!--hash-init 12345 --total-nodes 4!'
 
 FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
