@@ -2417,7 +2417,7 @@ sub enter($@) {
                     $subchain = 'ferm_auto_' . ++$auto_chain;
                 }
 
-                error('"{" or chain name expected after "sub"')
+                error('"{" or chain name expected after "@subchain"')
                   unless $keyword eq '{';
 
                 # create a deep copy of @fw, only containing values
