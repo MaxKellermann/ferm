@@ -63,6 +63,7 @@ ashort
 save restore
 new
 ssrr lsrr no-srr rr ts ra any-opt
+utc localtz
 EOT
 
 my %p1 = parse_table(<<EOT);
@@ -141,6 +142,7 @@ dst-opts
 dccp-types
 header
 rt-0-addrs
+monthday weekdays
 EOT
 
 my %p1multi = parse_table(<<EOT);
