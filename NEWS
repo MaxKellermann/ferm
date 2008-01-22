@@ -19,6 +19,7 @@ v1.3.3 - not yet released
     * SNAT: support --random
     * TOS: support --and-tos, --or-tos, --xor-tos
   - check if chain was specified before @subchain
+  - suppress "not declared" warnings on empty custom chains
 
 
 v1.3.2 - 19 Dec 2007
