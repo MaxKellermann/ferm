@@ -2404,6 +2404,9 @@ sub enter($@) {
 
             # create a subchain
             if ($keyword eq '@subchain' or $keyword eq 'subchain') {
+                error('Chain must be specified')
+                  unless defined find_option(\@fw, 'chain');
+
                 error('No rule specified before "@subchain"')
                   unless find_option(\@fw, 'has_rule');
 
