@@ -366,7 +366,7 @@ add_target_def 'NETMAP', qw(to);
 add_target_def 'NFLOG', qw(nflog-group nflog-prefix nflog-range nflog-threshold);
 add_target_def 'NFQUEUE', qw(queue-num);
 add_target_def 'NOTRACK';
-add_target_def 'REDIRECT', qw(to-ports);
+add_target_def 'REDIRECT', qw(to-ports random*0);
 add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SAME', qw(to nodst*0 random*0);
