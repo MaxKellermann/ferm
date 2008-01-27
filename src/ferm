@@ -1410,15 +1410,15 @@ sub shell_escape($) {
         # escaping and special characters... we're trying our best
         # here
 
-        $token =~ s,",',g;
+        $token =~ s,",\\",g;
         $token = '"' . $token . '"'
-          if $token =~ /[\s\'\\;&]/s;
+          if $token =~ /[\s\'\\;&]/s or length($token) == 0;
     } else {
         return $token
           if $token =~ /^\`.*\`$/;
         $token =~ s/'/'\\''/g;
         $token = '\'' . $token . '\''
-          if $token =~ /[\s\"\\;<>&|]/s;
+          if $token =~ /[\s\"\\;<>&|]/s or length($token) == 0;
     }
 
     return $token;
