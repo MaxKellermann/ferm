@@ -74,7 +74,6 @@ use vars qw($script @stack $auto_chain);
 # - tables{$name}: ferm state information about tables
 #   - chains{$chain}: ferm state information about the chains
 #     - builtin: whether this is a built-in chain
-#     - non_empty: are there rules for this chain?
 use vars qw(%domains);
 
 ## constants
@@ -1271,11 +1270,6 @@ sub tables($) {
 
     my $action = $rule->{action};
 
-    # mark this chain as "non-empty" because we will add stuff to
-    # it now; this flag is later used to check if a custom chain
-    # referenced by "jump" was actually defined
-    $chain_info->{non_empty} = 1;
-
     # return if this is a declaration-only rule
     return
       unless $rule->{has_rule};
@@ -1977,13 +1971,6 @@ sub enter($$) {
                 $current{table} = 'filter'
                   unless exists $current{table};
 
-                # mark this chain as non-empty so ferm does not print a warning
-                foreach my $domain (to_array $current{domain}) {
-                    foreach my $table (to_array $current{table}) {
-                        $domains{$domain}{tables}{$table}{chains}{$current{chain}}{non_empty} = 1
-                    }
-                }
-
                 next;
             }
 
@@ -2050,13 +2037,6 @@ sub enter($$) {
 
                 # enter the block
                 enter(1, \%inner);
-
-                # mark this chain as non-empty so ferm does not print a warning
-                foreach my $domain (to_array $current{domain}) {
-                    foreach my $table (to_array $current{table}) {
-                        $domains{$domain}{tables}{$table}{chains}{$subchain}{non_empty} = 1
-                    }
-                }
 
                 # now handle the parent - it's a jump to the sub chain
                 $current{action} = { type => 'jump',
