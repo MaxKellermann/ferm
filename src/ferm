@@ -1654,7 +1654,7 @@ sub enter($$) {
                     error('No action defined; did you mean "NOP"?');
                 }
 
-                error('No chain defined') unless defined $current{chain};
+                error('No chain defined') unless exists $current{chain};
 
                 $current{script} = { filename => $script->{filename},
                                      line => $script->{line},
