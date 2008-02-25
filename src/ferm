@@ -1268,8 +1268,6 @@ sub tables($) {
 
     return if $option{flush};
 
-    my $action = $rule->{action};
-
     # return if this is a declaration-only rule
     return
       unless $rule->{has_rule};
@@ -1325,6 +1323,7 @@ sub tables($) {
     # target options
     #
 
+    my $action = $rule->{action};
     if ($action->{type} eq 'jump') {
         $table_info->{chains}{$action->{chain}}{rules} ||= [];
         $rr .= " -j " . $action->{chain};
