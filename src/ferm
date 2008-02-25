@@ -1606,6 +1606,28 @@ sub rule_defined(\%) {
       keys(%{$rule->{action}}) > 0;
 }
 
+sub set_domain(\%$) {
+    my ($rule, $domain) = @_;
+
+    my $filtered_domain = filter_domains($domain);
+    my $domain_family;
+    unless (ref $domain) {
+        $domain_family = $domain eq 'ip6' ? 'ip' : $domain;
+    } elsif (@$domain == 0) {
+        $domain_family = 'none';
+    } elsif (grep { not /^ip6?$/s } @$domain) {
+        error('Cannot combine non-IP domains');
+    } else {
+        $domain_family = 'ip';
+    }
+
+    $rule->{domain_family} = $domain_family;
+    $rule->{keywords} = get_builtin_keywords($domain_family);
+    delete $rule->{cow}{keywords};
+
+    $rule->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
+}
+
 # the main parser loop: read tokens, convert them into internal rule
 # structures
 sub enter($$) {
@@ -1913,24 +1935,7 @@ sub enter($$) {
                 error('Domain is already specified')
                   if exists $current{domain};
 
-                my $domain = getvalues();
-                my $filtered_domain = filter_domains($domain);
-                my $domain_family;
-                unless (ref $domain) {
-                    $domain_family = $domain eq 'ip6' ? 'ip' : $domain;
-                } elsif (@$domain == 0) {
-                    $domain_family = 'none';
-                } elsif (grep { not /^ip6?$/s } @$domain) {
-                    error('Cannot combine non-IP domains');
-                } else {
-                    $domain_family = 'ip';
-                }
-                $current{domain_family} = $domain_family;
-                $current{keywords} = get_builtin_keywords($domain_family);
-                delete $current{cow}{keywords};
-
-                $current{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
-
+                set_domain(%current, getvalues());
                 next;
             }
 
@@ -1939,12 +1944,8 @@ sub enter($$) {
                   if exists $current{table};
                 $current{table} = $stack[0]{auto}{TABLE} = getvalues();
 
-                unless (exists $current{domain}) {
-                    $current{domain} = filter_domains('ip');
-                    $current{domain_family} = 'ip';
-                    $current{keywords} = get_builtin_keywords('ip');
-                    delete $current{cow}{keywords};
-                }
+                set_domain(%current, 'ip')
+                  unless exists $current{domain};
 
                 next;
             }
@@ -1960,12 +1961,8 @@ sub enter($$) {
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
 
-                unless (exists $current{domain}) {
-                    $current{domain} = filter_domains('ip');
-                    $current{domain_family} = 'ip';
-                    $current{keywords} = get_builtin_keywords('ip');
-                    delete $current{cow}{keywords};
-                }
+                set_domain(%current, 'ip')
+                  unless exists $current{domain};
 
                 $current{table} = 'filter'
                   unless exists $current{table};
