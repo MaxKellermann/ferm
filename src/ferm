@@ -74,7 +74,6 @@ use vars qw($script @stack $auto_chain);
 # - tables{$name}: ferm state information about tables
 #   - chains{$chain}: ferm state information about the chains
 #     - builtin: whether this is a built-in chain
-#     - was_created: custom chain has been created
 #     - non_empty: are there rules for this chain?
 use vars qw(%domains);
 
@@ -546,9 +545,6 @@ open_script($ARGV[0]);
 # parse all input recursively
 enter(0);
 die unless @stack == 2;
-
-# check consistency
-check();
 
 # execute all generated rules
 my $status;
@@ -2270,17 +2266,6 @@ sub enter($$) {
     # the ';' before the last statement
     error("Missing semicolon before end of file")
       if $current{has_rule}; # XXX
-}
-
-sub check() {
-    while (my ($domain_name, $domain) = each %domains) {
-        while (my ($table_name, $table_info) = each %{$domain->{tables}}) {
-            while (my ($chain_name, $chain) = each %{$table_info->{chains}}) {
-                warning("chain $chain_name (domain $domain_name, table $table_name) was referenced, but not declared")
-                  if $chain->{was_created} and not $chain->{non_empty};
-            }
-        }
-    }
 }
 
 sub execute_command {
