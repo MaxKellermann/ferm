@@ -1165,7 +1165,7 @@ sub is_netfilter_module_target($$) {
 
     return defined $domain_family &&
       exists $target_defs{$domain_family} &&
-        exists $target_defs{$domain_family}{$target};
+        $target_defs{$domain_family}{$target};
 }
 
 sub is_netfilter_builtin_chain($$) {
@@ -2115,20 +2115,20 @@ sub enter($$) {
                 error('There can only one action per rule')
                   if defined $current{action}{type};
                 my $chain = getvar();
-                if (is_netfilter_core_target($chain) or
-                    is_netfilter_module_target($current{domain_family}, $chain)) {
-                    my $defs = $target_defs{$current{domain_family}} &&
-                      $target_defs{$current{domain_family}}{$chain};
+                if (is_netfilter_core_target($chain)) {
+                    $current{action} = {
+                        type => 'target',
+                        target => $chain,
+                    };
+                } elsif (my $defs = is_netfilter_module_target($current{domain_family}, $chain)) {
                     $current{action} = { type => 'target',
                                          target => $chain,
                                          defs => $defs,
                                        };
 
-                    if (defined $defs) {
-                        copy_on_write(\%current, 'keywords');
-                        while (my ($k, $def) = each %{$defs->{keywords}}) {
-                            $current{keywords}{$k} = [ 'target', $keyword, $def ];
-                        }
+                    copy_on_write(\%current, 'keywords');
+                    while (my ($k, $def) = each %{$defs->{keywords}}) {
+                        $current{keywords}{$k} = [ 'target', $keyword, $def ];
                     }
                 } else {
                     $current{action} = { type => 'jump',
@@ -2166,7 +2166,7 @@ sub enter($$) {
                 next;
             }
 
-            if (is_netfilter_module_target($current{domain_family}, $keyword)) {
+            if (my $defs = is_netfilter_module_target($current{domain_family}, $keyword)) {
                 error('There can only one action per rule')
                   if defined $current{action}{type};
 
@@ -2180,18 +2180,14 @@ sub enter($$) {
                     }
                 }
 
-                my $defs = $target_defs{$current{domain_family}}{$keyword};
-
                 $current{action} = { type => 'target',
                                      target => $keyword,
                                      defs => $defs,
                                    };
 
-                if (defined $defs) {
-                    copy_on_write(\%current, 'keywords');
-                    while (my ($k, $def) = each %{$defs->{keywords}}) {
-                        $current{keywords}{$k} = [ 'target', $keyword, $def ];
-                    }
+                copy_on_write(\%current, 'keywords');
+                while (my ($k, $def) = each %{$defs->{keywords}}) {
+                    $current{keywords}{$k} = [ 'target', $keyword, $def ];
                 }
 
                 next;
