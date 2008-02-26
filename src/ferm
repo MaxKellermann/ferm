@@ -667,9 +667,8 @@ sub initialize_domain {
       if $domain =~ /^ip6?$/;
 
     # determine the location of this domain's tools
-    foreach my $tool (@tools) {
-        $domains{$domain}{tools}{$tool} = find_tool("${domain}${tool}");
-    }
+    my %tools = map { $_ => find_tool($domain . $_) } @tools;
+    $domains{$domain}{tools} = \%tools;
 
     # make tables-save tell us about the state of this domain
     # (which tables and chains do exist?), also remember the old
