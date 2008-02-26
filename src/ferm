@@ -675,8 +675,8 @@ sub initialize_domain {
     # save data which may be used later by the rollback function
     local *SAVE;
     if (!$option{test} &&
-        exists $domains{$domain}{tools}{'tables-save'} &&
-        open(SAVE, "$domains{$domain}{tools}{'tables-save'}|")) {
+        exists $tools{'tables-save'} &&
+        open(SAVE, "$tools{'tables-save'}|")) {
         my $save = '';
 
         my $table_info;
