@@ -2101,6 +2101,7 @@ sub enter($$) {
                     push @{$current{match}}, { name => $module,
                                                options => {},
                                              };
+                    $current{has_rule} = 1;
 
                     merge_keywords(%current, 'match', $module, $defs->{keywords})
                       if defined $defs;
@@ -2149,6 +2150,7 @@ sub enter($$) {
                                          chain => $chain,
                                        };
                 }
+                $current{has_rule} = 1;
                 next;
             };
 
@@ -2159,6 +2161,7 @@ sub enter($$) {
                 $current{action} = { type => 'goto',
                                      chain => getvar(),
                                    };
+                $current{has_rule} = 1;
                 next;
             };
 
@@ -2169,6 +2172,7 @@ sub enter($$) {
                 $current{action} = { type => 'target',
                                      target => $keyword,
                                    };
+                $current{has_rule} = 1;
                 next;
             }
 
@@ -2177,6 +2181,7 @@ sub enter($$) {
                   if defined $current{action}{type};
                 $current{action} = { type => 'nop',
                                    };
+                $current{has_rule} = 1;
                 next;
             }
 
@@ -2185,6 +2190,7 @@ sub enter($$) {
                   if defined $current{action}{type};
 
                 set_module_target(%current, $keyword, $defs);
+                $current{has_rule} = 1;
                 next;
             }
 
@@ -2213,6 +2219,7 @@ sub enter($$) {
 
                 $current{$keyword} = getvalues(undef, undef,
                                                allow_negation => 1);
+                $current{has_rule} = 1;
                 next;
             }
 
