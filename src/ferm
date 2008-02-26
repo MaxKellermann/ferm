@@ -2223,7 +2223,7 @@ sub enter($$) {
     # consistency check: check if they havn't forgotten
     # the ';' before the last statement
     error("Missing semicolon before end of file")
-      if $current{has_rule}; # XXX
+      if exists $current{domain};
 }
 
 sub execute_command {
