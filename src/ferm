@@ -2251,7 +2251,7 @@ sub execute_command {
       if $option{lines};
     return if $option{noexec};
 
-    my $ret = system($_);
+    my $ret = system($command);
     unless ($ret == 0) {
         if ($? == -1) {
             print STDERR "failed to execute: $!\n";
@@ -2274,6 +2274,7 @@ sub execute_slow($$) {
 
     my $domain_cmd = $domain_info->{tools}{tables};
 
+    my $status;
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
         my $table_cmd = "$domain_cmd -t $table";
 
