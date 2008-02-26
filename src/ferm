@@ -70,8 +70,8 @@ use vars qw($script @stack $auto_chain);
 # - initialized: domain initialization is done
 # - tools: hash providing the paths of the domain's tools
 # - previous: save file of the previous ruleset, for rollback
-# - reset: has this domain already been reset?
 # - tables{$name}: ferm state information about tables
+#   - has_builtin: whether built-in chains have been determined in this table
 #   - chains{$chain}: ferm state information about the chains
 #     - builtin: whether this is a built-in chain
 use vars qw(%domains);
