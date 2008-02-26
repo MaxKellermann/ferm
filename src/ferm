@@ -1550,7 +1550,6 @@ sub parse_protocol_options($$$$) {
     my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
     my $module = { name => $module_name,
                    options => {},
-                   defs => $proto_def,
                  };
     push @{$current->{match}}, $module;
 
@@ -1570,7 +1569,6 @@ sub clone_match($) {
     my $match = shift;
     return { name => $match->{name},
              options => { %{$match->{options}} },
-             defs => $match->{defs},
            };
 }
 
@@ -1644,7 +1642,6 @@ sub set_module_target(\%$$) {
     $rule->{action} = {
         type => 'target',
         target => $name,
-        defs => $defs,
     };
 
     copy_on_write($rule, 'keywords');
@@ -2098,7 +2095,6 @@ sub enter($$) {
 
                     push @{$current{match}}, { name => $module,
                                                options => {},
-                                               defs => $defs,
                                              };
 
                     if (defined $defs) {
