@@ -657,8 +657,9 @@ sub find_tool($) {
 
 sub initialize_domain {
     my $domain = shift;
+    my $domain_info = $domains{$domain} ||= {};
 
-    return if exists $domains{$domain}{initialized};
+    return if exists $domain_info->{initialized};
 
     die "Invalid domain '$domain'\n" unless $domain =~ /^(?:ip6?|arp|eb)$/;
 
@@ -668,7 +669,7 @@ sub initialize_domain {
 
     # determine the location of this domain's tools
     my %tools = map { $_ => find_tool($domain . $_) } @tools;
-    $domains{$domain}{tools} = \%tools;
+    $domain_info->{tools} = \%tools;
 
     # make tables-save tell us about the state of this domain
     # (which tables and chains do exist?), also remember the old
@@ -685,7 +686,7 @@ sub initialize_domain {
 
             if (/^\*(\w+)/) {
                 my $table = $1;
-                $table_info = $domains{$domain}{tables}{$table} ||= {};
+                $table_info = $domain_info->{tables}{$table} ||= {};
             } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
                      and $2 ne '-') {
                 $table_info->{chains}{$1}{builtin} = 1;
@@ -694,10 +695,10 @@ sub initialize_domain {
         }
 
         # for rollback
-        $domains{$domain}{previous} = $save;
+        $domain_info->{previous} = $save;
     }
 
-    $domains{$domain}{initialized} = 1;
+    $domain_info->{initialized} = 1;
 }
 
 # split the an input string into words and delete comments
