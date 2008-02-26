@@ -1628,6 +1628,31 @@ sub set_domain(\%$) {
     $rule->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 }
 
+sub set_module_target(\%$$) {
+    my ($rule, $name, $defs) = @_;
+
+    if ($name eq 'TCPMSS') {
+        my $protos = $rule->{builtin}{protocol};
+        error('No protocol specified before TCPMSS')
+          unless defined $protos;
+        foreach my $proto (to_array $protos) {
+            error('TCPMSS not available for protocol "$proto"')
+              unless $proto eq 'tcp';
+        }
+    }
+
+    $rule->{action} = {
+        type => 'target',
+        target => $name,
+        defs => $defs,
+    };
+
+    copy_on_write($rule, 'keywords');
+    while (my ($k, $def) = each %{$defs->{keywords}}) {
+        $rule->{keywords}{$k} = [ 'target', $name, $def ];
+    }
+}
+
 # the main parser loop: read tokens, convert them into internal rule
 # structures
 sub enter($$) {
@@ -2121,15 +2146,7 @@ sub enter($$) {
                         target => $chain,
                     };
                 } elsif (my $defs = is_netfilter_module_target($current{domain_family}, $chain)) {
-                    $current{action} = { type => 'target',
-                                         target => $chain,
-                                         defs => $defs,
-                                       };
-
-                    copy_on_write(\%current, 'keywords');
-                    while (my ($k, $def) = each %{$defs->{keywords}}) {
-                        $current{keywords}{$k} = [ 'target', $keyword, $def ];
-                    }
+                    set_module_target(%current, $chain, $defs);
                 } else {
                     $current{action} = { type => 'jump',
                                          chain => $chain,
@@ -2170,26 +2187,7 @@ sub enter($$) {
                 error('There can only one action per rule')
                   if defined $current{action}{type};
 
-                if ($keyword eq 'TCPMSS') {
-                    my $protos = $current{builtin}{protocol};
-                    error('No protocol specified before TCPMSS')
-                      unless defined $protos;
-                    foreach my $proto (to_array $protos) {
-                        error('TCPMSS not available for protocol "$proto"')
-                          unless $proto eq 'tcp';
-                    }
-                }
-
-                $current{action} = { type => 'target',
-                                     target => $keyword,
-                                     defs => $defs,
-                                   };
-
-                copy_on_write(\%current, 'keywords');
-                while (my ($k, $def) = each %{$defs->{keywords}}) {
-                    $current{keywords}{$k} = [ 'target', $keyword, $def ];
-                }
-
+                set_module_target(%current, $keyword, $defs);
                 next;
             }
 
