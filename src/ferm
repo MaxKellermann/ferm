@@ -1596,6 +1596,14 @@ sub new_level(\%$) {
     }
 }
 
+sub merge_keywords(\%$$$) {
+    my ($rule, $type, $module, $keywords) = @_;
+    copy_on_write($rule, 'keywords');
+    while (my ($name, $def) = each %$keywords) {
+        $rule->{keywords}{$name} = [ $type, $module, $def ];
+    }
+}
+
 sub rule_defined(\%) {
     my $rule = shift;
     return defined($rule->{domain}) or
@@ -1644,10 +1652,7 @@ sub set_module_target(\%$$) {
         target => $name,
     };
 
-    copy_on_write($rule, 'keywords');
-    while (my ($k, $def) = each %{$defs->{keywords}}) {
-        $rule->{keywords}{$k} = [ 'target', $name, $def ];
-    }
+    merge_keywords(%$rule, 'target', $name, $defs->{keywords});
 }
 
 # the main parser loop: read tokens, convert them into internal rule
@@ -2097,12 +2102,8 @@ sub enter($$) {
                                                options => {},
                                              };
 
-                    if (defined $defs) {
-                        copy_on_write(\%current, 'keywords');
-                        while (my ($k, $def) = each %{$defs->{keywords}}) {
-                            $current{keywords}{$k} = [ 'match', $module, $def ];
-                        }
-                    }
+                    merge_keywords(%current, 'match', $module, $defs->{keywords})
+                      if defined $defs;
                 }
 
                 next;
