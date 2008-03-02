@@ -390,23 +390,20 @@ sub optimize {
 sub flush_option {
     my ($line, $key, $value) = @_;
 
-    if (ref($value) and ref($value) eq 'HASH' and
-        $value->{wrap} eq 'pre-negation') {
+    if (ref($value) and ref($value) eq 'pre_negated') {
         push @$line, '!';
-        $value = $value->{value};
+        $value = $value->[0];
     }
 
     push @$line, $key;
 
-    if (ref($value) and ref($value) eq 'HASH' and
-        $value->{wrap} eq 'negation') {
+    if (ref($value) and ref($value) eq 'negated') {
         push @$line, '!';
-        $value = $value->{value};
+        $value = $value->[0];
     }
 
-    if (ref($value) and ref($value) eq 'HASH' and
-        $value->{wrap} eq 'multi') {
-        foreach (@{$value->{values}}) {
+    if (ref($value) and ref($value) eq 'multi') {
+        foreach (@$value) {
             push @$line, format_array($_);
         }
     } elsif (defined $value) {
@@ -486,9 +483,9 @@ sub wrap_pre_negated {
 
     my $wrap;
     if (grep { $_ eq $option } @pre_negated) {
-        $wrap = 'pre-negation';
+        $wrap = 'pre_negated';
     } elsif (grep { $_ eq $option } @mix_negated) {
-        $wrap = 'negation';
+        $wrap = 'negated';
     }
 
     die "option '$option' in line $. cannot be pre-negated\n"
@@ -496,9 +493,7 @@ sub wrap_pre_negated {
 
     undef $$negated_ref;
 
-    return { wrap => $wrap,
-             value => $value,
-           };
+    return bless [$value], $wrap;
 }
 
 sub fetch_token {
@@ -513,10 +508,8 @@ sub fetch_token_comma {
 }
 
 sub fetch_two_tokens_comma {
-    return { wrap => 'multi',
-             values => [ fetch_token_comma(@_),
-                         fetch_token_comma(@_) ],
-           };
+    return bless [ fetch_token_comma(@_),
+                   fetch_token_comma(@_) ], 'multi';
 }
 
 sub wrap_negated {
@@ -529,11 +522,8 @@ sub wrap_negated {
 
     my $value = &$fetch($option, $tokens, @_);
 
-    $value = { wrap => 'negation',
-               value => $value,
-             }
+    return bless [$value], 'negated'
       if $negated;
-
     return $value;
 }
 
