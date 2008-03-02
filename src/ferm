@@ -893,7 +893,7 @@ sub string_variable_value($) {
     my $name = shift;
     my $value = variable_value($name);
 
-    error("variable '$name' must be a string, is an array")
+    error("variable '$name' must be a string, but it is an array")
       if ref $value;
 
     return $value;
