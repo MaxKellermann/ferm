@@ -402,7 +402,7 @@ sub flush_option {
         $value = $value->[0];
     }
 
-    if (ref($value) and ref($value) eq 'multi') {
+    if (ref($value) and ref($value) eq 'params') {
         foreach (@$value) {
             push @$line, format_array($_);
         }
@@ -509,7 +509,7 @@ sub fetch_token_comma {
 
 sub fetch_two_tokens_comma {
     return bless [ fetch_token_comma(@_),
-                   fetch_token_comma(@_) ], 'multi';
+                   fetch_token_comma(@_) ], 'params';
 }
 
 sub wrap_negated {
