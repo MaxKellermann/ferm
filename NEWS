@@ -28,8 +28,9 @@ v2.0 - not yet released
     - iplimit
   - rewrote the internal rule storage
     - honor the order of match modules
-  - import-ferm: write policy in chain block
-  - import-ferm: use module data from ferm
+  - import-ferm rewrite
+    - use module data from ferm
+    - write policy in chain block
 
 
 v1.3.3 - 22 Jan 2008
