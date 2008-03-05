@@ -34,167 +34,39 @@ use strict;
 
 use Data::Dumper;
 
-use vars qw($indent $table $chain @rules $domain $next_domain);
+use vars qw(%proto_defs %match_defs %target_defs);
 
-sub parse_table {
-    map {
-        /(.+)=(.+)/ ? ( $1 => $2 ) : ( $_ => $_ )
-    } split(/\s+/s, shift);
+BEGIN {
+    my $ferm;
+    if ($0 =~ /^(.*)\//) {
+        $ferm = "$1/ferm";
+    } else {
+        $ferm = 'ferm';
+    }
+
+    open(FERM, "<$ferm")
+      or die "Failed to open $ferm\n";
+    my $ferm_code = do { local $/; <FERM>; };
+    close FERM;
+
+    $ferm_code =~ /%target_defs\);
+                   \s*(.+?)\s*
+                   add_match_def_x\ /sx
+                     or die "Failed to parse $ferm\n";
+    undef $ferm_code;
+    eval $1;
 }
 
-my %p0 = parse_table(<<EOT);
-f=fragment fragment
-syn
-clamp-mss-to-pmtu
-ecn-tcp-cwr ecn-tcp-ece
-physdev-is-in physdev-is-out physdev-is-bridged
-set rcheck update remove rttl rsource rdest
-save-mark restore-mark
-log-tcp-sequence log-tcp-options log-ip-options log-uid
-continue tee
-strict next
-fragres fragfirst fragmore fraglast
-nodst random
-ecn-tcp-remove
-ahres
-soft
-rt-0-res rt-0-not-strict
-ashort
-save restore
-new
-ssrr lsrr no-srr rr ts ra any-opt
-utc localtz
-EOT
-
-my %p1 = parse_table(<<EOT);
-p=protocol
-i=interface o=outerface
-in-interface=interface out-interface=outerface
-s=saddr d=daddr
-source=saddr destination=daddr
-dport sport
-reject-with icmp-type icmpv6-type
-to-ports to
-tos mark
-tcp-option mss set-mss
-ttl-set
-ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold
-src-type dst-type
-ahspi ahlen
-ctstate ctproto ctorigsrc ctorigdst ctreplsrc ctrepldst ctstatus ctexpire
-dscp dscp-class
-dstlimit
-ecn-ip-ect
-espspi
-helper
-iplimit-above iplimit-mask
-src-range dst-range
-length
-limit limit-burst
-mac-source
-every counter start packet
-uid-owner gid-owner pid-owner sid-owner cmd-owner
-physdev-in physdev-out
-pkt-type
-psd-weight-threshold psd-delay-threshold
-psd-lo-ports-weight psd-hi-ports-weight
-average
-realm
-name seconds hitcount
-timestart timestop days datestart datestop
-tos
-ttl-eq ttl-gt ttl-lt
-set-class
-set-mark set-xmark and-mark or-mark xor-mark mask
-log-level log-prefix
-oif iif gw
-set-tos
-ttl-set ttl-dec ttl-inc
-comment
-dir pol reqid spi proto mode tunnel-src tunnel-dst
-dst-len
-fragid fraglen
-dccp-option
-queue-num
-set-dscp set-dscp-class
-quota
-condition
-lower-limit upper-limit
-hbh-len hbh-opts
-hl-eq hl-lt hl-gt
-rt-type rt-segsleft rt-len
-hl-set hl-dec hl-inc
-aaddr aname
-hashlimit hashlimit-burst hashlimit-mode hashlimit-name
-hashlimit-htable-size hashlimit-htable-max
-hashlimit-htable-expire hashlimit-htable-gcinterval
-connlimit-above connlimit-mask
-connbytes connbytes-dir connbytes-mode
-selctx
-mh-type
-probability
-nflog-group nflog-prefix nflog-range nflog-threshold
-hashmode clustermac total-nodes local-node hash-init
-algo from string hex-string
-and-tos or-tos xor-tos
-EOT
-
-my %p1c = parse_table(<<EOT);
-state
-source-ports destination-ports ports
-dst-opts
-dccp-types
-header
-rt-0-addrs
-monthday weekdays
-EOT
-
-my %p1multi = parse_table(<<EOT);
-to-source
-to-destination
-u32
-EOT
-
-my %p2c = parse_table(<<EOT);
-tcp-flags
-chunk-types
-add-set del-set
-EOT
-
-my @pre_negated = qw(fragment connbytes connlimit-above
-rr ts ra any-opt
-set rcheck update remove seconds hitcount
-syn mss
-physdev-is-in physdev-is-out physdev-is-bridged
+use vars qw(%aliases);
+%aliases = (
+    i => 'interface',
+    o => 'outerface',
+    p => 'proto',
+    d => 'daddr',
+    s => 'saddr',
 );
 
-my @mix_negated = qw(
-iplimit-above
-src-range dst-range
-realm
-tos
-);
-
-my @negated = qw(
-protocol saddr daddr interface outerface sport dport
-ahspi ahlen condition connrate
-ctorigsrc ctorigdst ctreplsrc ctrepldst
-espspi src-cc dst-cc
-icmp-type icmpv6-type
-mac-source source-ports destination-ports ports
-genre realm chunk-types
-tcp-flags tcp-option
-dst-len hbh-len
-fragid fraglen
-dccp-types dccp-option
-condition
-hl-eq
-header
-length
-physdev-in physdev-out
-rt-type rt-segsleft rt-len
-mh-type
-);
+use vars qw($indent $table $chain @rules $domain $next_domain);
 
 sub is_netfilter_core_target {
     my $target = shift;
@@ -203,16 +75,9 @@ sub is_netfilter_core_target {
     return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE|NOP)$/;
 }
 
-sub is_netfilter_module_target {
+sub is_netfilter_module_target($) {
     my $target = shift;
-    die unless defined $target and length $target;
-
-    return $target =~ /(?:BALANCE|CLASSIFY|CLUSTERIP|CONNMARK
-                         |DNAT|DSCP|ECN|LOG|MARK|MASQUERADE
-                         |MIRROR|NETMAP|REDIRECT|REJECT|ROUTE
-                         |SNAT|TCPMSS|TOS|TRACE|TTL|ULOG
-                         |TARPIT
-                       )/x;
+    return exists $target_defs{'ip'}{$target};
 }
 
 sub ferm_escape {
@@ -416,6 +281,7 @@ sub flush {
 
     my @r = @_ ? @_ : @rules;
     @r = optimize(@r);
+
     foreach my $rule (@r) {
         my @line;
         # assemble the line, match stuff first, then target parameters
@@ -477,25 +343,6 @@ sub tokenize {
     return @result;
 }
 
-sub wrap_pre_negated {
-    my ($option, $negated_ref, $value) = @_;
-    return $value unless $negated_ref && $$negated_ref;
-
-    my $wrap;
-    if (grep { $_ eq $option } @pre_negated) {
-        $wrap = 'pre_negated';
-    } elsif (grep { $_ eq $option } @mix_negated) {
-        $wrap = 'negated';
-    }
-
-    die "option '$option' in line $. cannot be pre-negated\n"
-      unless defined $wrap;
-
-    undef $$negated_ref;
-
-    return bless [$value], $wrap;
-}
-
 sub fetch_token {
     my ($option, $tokens) = @_;
     die "not enough arguments for option '$option' in line $."
@@ -503,13 +350,9 @@ sub fetch_token {
     shift @$tokens;
 }
 
-sub fetch_token_comma {
-    [ split(',', fetch_token(@_)) ]
-}
-
-sub fetch_two_tokens_comma {
-    return bless [ fetch_token_comma(@_),
-                   fetch_token_comma(@_) ], 'params';
+sub fetch_negated(\@) {
+    my $tokens = shift;
+    @$tokens > 0 && $tokens->[0] eq '!' && shift @$tokens;
 }
 
 sub wrap_negated {
@@ -517,13 +360,72 @@ sub wrap_negated {
 
     my $negated = @$tokens > 0 && $tokens->[0] eq '!' && shift @$tokens;
 
-    die "option '$option' in line $. cannot be negated\n"
-      if $negated and not grep { $_ eq $option } @negated;
+    # XXX
+    #die "option '$option' in line $. cannot be negated\n"
+    #  if $negated and not grep { $_ eq $option } @negated
 
     my $value = &$fetch($option, $tokens, @_);
 
     return bless [$value], 'negated'
       if $negated;
+    return $value;
+}
+
+sub merge_keywords(\%$$) {
+    my ($rule, $module, $keywords) = @_;
+    while (my ($name, $def) = each %$keywords) {
+        $rule->{keywords}{$name} = $def;
+    }
+}
+
+sub parse_def_option($\%$\@) {
+    my ($option, $def, $negated, $tokens) = @_;
+
+    while (exists $def->{alias}) {
+        ($option, $def) = @{$def->{alias}};
+        die unless defined $def;
+    }
+
+    my $params = $def->{params};
+    my $value;
+
+    $negated = 1 if fetch_negated(@$tokens);
+
+    unless (defined $params) {
+        undef $value;
+    } elsif (ref $params && ref $params eq 'CODE') {
+        # XXX we assume this is ipt_multiport
+        $value = [ split /,/, fetch_token($option, $tokens) ];
+    } elsif ($params eq 'm') {
+        $value = bless [ fetch_token($option, $tokens) ], 'multi';
+    } elsif ($params =~ /^[a-z]/) {
+        die if @$tokens < length($params);
+
+        my @params;
+        foreach my $p (split(//, $params)) {
+            if ($p eq 's') {
+                push @params, shift @$tokens;
+            } elsif ($p eq 'c') {
+                push @params, [ split /,/, shift @$tokens ];
+            } else {
+                die;
+            }
+        }
+
+        $value = @params == 1
+          ? $params[0]
+            : bless \@params, 'params';
+    } elsif ($params == 1) {
+        $value = fetch_token($option, $tokens);
+    } else {
+        $value = bless [ map {
+            fetch_token($option, $tokens)
+        } (1..$params) ], 'multi';
+    }
+
+    $value = bless [ $value ], exists $def->{pre_negation} ? 'pre_negated' : 'negated'
+      if $negated;
+
     return $value;
 }
 
@@ -533,19 +435,15 @@ sub parse_option {
     my $cur = $line->{cur};
     die unless defined $cur;
 
+    $option = $aliases{$option} if exists $aliases{$option};
     $option = 'destination-ports' if $option eq 'dports';
     $option = 'source-ports' if $option eq 'sports';
 
     if ($option eq 'protocol') {
-        my $keyword = 'protocol';
-        my $param = wrap_negated($keyword, $tokens, \&fetch_token);
-        # protocol implicitly loads the module
-        unless (ref $param) {
-            my $mod = $param eq 'ipv6-icmp' ? 'icmp6' : $param;
-            delete $line->{mod}{$mod};
-        }
-        $line->{proto} = $param;
-        push @$cur, [ 'proto', $param ];
+        my %def = ( params => 1 );
+        my $value = parse_def_option($option, %def, $pre_negated, @$tokens);
+        $line->{proto} = $value;
+        push @$cur, [ 'proto', $value ];
     } elsif ($option eq 'm') {
         die unless @$tokens;
         my $param = shift @$tokens;
@@ -556,38 +454,36 @@ sub parse_option {
           unless exists $line->{proto} and
             ($line->{proto} eq $param or
              $line->{proto} =~ /^(ipv6-icmp|icmpv6)$/s and $param eq 'icmp6');
-    } elsif ($option eq 'set' and exists $line->{mod}{set}) {
-        push @$cur, [ $option, fetch_two_tokens_comma($option, $tokens) ];
-    } elsif (exists $p0{$option}) {
-        my $keyword = $p0{$option};
-        push @$cur, [ $keyword, wrap_pre_negated($keyword, \$pre_negated, undef) ];
-    } elsif (exists $p1{$option}) {
-        my $keyword = $p1{$option};
-        my $param = wrap_negated($keyword, $tokens, \&fetch_token);
-        my $value = wrap_pre_negated($keyword, \$pre_negated, $param);
-        unless ($keyword =~ /^[sd]addr$/ && $value eq '::/0') {
-            push @$cur, [ $keyword, $value ];
+
+        my $module = $param eq 'icmp6' ? 'icmpv6' : $param;
+        if (exists $match_defs{ip}{$module}) {
+            merge_keywords(%$line, $module, $match_defs{ip}{$module}{keywords});
+        } elsif (exists $proto_defs{ip}{$module}) {
+            merge_keywords(%$line, $module, $proto_defs{ip}{$module}{keywords});
         }
-    } elsif (exists $p1c{$option}) {
-        my $keyword = $p1c{$option};
-        my $param = wrap_negated($keyword, $tokens, \&fetch_token_comma);
-        push @$cur, [ $keyword, wrap_pre_negated($keyword, \$pre_negated, $param) ];
-    } elsif (exists $p1multi{$option}) {
-        my $keyword = $p1multi{$option};
-        my $values;
-        my @v = grep { $_->[0] eq $keyword } @$cur;
-        if (@v == 0) {
-            $values = [];
-            push @$cur, [ $keyword, $values ];
-        } else {
-            $values = $v[0][1];
+
+        if ($param =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
+            my %def = (
+                params => 1,
+                negation => 1,
+               );
+            $line->{keywords}{sport} = \%def;
+            $line->{keywords}{dport} = \%def;
         }
-        my $param = wrap_negated($keyword, $tokens, \&fetch_token);
-        push @$values, wrap_pre_negated($option, \$pre_negated, $param);
-    } elsif (exists $p2c{$option}) {
-        my $keyword = $p2c{$option};
-        my $param = wrap_negated($keyword, $tokens, \&fetch_two_tokens_comma);
-        push @$cur, [ $keyword, wrap_pre_negated($keyword, \$pre_negated, $param) ];
+    } elsif (exists $line->{keywords}{$option}) {
+        my $def = $line->{keywords}{$option};
+        my $value = parse_def_option($option, %$def, $pre_negated, @$tokens);
+
+        if (ref $value and ref $value eq 'multi' and
+              @{$line->{cur}} > 0 and $line->{cur}[-1][0] eq $option and
+                ref $line->{cur}[-1][1] eq 'multi') {
+            # merge multiple "--u32" into a ferm array
+            push @{$line->{cur}[-1][1]}, @$value;
+            return;
+        }
+
+        undef $pre_negated;
+        push @{$line->{cur}}, [ $option, $value ];
     } elsif ($option eq 'j') {
         die unless @$tokens;
         my $target = shift @$tokens;
@@ -596,6 +492,10 @@ sub parse_option {
         # what now follows is target parameters; set $cur
         # correctly
         $line->{cur} = $line->{target} = [];
+
+        $line->{keywords} = {};
+        merge_keywords(%$line, $target, $target_defs{ip}{$target}{keywords})
+          if exists $target_defs{ip}{$target};
     } elsif ($option eq 'g') {
         die unless @$tokens;
         my $target = shift @$tokens;
@@ -684,7 +584,10 @@ while (<>) {
         my @tokens = tokenize($_);
 
         my %line;
-        # separate 'match' parameters from 'targe't parameters; $cur
+        $line{keywords} = {};
+        merge_keywords(%line, '', $match_defs{ip}{''}{keywords});
+
+        # separate 'match' parameters from 'target' parameters; $cur
         # points to the current position
         $line{cur} = $line{match} = [];
         while (@tokens) {
