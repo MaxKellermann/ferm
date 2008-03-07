@@ -80,7 +80,7 @@ sub is_netfilter_module_target($) {
     return exists $target_defs{'ip'}{$target};
 }
 
-sub ferm_escape {
+sub ferm_escape($) {
     local $_ = shift;
     return $_ unless /[^-\w.:]/s;
     return "\'$_\'";
@@ -323,7 +323,7 @@ sub flush {
     undef @rules;
 }
 
-sub flush_domain {
+sub flush_domain() {
     flush;
     write_line '}' if defined $chain;
     write_line '}' if defined $table;
@@ -334,7 +334,7 @@ sub flush_domain {
     undef $domain;
 }
 
-sub tokenize {
+sub tokenize($) {
     local $_ = shift;
     my @result;
     while (s/^\s*"([^"]+)"//s || s/^\s*(!)// || s/^\s*(\S+)//s) {
@@ -343,7 +343,7 @@ sub tokenize {
     return @result;
 }
 
-sub fetch_token {
+sub fetch_token($\@) {
     my ($option, $tokens) = @_;
     die "not enough arguments for option '$option' in line $."
       unless @$tokens > 0;
@@ -379,9 +379,9 @@ sub parse_def_option($\%$\@) {
         undef $value;
     } elsif (ref $params && ref $params eq 'CODE') {
         # XXX we assume this is ipt_multiport
-        $value = [ split /,/, fetch_token($option, $tokens) ];
+        $value = [ split /,/, fetch_token($option, @$tokens) ];
     } elsif ($params eq 'm') {
-        $value = bless [ fetch_token($option, $tokens) ], 'multi';
+        $value = bless [ fetch_token($option, @$tokens) ], 'multi';
     } elsif ($params =~ /^[a-z]/) {
         die if @$tokens < length($params);
 
@@ -400,10 +400,10 @@ sub parse_def_option($\%$\@) {
           ? $params[0]
             : bless \@params, 'params';
     } elsif ($params == 1) {
-        $value = fetch_token($option, $tokens);
+        $value = fetch_token($option, @$tokens);
     } else {
         $value = bless [ map {
-            fetch_token($option, $tokens)
+            fetch_token($option, @$tokens)
         } (1..$params) ], 'multi';
     }
 
@@ -413,7 +413,7 @@ sub parse_def_option($\%$\@) {
     return $value;
 }
 
-sub parse_option {
+sub parse_option(\%$$\@) {
     my ($line, $option, $pre_negated, $tokens) = @_;
 
     my $cur = $line->{cur};
@@ -577,13 +577,13 @@ while (<>) {
         while (@tokens) {
             local $_ = shift @tokens;
             if (/^-(\w)$/ || /^--(\S+)$/) {
-                parse_option(\%line, $1, undef, \@tokens);
+                parse_option(%line, $1, undef, @tokens);
             } elsif ($_ eq '!') {
                 die unless @tokens;
                 $_ = shift @tokens;
                 /^-(\w)$/ || /^--(\S+)$/
                   or die "option expected in line $.\n";
-                parse_option(\%line, $1, 1, \@tokens);
+                parse_option(%line, $1, 1, @tokens);
             } else {
                 print STDERR "warning: unknown token '$_' in line $.\n";
             }
