@@ -371,8 +371,8 @@ sub wrap_negated {
     return $value;
 }
 
-sub merge_keywords(\%$$) {
-    my ($rule, $module, $keywords) = @_;
+sub merge_keywords(\%$) {
+    my ($rule, $keywords) = @_;
     while (my ($name, $def) = each %$keywords) {
         $rule->{keywords}{$name} = $def;
     }
@@ -457,9 +457,9 @@ sub parse_option {
 
         my $module = $param eq 'icmp6' ? 'icmpv6' : $param;
         if (exists $match_defs{ip}{$module}) {
-            merge_keywords(%$line, $module, $match_defs{ip}{$module}{keywords});
+            merge_keywords(%$line, $match_defs{ip}{$module}{keywords});
         } elsif (exists $proto_defs{ip}{$module}) {
-            merge_keywords(%$line, $module, $proto_defs{ip}{$module}{keywords});
+            merge_keywords(%$line, $proto_defs{ip}{$module}{keywords});
         }
 
         if ($param =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
@@ -494,7 +494,7 @@ sub parse_option {
         $line->{cur} = $line->{target} = [];
 
         $line->{keywords} = {};
-        merge_keywords(%$line, $target, $target_defs{ip}{$target}{keywords})
+        merge_keywords(%$line, $target_defs{ip}{$target}{keywords})
           if exists $target_defs{ip}{$target};
     } elsif ($option eq 'g') {
         die unless @$tokens;
@@ -585,7 +585,7 @@ while (<>) {
 
         my %line;
         $line{keywords} = {};
-        merge_keywords(%line, '', $match_defs{ip}{''}{keywords});
+        merge_keywords(%line, $match_defs{ip}{''}{keywords});
 
         # separate 'match' parameters from 'target' parameters; $cur
         # points to the current position
