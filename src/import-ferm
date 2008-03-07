@@ -34,9 +34,8 @@ use strict;
 
 use Data::Dumper;
 
-use vars qw(%proto_defs %match_defs %target_defs);
-
 BEGIN {
+    # find the main "ferm" program
     my $ferm;
     if ($0 =~ /^(.*)\//) {
         $ferm = "$1/ferm";
@@ -44,17 +43,11 @@ BEGIN {
         $ferm = 'ferm';
     }
 
-    open(FERM, "<$ferm")
-      or die "Failed to open $ferm\n";
-    my $ferm_code = do { local $/; <FERM>; };
-    close FERM;
+    # import its module tables
+    require $ferm;
 
-    $ferm_code =~ /%target_defs\);
-                   \s*(.+?)\s*
-                   add_match_def_x\ /sx
-                     or die "Failed to parse $ferm\n";
-    undef $ferm_code;
-    eval $1;
+    # delete conflicting symbols
+    delete $main::{$_} for qw(merge_keywords parse_option);
 }
 
 use vars qw(%aliases);
@@ -67,18 +60,6 @@ use vars qw(%aliases);
 );
 
 use vars qw($indent $table $chain @rules $domain $next_domain);
-
-sub is_netfilter_core_target {
-    my $target = shift;
-    die unless defined $target and length $target;
-
-    return $target =~ /(?:ACCEPT|DROP|RETURN|QUEUE|NOP)$/;
-}
-
-sub is_netfilter_module_target($) {
-    my $target = shift;
-    return exists $target_defs{'ip'}{$target};
-}
 
 sub ferm_escape($) {
     local $_ = shift;
@@ -293,7 +274,7 @@ sub flush {
 
         if (exists $rule->{jump}) {
             if (is_netfilter_core_target($rule->{jump}) ||
-                is_netfilter_module_target($rule->{jump})) {
+                is_netfilter_module_target('ip', $rule->{jump})) {
                 push @line, $rule->{jump};
             } else {
                 flush_option(\@line, 'jump', $rule->{jump});

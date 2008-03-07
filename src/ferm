@@ -361,6 +361,9 @@ add_target_def_x 'eb', 'mark', qw(set-mark mark-target);
 add_target_def_x 'eb', 'redirect', qw(redirect-target);
 add_target_def_x 'eb', 'snat', qw(to-source snat-target);
 
+# import-ferm uses the above tables
+return 1 if $0 =~ /import-ferm$/;
+
 use vars qw(%builtin_keywords);
 
 sub get_builtin_keywords($) {
