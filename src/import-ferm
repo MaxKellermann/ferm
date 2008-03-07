@@ -355,22 +355,6 @@ sub fetch_negated(\@) {
     @$tokens > 0 && $tokens->[0] eq '!' && shift @$tokens;
 }
 
-sub wrap_negated {
-    my ($option, $tokens, $fetch) = (shift, shift, shift);
-
-    my $negated = @$tokens > 0 && $tokens->[0] eq '!' && shift @$tokens;
-
-    # XXX
-    #die "option '$option' in line $. cannot be negated\n"
-    #  if $negated and not grep { $_ eq $option } @negated
-
-    my $value = &$fetch($option, $tokens, @_);
-
-    return bless [$value], 'negated'
-      if $negated;
-    return $value;
-}
-
 sub merge_keywords(\%$) {
     my ($rule, $keywords) = @_;
     while (my ($name, $def) = each %$keywords) {
