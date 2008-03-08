@@ -71,6 +71,7 @@ while (<>) {
 
         # module list
         my %modules;
+        s/--match/-m/g;
         s/-m (\w+)/$modules{$1} = 1; ''/eg;
         $item->{modules} = [ grep { not /^(?:tcp|udp|icmp)$/ } keys %modules ];
 
