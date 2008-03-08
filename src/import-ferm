@@ -58,6 +58,8 @@ use vars qw(%aliases);
     d => 'daddr',
     s => 'saddr',
     m => 'match',
+    j => 'jump',
+    g => 'goto',
 );
 
 use vars qw($indent $table $chain @rules $domain $next_domain);
@@ -450,7 +452,7 @@ sub parse_option(\%$$\@) {
 
         undef $pre_negated;
         push @{$line->{cur}}, [ $option, $value ];
-    } elsif ($option eq 'j') {
+    } elsif ($option eq 'jump') {
         die unless @$tokens;
         my $target = shift @$tokens;
         # store the target in $line->{jump}
@@ -462,7 +464,7 @@ sub parse_option(\%$$\@) {
         $line->{keywords} = {};
         merge_keywords(%$line, $target_defs{ip}{$target}{keywords})
           if exists $target_defs{ip}{$target};
-    } elsif ($option eq 'g') {
+    } elsif ($option eq 'goto') {
         die unless @$tokens;
         my $target = shift @$tokens;
         # store the target in $line->{jump}
