@@ -1,3 +1,3 @@
-iptables -t filter -A INPUT -p tcp -m tcp --dport 2000 -j TTL --ttl-set 10
-iptables -t filter -A INPUT -p tcp -m tcp --dport 2001 -j TTL --ttl-dec 1
-iptables -t filter -A INPUT -p tcp -m tcp --dport 2002 -j TTL --ttl-inc 2
+iptables -t filter -A INPUT -p tcp --dport 2000 -j TTL --ttl-set 10
+iptables -t filter -A INPUT -p tcp --dport 2001 -j TTL --ttl-dec 1
+iptables -t filter -A INPUT -p tcp --dport 2002 -j TTL --ttl-inc 2

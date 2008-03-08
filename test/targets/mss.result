@@ -1,2 +1,2 @@
-iptables -t filter -A FORWARD -o ppp0 -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
-iptables -t filter -A FORWARD -o ppp0 -p tcp -m tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss FOO
+iptables -t filter -A FORWARD -o ppp0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --clamp-mss-to-pmtu
+iptables -t filter -A FORWARD -o ppp0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss FOO

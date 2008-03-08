@@ -1,2 +1,2 @@
-iptables -t filter -A INPUT -p tcp -m tcp --dport http -j TCPMSS --set-mss 2
+iptables -t filter -A INPUT -p tcp --dport http -j TCPMSS --set-mss 2
 iptables -t filter -A INPUT -p tcp -j TCPMSS --clamp-mss-to-pmtu

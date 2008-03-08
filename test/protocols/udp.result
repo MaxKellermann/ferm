@@ -1,2 +1,2 @@
-iptables -t filter -A INPUT -p udp -m udp --dport 22 -j ACCEPT
-iptables -t filter -A INPUT -p udp -m udp --sport 100:200 -j DROP
+iptables -t filter -A INPUT -p udp --dport 22 -j ACCEPT
+iptables -t filter -A INPUT -p udp --sport 100:200 -j DROP

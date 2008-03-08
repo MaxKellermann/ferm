@@ -1,1 +1,1 @@
-iptables -t filter -A INPUT -p tcp -m tcp --dport http
+iptables -t filter -A INPUT -p tcp --dport http

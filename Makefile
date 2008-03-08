@@ -65,20 +65,22 @@ RESULT_SED += -e 's,-p udp -m udp,-p udp,g'
 RESULT_SED += -e 's,--protocol,-p,g'
 RESULT_SED += -e 's,--in-interface,-i,g'
 RESULT_SED += -e 's,--out-interface,-o,g'
-RESULT_SED += -e 's,--destination,-d,g'
-RESULT_SED += -e 's,--source,-s,g'
+RESULT_SED += -e 's,--destination ,-d ,g'
+RESULT_SED += -e 's,--source ,-s ,g'
 RESULT_SED += -e 's,--match,-m,g'
 RESULT_SED += -e 's,--jump,-j,g'
 RESULT_SED += -e 's,--goto,-g,g'
 RESULT_SED += -e 's,--fragment,-f,g'
 
+EB_ARP_RESULT_SED = -e 's,--jump,-j,g'
+
 $(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(RESULT_SED) >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(EB_ARP_RESULT_SED) >$@
 
 $(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(RESULT_SED) >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(EB_ARP_RESULT_SED) >$@
 
 $(STAMPDIR)/%.result: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
@@ -97,7 +99,7 @@ $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
 $(STAMPDIR)/%.check: %.result $(STAMPDIR)/%.result
-	sed $(RESULT_SED) $< |diff -u - $(STAMPDIR)/$<
+	diff -u $^
 	@touch $@
 
 $(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
