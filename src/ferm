@@ -1340,26 +1340,21 @@ sub tables($$$) {
                         };
 };
 
-sub transform_rule($) {
-    my $rule = shift;
+sub transform_rule($$) {
+    my ($domain, $rule) = @_;
 
     $rule->{builtin}{protocol} = 'icmpv6'
-      if $rule->{domain} eq 'ip6' and $rule->{builtin}{protocol} eq 'icmp';
+      if $domain eq 'ip6' and $rule->{builtin}{protocol} eq 'icmp';
 }
 
-sub printrule($) {
-    my $rule = shift;
+sub printrule($$$$) {
+    my ($domain, $table, $chain, $rule) = @_;
 
-    transform_rule($rule);
+    transform_rule($domain, $rule);
 
-    my $domain = $rule->{domain};
     my $domain_info = $domains{$domain};
     $domain_info->{enabled} = 1;
-
-    my $table = $rule->{table};
     my $table_info = $domain_info->{tables}{$table} ||= {};
-
-    my $chain = $rule->{chain};
     my $chain_info = $table_info->{chains}{$chain} ||= {};
 
     # prints all rules in a hash
@@ -1376,17 +1371,10 @@ sub check_unfold(\@$$) {
     push @$unfold, $parent, $key, $parent->{$key};
 }
 
-# convert a bunch of internal rule structures in iptables calls,
-# unfold arrays during that
-sub mkrules($) {
-    # compile the list hashes into rules
-    my $fw = shift;
+sub mkrules2($$$$) {
+    my ($domain, $table, $chain, $fw) = @_;
 
     my @unfold;
-
-    foreach my $key (qw(domain table chain)) {
-        check_unfold(@unfold, $fw, $key);
-    }
 
     foreach my $key (keys %{$fw->{builtin}}) {
         check_unfold(@unfold, $fw->{builtin}, $key);
@@ -1402,26 +1390,41 @@ sub mkrules($) {
     check_unfold(@unfold, $fw, 'dport');
 
     if (@unfold == 0) {
-        printrule($fw);
+        printrule($domain, $table, $chain, $fw);
         return;
     }
 
     sub dofr {
         my $fw = shift;
+        my ($domain, $table, $chain) = (shift, shift, shift);
         my ($parent, $key, $values) = (shift, shift, shift);
 
         foreach my $value (@$values) {
             $parent->{$key} = $value;
 
             if (@_) {
-                dofr($fw, @_);
+                dofr($fw, $domain, $table, $chain, @_);
             } else {
-                printrule($fw);
+                printrule($domain, $table, $chain, $fw);
             }
         }
     }
 
-    dofr($fw, @unfold);
+    dofr($fw, $domain, $table, $chain, @unfold);
+}
+
+# convert a bunch of internal rule structures in iptables calls,
+# unfold arrays during that
+sub mkrules($) {
+    my $fw = shift;
+
+    foreach my $domain (to_array $fw->{domain}) {
+        foreach my $table (to_array $fw->{table}) {
+            foreach my $chain (to_array $fw->{chain}) {
+                mkrules2($domain, $table, $chain, $fw);
+            }
+        }
+    }
 }
 
 sub filter_domains($) {
