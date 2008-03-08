@@ -1519,9 +1519,8 @@ sub new_level(\%$) {
         $current->{cow} = { keywords => 1, };
         $current->{keywords} = $prev->{keywords};
         $current->{match} = { %{$prev->{match}} };
-        $current->{action} = { %{$prev->{action}} };
         $current->{options} = [@{$prev->{options}}];
-        foreach my $key (qw(domain domain_family table chain protocol protocol_index protocol_module)) {
+        foreach my $key (qw(domain domain_family table chain protocol protocol_index protocol_module has_action)) {
             $current->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -1529,7 +1528,6 @@ sub new_level(\%$) {
         $current->{cow} = {};
         $current->{keywords} = {};
         $current->{match} = {};
-        $current->{action} = {};
         $current->{options} = [];
     }
 }
@@ -1577,10 +1575,7 @@ sub set_module_target(\%$$) {
         }
     }
 
-    $rule->{action} = {
-        type => 'target',
-        target => $name,
-    };
+    $rule->{has_action} = 1;
 
     merge_keywords(%$rule, 'target', $name, $defs->{keywords});
 }
@@ -1627,7 +1622,7 @@ sub enter($$) {
 
             # effectuation operator
             if ($keyword eq ';') {
-                if ($current{has_rule} and not $current{action}{type}) {
+                if ($current{has_rule} and not exists $current{has_action}) {
                     # something is wrong when a rule was specifiedd,
                     # but no action
                     error('No action defined; did you mean "NOP"?');
@@ -1979,7 +1974,6 @@ sub enter($$) {
                 my %inner = ( cow => { keywords => 1, },
                               keywords => $current{keywords},
                               match => {},
-                              action => {},
                               options => [],
                             );
                 $inner{domain} = $current{domain};
@@ -1997,9 +1991,7 @@ sub enter($$) {
                 enter(1, \%inner);
 
                 # now handle the parent - it's a jump to the sub chain
-                $current{action} = { type => 'jump',
-                                     chain => $subchain,
-                                   };
+                $current{has_action} = 1;
                 append_option(%current, 'jump', $subchain);
 
                 $current{script} = { filename => $script->{filename},
@@ -2060,19 +2052,14 @@ sub enter($$) {
             # jump action
             if ($keyword eq 'jump') {
                 error('There can only one action per rule')
-                  if defined $current{action}{type};
+                  if exists $current{has_action};
                 my $chain = getvar();
                 if (is_netfilter_core_target($chain)) {
-                    $current{action} = {
-                        type => 'target',
-                        target => $chain,
-                    };
+                    $current{has_action} = 1;
                 } elsif (my $defs = is_netfilter_module_target($current{domain_family}, $chain)) {
                     set_module_target(%current, $chain, $defs);
                 } else {
-                    $current{action} = { type => 'jump',
-                                         chain => $chain,
-                                       };
+                    $current{has_action} = 1;
                 }
                 append_option(%current, 'jump', $chain);
                 next;
@@ -2081,11 +2068,9 @@ sub enter($$) {
             # goto action
             if ($keyword eq 'realgoto') {
                 error('There can only one action per rule')
-                  if defined $current{action}{type};
+                  if exists $current{has_action};
+                $current{has_action} = 1;
                 my $chain = getvar();
-                $current{action} = { type => 'goto',
-                                     chain => $chain,
-                                   };
                 append_option(%current, 'goto', $chain);
                 next;
             };
@@ -2093,25 +2078,22 @@ sub enter($$) {
             # action keywords
             if (is_netfilter_core_target($keyword)) {
                 error('There can only one action per rule')
-                  if defined $current{action}{type};
-                $current{action} = { type => 'target',
-                                     target => $keyword,
-                                   };
+                  if exists $current{has_action};
+                $current{has_action} = 1;
                 append_option(%current, 'jump', $keyword);
                 next;
             }
 
             if ($keyword eq 'NOP') {
                 error('There can only one action per rule')
-                  if defined $current{action}{type};
-                $current{action} = { type => 'nop',
-                                   };
+                  if exists $current{has_action};
+                $current{has_action} = 1;
                 next;
             }
 
             if (my $defs = is_netfilter_module_target($current{domain_family}, $keyword)) {
                 error('There can only one action per rule')
-                  if defined $current{action}{type};
+                  if exists $current{has_action};
 
                 set_module_target(%current, $keyword, $defs);
                 append_option(%current, 'jump', $keyword);
