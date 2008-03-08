@@ -1510,8 +1510,8 @@ sub set_domain(\%$) {
     }
 
     $rule->{domain_family} = $domain_family;
-    $rule->{keywords} = {%{$match_defs{$domain_family}{''}{keywords}}};
-    delete $rule->{cow}{keywords};
+    $rule->{keywords} = $match_defs{$domain_family}{''}{keywords};
+    $rule->{cow}{keywords} = 1;
 
     $rule->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 }
