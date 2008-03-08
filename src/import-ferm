@@ -57,6 +57,7 @@ use vars qw(%aliases);
     p => 'proto',
     d => 'daddr',
     s => 'saddr',
+    m => 'match',
 );
 
 use vars qw($indent $table $chain @rules $domain $next_domain);
@@ -409,7 +410,7 @@ sub parse_option(\%$$\@) {
         my $value = parse_def_option($option, %def, $pre_negated, @$tokens);
         $line->{proto} = $value;
         push @$cur, [ 'proto', $value ];
-    } elsif ($option eq 'm') {
+    } elsif ($option eq 'match') {
         die unless @$tokens;
         my $param = shift @$tokens;
         $line->{mod}{$param} = 1;
