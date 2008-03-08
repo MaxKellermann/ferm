@@ -2064,9 +2064,8 @@ sub enter($$) {
             if ($keyword eq 'realgoto') {
                 error('There can only one action per rule')
                   if exists $current{has_action};
+                append_option(%current, 'goto', getvar());
                 $current{has_action} = 1;
-                my $chain = getvar();
-                append_option(%current, 'goto', $chain);
                 next;
             };
 
