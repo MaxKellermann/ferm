@@ -373,7 +373,7 @@ sub get_builtin_keywords($) {
 
     return {} unless exists $match_defs{$domain_family};
     my $defs_kw = $match_defs{$domain_family}{''}{keywords};
-    my %keywords = map { $_ => ['builtin', '', $defs_kw->{$_} ] } keys %$defs_kw;
+    my %keywords = %$defs_kw;
 
     $builtin_keywords{$domain_family} = \%keywords;
     return {%keywords};
@@ -1503,11 +1503,11 @@ sub new_level(\%$) {
     }
 }
 
-sub merge_keywords(\%$$) {
-    my ($rule, $module, $keywords) = @_;
+sub merge_keywords(\%$) {
+    my ($rule, $keywords) = @_;
     copy_on_write($rule, 'keywords');
     while (my ($name, $def) = each %$keywords) {
-        $rule->{keywords}{$name} = [ $module, $def ];
+        $rule->{keywords}{$name} = $def;
     }
 }
 
@@ -1546,7 +1546,7 @@ sub set_module_target(\%$$) {
         }
     }
 
-    merge_keywords(%$rule, $name, $defs->{keywords});
+    merge_keywords(%$rule, $defs->{keywords});
 }
 
 # the main parser loop: read tokens, convert them into internal rule
@@ -1990,7 +1990,7 @@ sub enter($$) {
                     append_option(%current, 'match', $module);
                     $current{match}{$module} = 1;
 
-                    merge_keywords(%current, $module, $defs->{keywords})
+                    merge_keywords(%current, $defs->{keywords})
                       if defined $defs;
                 }
 
@@ -2000,7 +2000,7 @@ sub enter($$) {
             # keywords from $current{keywords}
 
             if (exists $current{keywords}{$keyword}) {
-                my ($module, $def) = @{$current{keywords}{$keyword}};
+                my $def = $current{keywords}{$keyword};
                 parse_option($def, \%current, $keyword, \$negated);
                 next;
             }
@@ -2076,7 +2076,7 @@ sub enter($$) {
                     my $domain_family = $current{domain_family};
                     my $defs = $proto_defs{$domain_family}{$protocol};
                     if (defined $defs) {
-                        merge_keywords(%current, $protocol, $defs->{keywords});
+                        merge_keywords(%current, $defs->{keywords});
                         my $module = netfilter_protocol_module($protocol);
                         $current{match}{$module} = 1;
                     }
