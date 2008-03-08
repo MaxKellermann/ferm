@@ -1,6 +1,6 @@
-iptables -t nat -A POSTROUTING -o ppp0 -j SNAT --to-source 172.16.0.1 --to-source 172.16.0.1
-iptables -t nat -A POSTROUTING -o eth2 -j SNAT --to-source 172.17.0.1-172.17.0.10 --to-source 172.17.0.1-172.17.0.10
-iptables -t nat -A POSTROUTING -o eth2 -j SNAT --to-source 172.17.0.1-172.17.0.10:10000-20000 --to-source 172.17.0.1-172.17.0.10:10000-20000
+iptables -t nat -A POSTROUTING -o ppp0 -j SNAT --to-source 172.16.0.1
+iptables -t nat -A POSTROUTING -o eth2 -j SNAT --to-source 172.17.0.1-172.17.0.10
+iptables -t nat -A POSTROUTING -o eth2 -j SNAT --to-source 172.17.0.1-172.17.0.10:10000-20000
 iptables -t nat -A POSTROUTING -o ethe -j SNAT --to-source 172.17.0.1 --to-source 172.17.0.1:20000-30000
 iptables -t nat -A POSTROUTING -o eth3 -j SNAT --to-source 192.168.1.1
 iptables -t nat -A POSTROUTING -o eth4 -j SNAT --to-source 192.168.2.1 --random

@@ -1,11 +1,11 @@
-iptables -t filter -A INPUT -p tcp -m time --dport ssh -j ACCEPT --timestart 09:00 --timestop 18:00
-iptables -t filter -A INPUT -p tcp -m time --dport ssh -j REJECT --reject-with icmp-host-prohibited
-iptables -t filter -A INPUT -m time -j DROP --days Sun
-iptables -t filter -A INPUT -m time -j REJECT --days Fri,Sat
-iptables -t filter -A INPUT -p tcp -m time --dport http -j ACCEPT --datestart 2005/02/01
-iptables -t filter -A INPUT -p tcp -m time --dport http -j REJECT
-iptables -t filter -A INPUT -m time -j DROP --datestop 2004/12/31
-iptables -t filter -A INPUT -m time -j DROP --datestop 2004/12/31 --timestart 09:00 --utc
-iptables -t filter -A INPUT -m time -j DROP --datestop 2004/12/31 --timestart 18:00 --localtz
-iptables -t filter -A INPUT -m time -j ACCEPT --monthday 1,2,3
-iptables -t filter -A INPUT -m time -j ACCEPT --weekdays Mon,Tue,Wed
+iptables -t filter -A INPUT -m time -p tcp --dport ssh --timestart 09:00 --timestop 18:00 -j ACCEPT
+iptables -t filter -A INPUT -m time -p tcp --dport ssh -j REJECT --reject-with icmp-host-prohibited
+iptables -t filter -A INPUT -m time --days Sun -j DROP
+iptables -t filter -A INPUT -m time --days Fri,Sat -j REJECT
+iptables -t filter -A INPUT -m time -p tcp --dport http --datestart 2005/02/01 -j ACCEPT
+iptables -t filter -A INPUT -m time -p tcp --dport http -j REJECT
+iptables -t filter -A INPUT -m time --datestop 2004/12/31 -j DROP
+iptables -t filter -A INPUT -m time --datestop 2004/12/31 --timestart 09:00 --utc -j DROP
+iptables -t filter -A INPUT -m time --datestop 2004/12/31 --timestart 18:00 --localtz -j DROP
+iptables -t filter -A INPUT -m time --monthday 1,2,3 -j ACCEPT
+iptables -t filter -A INPUT -m time --weekdays Mon,Tue,Wed -j ACCEPT

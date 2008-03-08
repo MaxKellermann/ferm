@@ -1,12 +1,12 @@
-iptables -t filter -A INPUT -m conntrack -j DROP --ctstate INVALID
-iptables -t filter -A INPUT -m conntrack -j REJECT --ctstate DNAT,SNAT
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctproto ftp
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctorigsrc 10.0.0.0/8
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctorigdst 127.0.0.01
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctreplsrc ! 1.2.3.3
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctreplsrc ! 1.2.3.4
-iptables -t filter -A INPUT -m conntrack -j REJECT --ctrepldst 1.2.3.5
-iptables -t filter -A INPUT -m conntrack -j REJECT --ctrepldst 1.2.3.6
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctstatus ASSURED
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctstatus EXPECTED
-iptables -t filter -A INPUT -m conntrack -j ACCEPT --ctexpire 10
+iptables -t filter -A INPUT -m conntrack --ctstate INVALID -j DROP
+iptables -t filter -A INPUT -m conntrack --ctstate DNAT,SNAT -j REJECT
+iptables -t filter -A INPUT -m conntrack --ctproto ftp -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctorigsrc 10.0.0.0/8 -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctorigdst 127.0.0.01 -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctreplsrc ! 1.2.3.3 -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctreplsrc ! 1.2.3.4 -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctrepldst 1.2.3.5 -j REJECT
+iptables -t filter -A INPUT -m conntrack --ctrepldst 1.2.3.6 -j REJECT
+iptables -t filter -A INPUT -m conntrack --ctstatus ASSURED -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctstatus EXPECTED -j ACCEPT
+iptables -t filter -A INPUT -m conntrack --ctexpire 10 -j ACCEPT

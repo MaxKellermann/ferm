@@ -1,8 +1,8 @@
-iptables -t filter -A INPUT -j LOG --log-prefix foo 
-iptables -t filter -A INPUT -j LOG --log-prefix foo 
-iptables -t filter -A INPUT -j LOG --log-prefix $A 
-iptables -t filter -A INPUT -j LOG --log-prefix foo 
-iptables -t filter -A INPUT -j LOG --log-prefix 'pre foo post' 
+iptables -t filter -A INPUT -j LOG --log-prefix foo
+iptables -t filter -A INPUT -j LOG --log-prefix foo
+iptables -t filter -A INPUT -j LOG --log-prefix $A
+iptables -t filter -A INPUT -j LOG --log-prefix foo
+iptables -t filter -A INPUT -j LOG --log-prefix 'pre foo post'
 iptables -t filter -A INPUT -j LOG --log-prefix 'another $A one'
 iptables -t filter -A INPUT -j LOG --log-prefix 'foo double $A'
 iptables -t filter -A INPUT -j LOG --log-prefix foo:abc:bar

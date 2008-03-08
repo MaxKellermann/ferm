@@ -1,3 +1,3 @@
-iptables -A INPUT -j SAME --to 192.168.1.1-192.168.1.254
-iptables -A INPUT -j SAME --to 192.168.2.1-192.168.2.254 --nodst
-iptables -A INPUT -j SAME --to 192.168.3.1-192.168.3.254 --random
+iptables -t filter -A INPUT -j SAME --to 192.168.1.1-192.168.1.254
+iptables -t filter -A INPUT -j SAME --to 192.168.2.1-192.168.2.254 --nodst
+iptables -t filter -A INPUT -j SAME --to 192.168.3.1-192.168.3.254 --random

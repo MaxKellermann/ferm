@@ -1,4 +1,3 @@
-iptables -A INPUT -j HL --hl-set 5
-iptables -A INPUT -j HL --hl-dec 2
-iptables -A INPUT -j HL --hl-inc 1
-
+iptables -t filter -A INPUT -j HL --hl-set 5
+iptables -t filter -A INPUT -j HL --hl-dec 2
+iptables -t filter -A INPUT -j HL --hl-inc 1

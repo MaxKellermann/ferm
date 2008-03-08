@@ -2,4 +2,4 @@ iptables -t filter -A INPUT -j LOG
 iptables -t filter -A INPUT -j LOG --log-prefix 'foo bar'
 iptables -t filter -A INPUT -j LOG --log-prefix 'foo;bar'
 iptables -t filter -A INPUT -j LOG --log-prefix foo{}bar
-iptables -t filter -A INPUT -j LOG --log-ip-options --log-tcp-sequence --log-tcp-options
+iptables -t filter -A INPUT -j LOG --log-tcp-sequence --log-tcp-options --log-ip-options

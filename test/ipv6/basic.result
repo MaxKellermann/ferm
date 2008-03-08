@@ -1,1 +1,1 @@
-ip6tables -t filter -A INPUT -p tcp --dport ssh -j ACCEPT 
+ip6tables -t filter -A INPUT -p tcp --dport ssh -j ACCEPT

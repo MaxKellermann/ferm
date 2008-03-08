@@ -416,7 +416,7 @@ unshift @stack, {};
 
 # Get command line stuff
 if ($has_getopt) {
-    my ($opt_noexec, $opt_flush, $opt_lines, $opt_interactive,
+    my ($opt_noexec, $opt_flush, $opt_noflush, $opt_lines, $opt_interactive,
         $opt_verbose, $opt_debug,
         $opt_help,
         $opt_version, $opt_test, $opt_fast, $opt_shell,
@@ -440,6 +440,7 @@ if ($has_getopt) {
     local $SIG{__WARN__} = sub { die $_[0]; };
     GetOptions('noexec|n' => \$opt_noexec,
                'flush|F' => \$opt_flush,
+               'noflush' => \$opt_noflush,
                'lines|l' => \$opt_lines,
                'interactive|i' => \$opt_interactive,
                'verbose|v' => \$opt_verbose,
@@ -466,6 +467,7 @@ if ($has_getopt) {
 
     $option{'noexec'} = (defined $opt_noexec);
     $option{flush} = defined $opt_flush;
+    $option{noflush} = defined $opt_noflush;
     $option{'lines'} = (defined $opt_lines);
     $option{interactive} = (defined $opt_interactive);
     $option{test} = (defined $opt_test);
@@ -2193,12 +2195,15 @@ sub execute_slow($$) {
             next unless $chain_info->{builtin} or
               (not $table_info->{has_builtin} and
                is_netfilter_builtin_chain($table, $chain));
-            $status ||= execute_command("$table_cmd -P $chain ACCEPT");
+            $status ||= execute_command("$table_cmd -P $chain ACCEPT")
+              unless $option{noflush};
         }
 
         # clear
-        $status ||= execute_command("$table_cmd -F");
-        $status ||= execute_command("$table_cmd -X");
+        unless ($option{noflush}) {
+            $status ||= execute_command("$table_cmd -F");
+            $status ||= execute_command("$table_cmd -X");
+        }
 
         next if $option{flush};
 

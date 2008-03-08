@@ -1,3 +1,2 @@
 iptables -t filter -A INPUT -p tcp -j SET --add-set foo src,dst
 iptables -t filter -A INPUT -p udp -j SET --del-set bar src
-

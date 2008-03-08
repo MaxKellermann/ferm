@@ -1,6 +1,6 @@
-iptables -t filter -A INPUT -m tos -j ACCEPT --tos Minimize-Delay
-iptables -t filter -A INPUT -m tos -j ACCEPT --tos Maximize-Throughput
-iptables -t filter -A INPUT -m tos -j ACCEPT --tos Maximize-Reliability
-iptables -t filter -A INPUT -m tos -j ACCEPT --tos Minimize-Cost
-iptables -t filter -A INPUT -m tos -j ACCEPT --tos Normal-Service
+iptables -t filter -A INPUT -m tos --tos Minimize-Delay -j ACCEPT
+iptables -t filter -A INPUT -m tos --tos Maximize-Throughput -j ACCEPT
+iptables -t filter -A INPUT -m tos --tos Maximize-Reliability -j ACCEPT
+iptables -t filter -A INPUT -m tos --tos Minimize-Cost -j ACCEPT
+iptables -t filter -A INPUT -m tos --tos Normal-Service -j ACCEPT
 iptables -t filter -A INPUT -m tos ! --tos Normal-Service -j DROP

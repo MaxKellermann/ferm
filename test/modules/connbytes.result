@@ -1,2 +1,2 @@
-iptables -t filter -A INPUT -m connbytes -j ACCEPT --connbytes 1024:4096 --connbytes-dir both --connbytes-mode packets
-iptables -t filter -A INPUT -m connbytes -j DROP ! --connbytes 2048: --connbytes-dir original --connbytes-mode bytes
+iptables -t filter -A INPUT -m connbytes --connbytes 1024:4096 --connbytes-dir both --connbytes-mode packets -j ACCEPT
+iptables -t filter -A INPUT -m connbytes ! --connbytes 2048: --connbytes-dir original --connbytes-mode bytes -j DROP

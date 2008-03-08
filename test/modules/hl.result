@@ -1,5 +1,5 @@
-iptables -A INPUT -m hl --hl-eq 8 -j ACCEPT
-iptables -A INPUT -m hl --hl-eq 10 -j ACCEPT
-iptables -A INPUT -m hl --hl-eq ! 5 -j ACCEPT
-iptables -A INPUT -m hl --hl-gt 15 -j DROP
-iptables -A INPUT -m hl --hl-lt 2 -j REJECT
+iptables -t filter -A INPUT -m hl --hl-eq 8 -j ACCEPT
+iptables -t filter -A INPUT -m hl --hl-eq 10 -j ACCEPT
+iptables -t filter -A INPUT -m hl --hl-eq ! 5 -j ACCEPT
+iptables -t filter -A INPUT -m hl --hl-gt 15 -j DROP
+iptables -t filter -A INPUT -m hl --hl-lt 2 -j REJECT

@@ -1,1 +1,1 @@
-iptables -A INPUT -m xyz -j ACCEPT
+iptables -t filter -A INPUT -m xyz -j ACCEPT

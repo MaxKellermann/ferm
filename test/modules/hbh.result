@@ -1,4 +1,4 @@
-iptables -A INPUT -m hbh --hbh-len 5 -j ACCEPT
-iptables -A INPUT -m hbh --hbh-len ! 7 -j DROP
-iptables -A INPUT -m hbh --hbh-opts 4:5 -j REJECT
-iptables -A INPUT -m hbh --hbh-opts 6:7,8:9,10:11 -j ACCEPT
+iptables -t filter -A INPUT -m hbh --hbh-len 5 -j ACCEPT
+iptables -t filter -A INPUT -m hbh --hbh-len ! 7 -j DROP
+iptables -t filter -A INPUT -m hbh --hbh-opts 4:5 -j REJECT
+iptables -t filter -A INPUT -m hbh --hbh-opts 6:7,8:9,10:11 -j ACCEPT

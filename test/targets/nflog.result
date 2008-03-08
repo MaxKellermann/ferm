@@ -1,6 +1,6 @@
-iptables -A INPUT -j NFLOG
-iptables -A INPUT -j NFLOG --nflog-group 1
-iptables -A INPUT -j NFLOG --nflog-prefix "foo;bar"
-iptables -A INPUT -j NFLOG --nflog-prefix "foo{}bar"
-iptables -A INPUT -j NFLOG --nflog-range 100
-iptables -A INPUT -j NFLOG --nflog-threshold 200
+iptables -t filter -A INPUT -j NFLOG
+iptables -t filter -A INPUT -j NFLOG --nflog-group 1
+iptables -t filter -A INPUT -j NFLOG --nflog-prefix 'foo;bar'
+iptables -t filter -A INPUT -j NFLOG --nflog-prefix foo{}bar
+iptables -t filter -A INPUT -j NFLOG --nflog-range 100
+iptables -t filter -A INPUT -j NFLOG --nflog-threshold 200

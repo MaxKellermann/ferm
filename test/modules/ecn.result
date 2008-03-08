@@ -1,5 +1,5 @@
-iptables -t filter -A INPUT -j ACCEPT -m ecn --ecn-tcp-cwr
-iptables -t filter -A INPUT -j DROP -m ecn --ecn-tcp-cwr --ecn-tcp-ece
-iptables -t filter -A INPUT -j ACCEPT -m ecn --ecn-ip-ect 0
-iptables -t filter -A INPUT -j DROP -m ecn --ecn-ip-ect 1
-iptables -t filter -A INPUT -j DROP -m ecn --ecn-ip-ect 3
+iptables -t filter -A INPUT -m ecn --ecn-tcp-cwr -j ACCEPT
+iptables -t filter -A INPUT -m ecn --ecn-tcp-cwr --ecn-tcp-ece -j DROP
+iptables -t filter -A INPUT -m ecn --ecn-ip-ect 0 -j ACCEPT
+iptables -t filter -A INPUT -m ecn --ecn-ip-ect 1 -j DROP
+iptables -t filter -A INPUT -m ecn --ecn-ip-ect 3 -j DROP

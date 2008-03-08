@@ -52,22 +52,37 @@ FERM_SCRIPTS =
 FERM_SCRIPTS += $(wildcard test/modules/*.ferm) $(wildcard test/targets/*.ferm)
 FERM_SCRIPTS += $(wildcard test/protocols/*.ferm) $(wildcard test/misc/*.ferm)
 FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
+FERM_SCRIPTS += $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
 EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
-IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
+IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT) test/arptables/% test/ebtables/%,$(FERM_SCRIPTS))
 
-FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
+# just a hack
+RESULT_SED += -e 's,--protocol tcp --match tcp,-p tcp,g'
+RESULT_SED += -e 's,--protocol udp --match udp,-p udp,g'
+RESULT_SED += -e 's,-p tcp -m tcp,-p tcp,g'
+RESULT_SED += -e 's,-p udp -m udp,-p udp,g'
+RESULT_SED += -e 's,--protocol,-p,g'
+RESULT_SED += -e 's,--in-interface,-i,g'
+RESULT_SED += -e 's,--out-interface,-o,g'
+RESULT_SED += -e 's,--destination,-d,g'
+RESULT_SED += -e 's,--source,-s,g'
+RESULT_SED += -e 's,--match,-m,g'
+RESULT_SED += -e 's,--jump,-j,g'
+RESULT_SED += -e 's,--goto,-g,g'
+RESULT_SED += -e 's,--fragment,-f,g'
 
-$(STAMPDIR)/%.OLD: %.result test/canonical.pl
+$(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) test/canonical.pl <$< >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(RESULT_SED) >$@
+
+$(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm $(NEW_FERM)
+	@mkdir -p $(dir $@)
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(RESULT_SED) >$@
 
 $(STAMPDIR)/%.result: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@
-
-$(STAMPDIR)/%.NEW: $(STAMPDIR)/%.result test/canonical.pl
-	$(PERL) test/canonical.pl <$< >$@
+	$(PERL) $(NEW_FERM) --noflush $(NEW_OPTIONS) $< |sed $(RESULT_SED) >$@
 
 $(STAMPDIR)/%.SAVE: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
@@ -81,25 +96,17 @@ $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
 	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
-$(STAMPDIR)/%.check: $(STAMPDIR)/%.OLD $(STAMPDIR)/%.NEW
-	diff -u $^
+$(STAMPDIR)/%.check: %.result $(STAMPDIR)/%.result
+	sed $(RESULT_SED) $< |diff -u - $(STAMPDIR)/$<
 	@touch $@
 
 $(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
 	diff -u $^
 	@touch $@
 
-$(STAMPDIR_20)/%.result: %.ferm $(NEW_FERM)
-	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed -e 's,--jump,-j,g' >$@
-
-$(STAMPDIR_20)/%.check: %.result $(STAMPDIR_20)/%.result
-	diff -u $^
-	@touch $@
-
 .PHONY : check-ferm check-import check
 
-check-ferm: $(patsubst %.ferm,$(STAMPDIR)/%.check,$(FERM_SCRIPTS)) $(patsubst %.ferm,$(STAMPDIR_20)/%.check,$(FERM_20_SCRIPTS))
+check-ferm: $(patsubst %.ferm,$(STAMPDIR)/%.check,$(FERM_SCRIPTS))
 
 check-import: $(patsubst %.ferm,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
 

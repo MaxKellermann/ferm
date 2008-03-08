@@ -1,5 +1,5 @@
-iptables -A INPUT -p dccp -m dccp --sport 1234 --dport 5678 -j ACCEPT
-iptables -A INPUT -p dccp -m dccp --dccp-types DATA,CLOSEREQ -j DROP
-iptables -A INPUT -p dccp -m dccp --dccp-types ! RESET,SYNC -j REJECT
-iptables -A INPUT -p dccp -m dccp --dccp-option 100 -j ACCEPT
-iptables -A INPUT -p dccp -m dccp --dccp-option ! 99 -j DROP
+iptables -t filter -A INPUT -p dccp -m dccp --sport 1234 --dport 5678 -j ACCEPT
+iptables -t filter -A INPUT -p dccp -m dccp --dccp-types DATA,CLOSEREQ -j DROP
+iptables -t filter -A INPUT -p dccp -m dccp --dccp-types ! RESET,SYNC -j REJECT
+iptables -t filter -A INPUT -p dccp -m dccp --dccp-option 100 -j ACCEPT
+iptables -t filter -A INPUT -p dccp -m dccp --dccp-option ! 99 -j DROP

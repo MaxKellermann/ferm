@@ -1,2 +1,1 @@
 iptables -t filter -A INPUT -m quota --quota 1024 -j ACCEPT
-

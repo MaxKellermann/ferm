@@ -1,1 +1,1 @@
-iptables -A INPUT -j NFQUEUE --queue-num 65535
+iptables -t filter -A INPUT -j NFQUEUE --queue-num 65535
