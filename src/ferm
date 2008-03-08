@@ -213,8 +213,6 @@ add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
 add_proto_def 'udp', qw();
 
 add_match_def '',
-  # --protocol
-  qw(protocol! proto:=protocol),
   # --source, --destination
   qw(source! saddr:=source destination! daddr:=destination),
   # --in-interface
@@ -390,7 +388,7 @@ sub multiport_params {
     # into portions of 15, and handle these portions as
     # array elements
 
-    my $proto = $fw->{builtin}{protocol};
+    my $proto = $fw->{protocol};
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
@@ -1267,6 +1265,9 @@ sub tables($$$) {
 
     # general iptables options
 
+    shell_append_option(\$rr, 'protocol', $rule->{protocol})
+      if exists $rule->{protocol};
+
     while (my ($keyword, $value) = each %{$rule->{builtin}}) {
         shell_append_option(\$rr, $keyword, $value);
     }
@@ -1277,8 +1278,8 @@ sub tables($$$) {
 
     my %modules;
 
-    if (defined $rule->{builtin}{protocol}) {
-        my $proto = $rule->{builtin}{protocol};
+    if (defined $rule->{protocol}) {
+        my $proto = $rule->{protocol};
 
         # special case: --dport and --sport for TCP/UDP
         if ($rule->{domain_family} eq 'ip' and
@@ -1343,8 +1344,8 @@ sub tables($$$) {
 sub transform_rule($$) {
     my ($domain, $rule) = @_;
 
-    $rule->{builtin}{protocol} = 'icmpv6'
-      if $domain eq 'ip6' and $rule->{builtin}{protocol} eq 'icmp';
+    $rule->{protocol} = 'icmpv6'
+      if $domain eq 'ip6' and $rule->{protocol} eq 'icmp';
 }
 
 sub printrule($$$$) {
@@ -1386,6 +1387,7 @@ sub mkrules2($$$$) {
         }
     }
 
+    check_unfold(@unfold, $fw, 'protocol');
     check_unfold(@unfold, $fw, 'sport');
     check_unfold(@unfold, $fw, 'dport');
 
@@ -1587,7 +1589,7 @@ sub new_level(\%$) {
         $current->{builtin} = { %{$prev->{builtin}} };
         $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
         $current->{action} = { %{$prev->{action}} };
-        foreach my $key (qw(domain domain_family table chain sport dport)) {
+        foreach my $key (qw(domain domain_family table chain protocol sport dport)) {
             $current->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -1634,7 +1636,7 @@ sub set_module_target(\%$$) {
     my ($rule, $name, $defs) = @_;
 
     if ($name eq 'TCPMSS') {
-        my $protos = $rule->{builtin}{protocol};
+        my $protos = $rule->{protocol};
         error('No protocol specified before TCPMSS')
           unless defined $protos;
         foreach my $proto (to_array $protos) {
@@ -2051,8 +2053,8 @@ sub enter($$) {
                 $inner{domain_family} = $current{domain_family};
                 $inner{table} = $current{table};
                 $inner{chain} = $inner{auto}{CHAIN} = $subchain;
-                $inner{builtin}{protocol} = $current{builtin}{protocol}
-                  if exists $current{builtin}{protocol};
+                $inner{protocol} = $current{protocol}
+                  if exists $current{protocol};
 
                 # enter the block
                 enter(1, \%inner);
@@ -2085,10 +2087,10 @@ sub enter($$) {
 
                     my $domain_family = $current{domain_family};
                     my $defs = $match_defs{$domain_family}{$module};
-                    if (not defined $defs and exists $current{builtin}{protocol}) {
-                        my $proto = $current{builtin}{protocol};
+                    if (not defined $defs and exists $current{protocol}) {
+                        my $proto = $current{protocol};
                         unless (ref $proto) {
-                            $proto = netfilter_canonical_protocol($current{builtin}{protocol});
+                            $proto = netfilter_canonical_protocol($current{protocol});
                             $defs = $proto_defs{$domain_family}{$proto}
                               if netfilter_protocol_module($proto) eq $module;
                         }
@@ -2184,7 +2186,7 @@ sub enter($$) {
                 next;
             }
 
-            my $proto = $current{builtin}{protocol};
+            my $proto = $current{protocol};
 
             ###
             # protocol specific options
@@ -2200,6 +2202,14 @@ sub enter($$) {
 
                 parse_protocol_options(\%current, $proto, $keyword, \$negated)
                   and next;
+            }
+
+            if ($keyword eq 'proto') {
+                $current{protocol} = parse_keyword(\%current,
+                                                   { params => 1,
+                                                     negation => 1 },
+                                                   'proto', \$negated);
+                next;
             }
 
             # port switches
