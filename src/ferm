@@ -1474,28 +1474,6 @@ sub parse_option($$$$) {
     return 1;
 }
 
-# parse options for a protocol module definition
-sub parse_protocol_options($$$$) {
-    my ($current, $proto, $keyword, $negated_ref) = @_;
-
-    my $domain_family = $current->{'domain_family'};
-    my $proto_defs = $proto_defs{$domain_family};
-    return unless defined $proto_defs;
-
-    my $proto_def = $proto_defs->{$proto};
-    return unless defined $proto_def and
-      exists $proto_def->{keywords}{$keyword};
-
-    my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
-    unless (exists $current->{match}{$module_name}) {
-        $current->{match}{$module_name} = 1;
-    }
-
-    return parse_option($proto_def->{keywords}{$keyword},
-                        $current,
-                        $keyword, $negated_ref);
-}
-
 sub copy_on_write($$) {
     my ($rule, $key) = @_;
     return unless exists $rule->{cow}{$key};
@@ -2008,21 +1986,12 @@ sub enter($$) {
 
                     my $domain_family = $current{domain_family};
                     my $defs = $match_defs{$domain_family}{$module};
-                    if (not defined $defs and exists $current{protocol}) {
-                        my $proto = $current{protocol};
-                        unless (ref $proto) {
-                            $proto = netfilter_canonical_protocol($current{protocol});
-                            $defs = $proto_defs{$domain_family}{$proto}
-                              if netfilter_protocol_module($proto) eq $module;
-                        }
-                    }
 
+                    append_option(%current, 'match', $module);
                     $current{match}{$module} = 1;
 
                     merge_keywords(%current, 'match', $module, $defs->{keywords})
                       if defined $defs;
-
-                    append_option(%current, 'match', $module);
                 }
 
                 next;
@@ -2094,18 +2063,6 @@ sub enter($$) {
             # protocol specific options
             #
 
-            if (defined $proto and not ref $proto) {
-                $proto = netfilter_canonical_protocol($proto);
-
-                if ($proto eq 'icmp') {
-                    my $domains = $current{domain};
-                    $proto = 'icmpv6' if not ref $domains and $domains eq 'ip6';
-                }
-
-                parse_protocol_options(\%current, $proto, $keyword, \$negated)
-                  and next;
-            }
-
             if ($keyword eq 'proto') {
                 my $protocol = parse_keyword(\%current,
                                              { params => 1, negation => 1 },
@@ -2113,6 +2070,18 @@ sub enter($$) {
                 $current{protocol} = $protocol;
                 $current{protocol_index} = scalar(@{$current{options}});
                 append_option(%current, 'protocol', $current{protocol});
+
+                unless (ref $protocol) {
+                    $protocol = netfilter_canonical_protocol($protocol);
+                    my $domain_family = $current{domain_family};
+                    my $defs = $proto_defs{$domain_family}{$protocol};
+                    if (defined $defs) {
+                        merge_keywords(%current, 'protocol', $protocol,
+                                       $defs->{keywords});
+                        my $module = netfilter_protocol_module($protocol);
+                        $current{match}{$module} = 1;
+                    }
+                }
                 next;
             }
 
