@@ -56,18 +56,6 @@ FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
 EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
 IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT),$(FERM_SCRIPTS))
 
-# just a hack because ferm/import-ferm scramble the keyword order
-SAVE2_SED = -e 's,--start 2 --counter 1,--counter 1 --start 2,'
-SAVE2_SED += -e 's,-m mh -p ipv6-mh,-p ipv6-mh -m mh,'
-SAVE2_SED += -e 's,--connlimit-above 4 --connlimit-mask 24,--connlimit-mask 24 --connlimit-above 4,'
-SAVE2_SED += -e 's,--hashlimit 10/minute --hashlimit-mode dstip,--hashlimit-mode dstip --hashlimit 10/minute,'
-SAVE2_SED += -e 's,--packet 1 --every 3 --counter 1,--packet 1 --counter 1 --every 3,'
-SAVE2_SED += -e 's!--rt-0-addrs ::1,::2 --rt-0-not-strict!--rt-0-not-strict --rt-0-addrs ::1,::2!'
-SAVE2_SED += -e 's!--to 128 --hex-string deadbeef!--hex-string deadbeef --to 128!'
-SAVE2_SED += -e 's!--datestop 2004/12/31 --timestart 09:00!--timestart 09:00 --datestop 2004/12/31!'
-SAVE2_SED += -e 's!--datestop 2004/12/31 --timestart 18:00!--timestart 18:00 --datestop 2004/12/31!'
-SAVE2_SED += -e 's!--total-nodes 4 --hash-init 12345!--hash-init 12345 --total-nodes 4!'
-
 FERM_20_SCRIPTS := $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
 $(STAMPDIR)/%.OLD: %.result test/canonical.pl
@@ -91,8 +79,7 @@ $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 	$(PERL) src/import-ferm $< >$@
 
 $(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< >$@.tmp
-	grep -v '^#' <$@.tmp |sed $(SAVE2_SED) >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
 
 $(STAMPDIR)/%.check: $(STAMPDIR)/%.OLD $(STAMPDIR)/%.NEW
 	diff -u $^
@@ -104,7 +91,7 @@ $(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
 
 $(STAMPDIR_20)/%.result: %.ferm $(NEW_FERM)
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< >$@
+	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed -e 's,--jump,-j,g' >$@
 
 $(STAMPDIR_20)/%.check: %.result $(STAMPDIR_20)/%.result
 	diff -u $^

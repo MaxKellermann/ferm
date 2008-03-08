@@ -1265,73 +1265,16 @@ sub tables($$$) {
 
     # general iptables options
 
-    shell_append_option(\$rr, 'protocol', $rule->{protocol})
-      if exists $rule->{protocol};
+    my $protocol_module = $rule->{protocol_module};
 
-    while (my ($keyword, $value) = each %{$rule->{builtin}}) {
-        shell_append_option(\$rr, $keyword, $value);
-    }
+    foreach my $option (@{$rule->{options}}) {
+        shell_append_option(\$rr, $option->[0], $option->[1]);
 
-    #
-    # match module options
-    #
-
-    my %modules;
-
-    if (defined $rule->{protocol}) {
-        my $proto = $rule->{protocol};
-
-        # special case: --dport and --sport for TCP/UDP
-        if ($rule->{domain_family} eq 'ip' and
-            (exists $rule->{dport} or exists $rule->{sport}) and
-            $proto =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
-            unless (exists $modules{$proto}) {
-                $rr .= " -m $proto";
-                $modules{$proto} = 1;
-            }
-
-            shell_append_option(\$rr, 'dport', $rule->{dport})
-              if exists $rule->{dport};
-            shell_append_option(\$rr, 'sport', $rule->{sport})
-              if exists $rule->{sport};
+        if ($protocol_module and $option->[0] eq 'protocol') {
+            $rr .= " --match $option->[1]"
+              unless exists $rule->{match}{$option->[1]};
+            undef $protocol_module;
         }
-    }
-
-    # modules stored in %match_defs
-
-    foreach my $match (@{$rule->{match}}) {
-        my $module_name = $match->{name};
-        unless (exists $modules{$module_name}) {
-            $rr .= " -m $module_name";
-            $modules{$module_name} = 1;
-        }
-
-        while (my ($keyword, $value) = each %{$match->{options}}) {
-            shell_append_option(\$rr, $keyword, $value);
-        }
-    }
-
-    #
-    # target options
-    #
-
-    my $action = $rule->{action};
-    if ($action->{type} eq 'jump') {
-        $table_info->{chains}{$action->{chain}}{rules} ||= [];
-        $rr .= " -j " . $action->{chain};
-    } elsif ($action->{type} eq 'goto') {
-        $table_info->{chains}{$action->{chain}}{rules} ||= [];
-        $rr .= " -g " . $action->{chain};
-    } elsif ($action->{type} eq 'target') {
-        $rr .= " -j " . $action->{target};
-
-        # targets stored in %target_defs
-
-        while (my ($keyword, $value) = each %{$rule->{target_options}}) {
-            shell_append_option(\$rr, $keyword, $value);
-        }
-    } elsif ($action->{type} ne 'nop') {
-        die;
     }
 
     # this line is done
@@ -1344,7 +1287,7 @@ sub tables($$$) {
 sub transform_rule($$) {
     my ($domain, $rule) = @_;
 
-    $rule->{protocol} = 'icmpv6'
+    $rule->{options}[$rule->{protocol_index}][1] = 'icmpv6'
       if $domain eq 'ip6' and $rule->{protocol} eq 'icmp';
 }
 
@@ -1376,20 +1319,10 @@ sub mkrules2($$$$) {
     my ($domain, $table, $chain, $fw) = @_;
 
     my @unfold;
-
-    foreach my $key (keys %{$fw->{builtin}}) {
-        check_unfold(@unfold, $fw->{builtin}, $key);
+    foreach my $option (@{$fw->{options}}) {
+        push @unfold, $option
+          if ref $option->[1] and ref $option->[1] eq 'ARRAY';
     }
-
-    foreach my $match (@{$fw->{match}}) {
-        while (my ($key, $value) = each %{$match->{options}}) {
-            check_unfold(@unfold, $match->{options}, $key);
-        }
-    }
-
-    check_unfold(@unfold, $fw, 'protocol');
-    check_unfold(@unfold, $fw, 'sport');
-    check_unfold(@unfold, $fw, 'dport');
 
     if (@unfold == 0) {
         printrule($domain, $table, $chain, $fw);
@@ -1399,10 +1332,12 @@ sub mkrules2($$$$) {
     sub dofr {
         my $fw = shift;
         my ($domain, $table, $chain) = (shift, shift, shift);
-        my ($parent, $key, $values) = (shift, shift, shift);
+        my $option = shift;
+        my @values = @{$option->[1]};
 
-        foreach my $value (@$values) {
-            $parent->{$key} = $value;
+        foreach my $value (@values) {
+            $option->[1] = $value;
+            $fw->{protocol} = $value if $option->[0] eq 'protocol';
 
             if (@_) {
                 dofr($fw, $domain, $table, $chain, @_);
@@ -1526,18 +1461,22 @@ sub parse_keyword($$$$) {
     return $value;
 }
 
+sub append_option(\%$$) {
+    my ($rule, $name, $value) = @_;
+    push @{$rule->{options}}, [ $name, $value ];
+}
+
 # parse options of a module
-sub parse_option($$$$$) {
-    my ($def, $current, $store, $keyword, $negated_ref) = @_;
+sub parse_option($$$$) {
+    my ($def, $current, $keyword, $negated_ref) = @_;
 
     while (exists $def->{alias}) {
         ($keyword, $def) = @{$def->{alias}};
         die unless defined $def;
     }
 
-    $store->{$keyword}
-      = parse_keyword($current, $def,
-                      $keyword, $negated_ref);
+    append_option(%$current, $keyword,
+                  parse_keyword($current, $def, $keyword, $negated_ref));
     return 1;
 }
 
@@ -1554,13 +1493,13 @@ sub parse_protocol_options($$$$) {
       exists $proto_def->{keywords}{$keyword};
 
     my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
-    my $module = { name => $module_name,
-                   options => {},
-                 };
-    push @{$current->{match}}, $module;
+    unless (exists $current->{match}{$module_name}) {
+        append_option(%$current, 'match', $module_name);
+        $current->{match}{$module_name} = 1;
+    }
 
     return parse_option($proto_def->{keywords}{$keyword},
-                        $current, $module->{options},
+                        $current,
                         $keyword, $negated_ref);
 }
 
@@ -1571,13 +1510,6 @@ sub copy_on_write($$) {
     delete $rule->{cow}{$key};
 }
 
-sub clone_match($) {
-    my $match = shift;
-    return { name => $match->{name},
-             options => { %{$match->{options}} },
-           };
-}
-
 sub new_level(\%$) {
     my ($current, $prev) = @_;
 
@@ -1586,19 +1518,19 @@ sub new_level(\%$) {
         # copy data from previous level
         $current->{cow} = { keywords => 1, };
         $current->{keywords} = $prev->{keywords};
-        $current->{builtin} = { %{$prev->{builtin}} };
-        $current->{match} = [ map { clone_match($_) } @{$prev->{match}} ];
+        $current->{match} = { %{$prev->{match}} };
         $current->{action} = { %{$prev->{action}} };
-        foreach my $key (qw(domain domain_family table chain protocol sport dport)) {
+        $current->{options} = [@{$prev->{options}}];
+        foreach my $key (qw(domain domain_family table chain protocol protocol_index protocol_module)) {
             $current->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
     } else {
         $current->{cow} = {};
         $current->{keywords} = {};
-        $current->{builtin} = {};
-        $current->{match} = [];
+        $current->{match} = {};
         $current->{action} = {};
+        $current->{options} = [];
     }
 }
 
@@ -2046,15 +1978,20 @@ sub enter($$) {
                 # which must be in the subchain
                 my %inner = ( cow => { keywords => 1, },
                               keywords => $current{keywords},
-                              builtin => {},
+                              match => {},
                               action => {},
+                              options => [],
                             );
                 $inner{domain} = $current{domain};
                 $inner{domain_family} = $current{domain_family};
                 $inner{table} = $current{table};
                 $inner{chain} = $inner{auto}{CHAIN} = $subchain;
-                $inner{protocol} = $current{protocol}
-                  if exists $current{protocol};
+
+                if (exists $current{protocol}) {
+                    $inner{protocol} = $current{protocol};
+                    $inner{protocol_index} = 0;
+                    append_option(%inner, 'protocol', $inner{protocol});
+                }
 
                 # enter the block
                 enter(1, \%inner);
@@ -2063,6 +2000,7 @@ sub enter($$) {
                 $current{action} = { type => 'jump',
                                      chain => $subchain,
                                    };
+                append_option(%current, 'jump', $subchain);
 
                 $current{script} = { filename => $script->{filename},
                                      line => $script->{line},
@@ -2083,7 +2021,7 @@ sub enter($$) {
             # extended parameters:
             if ($keyword =~ /^mod(?:ule)?$/) {
                 foreach my $module (to_array getvalues) {
-                    next if grep { $_->{name} eq $module } @{$current{match}};
+                    next if exists $current{match}{$module};
 
                     my $domain_family = $current{domain_family};
                     my $defs = $match_defs{$domain_family}{$module};
@@ -2096,12 +2034,12 @@ sub enter($$) {
                         }
                     }
 
-                    push @{$current{match}}, { name => $module,
-                                               options => {},
-                                             };
+                    $current{match}{$module} = 1;
 
                     merge_keywords(%current, 'match', $module, $defs->{keywords})
                       if defined $defs;
+
+                    append_option(%current, 'match', $module);
                 }
 
                 next;
@@ -2111,18 +2049,7 @@ sub enter($$) {
 
             if (exists $current{keywords}{$keyword}) {
                 my ($type, $module, $def) = @{$current{keywords}{$keyword}};
-                my $store;
-                if ($type eq 'builtin') {
-                    $store = $current{builtin};
-                } elsif ($type eq 'match') {
-                    $store = (grep { $_->{name} eq $module } @{$current{match}})[-1]->{options};
-                } elsif ($type eq 'target') {
-                    $store = $current{target_options} ||= {};
-                } else {
-                    die;
-                }
-
-                parse_option($def, \%current, $store, $keyword, \$negated);
+                parse_option($def, \%current, $keyword, \$negated);
                 next;
             }
 
@@ -2147,6 +2074,7 @@ sub enter($$) {
                                          chain => $chain,
                                        };
                 }
+                append_option(%current, 'jump', $chain);
                 next;
             };
 
@@ -2154,9 +2082,11 @@ sub enter($$) {
             if ($keyword eq 'realgoto') {
                 error('There can only one action per rule')
                   if defined $current{action}{type};
+                my $chain = getvar();
                 $current{action} = { type => 'goto',
-                                     chain => getvar(),
+                                     chain => $chain,
                                    };
+                append_option(%current, 'goto', $chain);
                 next;
             };
 
@@ -2167,6 +2097,7 @@ sub enter($$) {
                 $current{action} = { type => 'target',
                                      target => $keyword,
                                    };
+                append_option(%current, 'jump', $keyword);
                 next;
             }
 
@@ -2183,6 +2114,7 @@ sub enter($$) {
                   if defined $current{action}{type};
 
                 set_module_target(%current, $keyword, $defs);
+                append_option(%current, 'jump', $keyword);
                 next;
             }
 
@@ -2209,6 +2141,8 @@ sub enter($$) {
                                                    { params => 1,
                                                      negation => 1 },
                                                    'proto', \$negated);
+                $current{protocol_index} = scalar(@{$current{options}});
+                append_option(%current, 'protocol', $current{protocol});
                 next;
             }
 
@@ -2217,8 +2151,10 @@ sub enter($$) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
-                $current{$keyword} = getvalues(undef, undef,
-                                               allow_negation => 1);
+                append_option(%current, $keyword,
+                              getvalues(undef, undef,
+                                        allow_negation => 1));
+                $current{protocol_module} = 1;
                 next;
             }
 

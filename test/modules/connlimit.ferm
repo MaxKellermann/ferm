@@ -1,4 +1,4 @@
 table filter chain INPUT mod connlimit {
-    connlimit-above 4 connlimit-mask 24 REJECT;
+    connlimit-mask 24 connlimit-above 4 REJECT;
     connlimit-above !2 DROP;
 }
