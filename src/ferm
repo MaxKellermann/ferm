@@ -2107,10 +2107,10 @@ sub enter($$) {
             }
 
             if ($keyword eq 'proto') {
-                $current{protocol} = parse_keyword(\%current,
-                                                   { params => 1,
-                                                     negation => 1 },
-                                                   'proto', \$negated);
+                my $protocol = parse_keyword(\%current,
+                                             { params => 1, negation => 1 },
+                                             'proto', \$negated);
+                $current{protocol} = $protocol;
                 $current{protocol_index} = scalar(@{$current{options}});
                 append_option(%current, 'protocol', $current{protocol});
                 next;
