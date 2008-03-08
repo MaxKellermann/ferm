@@ -1575,7 +1575,7 @@ sub enter($$) {
             # effectuation operator
             if ($keyword eq ';') {
                 if ($current{has_rule} and not exists $current{has_action}) {
-                    # something is wrong when a rule was specifiedd,
+                    # something is wrong when a rule was specified,
                     # but no action
                     error('No action defined; did you mean "NOP"?');
                 }
