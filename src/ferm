@@ -1254,20 +1254,8 @@ sub shell_append_option($$$) {
 }
 
 # convert an internal rule structure into an iptables call
-sub tables($) {
-    my $rule = shift;
-
-    my $domain = $rule->{domain};
-    my $domain_info = $domains{$domain};
-    $domain_info->{enabled} = 1;
-    my $domain_family = $rule->{domain_family};
-
-    my $table = $rule->{table};
-    my $table_info = $domain_info->{tables}{$table} ||= {};
-
-    my $chain = $rule->{chain};
-    my $chain_info = $table_info->{chains}{$chain} ||= {};
-    my $chain_rules = $chain_info->{rules} ||= [];
+sub tables($$$) {
+    my ($table_info, $chain_info, $rule) = @_;
 
     return if $option{flush};
 
@@ -1293,7 +1281,7 @@ sub tables($) {
         my $proto = $rule->{builtin}{protocol};
 
         # special case: --dport and --sport for TCP/UDP
-        if ($domain_family eq 'ip' and
+        if ($rule->{domain_family} eq 'ip' and
             (exists $rule->{dport} or exists $rule->{sport}) and
             $proto =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
             unless (exists $modules{$proto}) {
@@ -1346,6 +1334,7 @@ sub tables($) {
     }
 
     # this line is done
+    my $chain_rules = $chain_info->{rules} ||= [];
     push @$chain_rules, { rule => $rr,
                           script => $rule->{script},
                         };
@@ -1363,8 +1352,18 @@ sub printrule($) {
 
     transform_rule($rule);
 
+    my $domain = $rule->{domain};
+    my $domain_info = $domains{$domain};
+    $domain_info->{enabled} = 1;
+
+    my $table = $rule->{table};
+    my $table_info = $domain_info->{tables}{$table} ||= {};
+
+    my $chain = $rule->{chain};
+    my $chain_info = $table_info->{chains}{$chain} ||= {};
+
     # prints all rules in a hash
-    tables($rule);
+    tables($table_info, $chain_info, $rule);
 }
 
 
