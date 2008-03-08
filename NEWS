@@ -31,6 +31,7 @@ v2.0 - not yet released
   - import-ferm rewrite
     - use module data from ferm
     - write policy in chain block
+  - do not generate implicit protocol modules
 
 
 v1.3.3 - 22 Jan 2008

@@ -1,4 +1,4 @@
-ip6tables -t filter -A INPUT -p mh -m mh --mh-type home-test -j ACCEPT
-ip6tables -t filter -A INPUT -p mh -m mh --mh-type ! binding-update -j DROP
-ip6tables -t filter -A INPUT -p ipv6-mh -m mh --mh-type binding-acknowledgement -j REJECT
-ip6tables -t filter -A INPUT -p ipv6-mh -m mh --mh-type binding-error -j REJECT
+ip6tables -t filter -A INPUT -p mh --mh-type home-test -j ACCEPT
+ip6tables -t filter -A INPUT -p mh --mh-type ! binding-update -j DROP
+ip6tables -t filter -A INPUT -p ipv6-mh --mh-type binding-acknowledgement -j REJECT
+ip6tables -t filter -A INPUT -p ipv6-mh --mh-type binding-error -j REJECT

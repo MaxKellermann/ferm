@@ -1267,16 +1267,8 @@ sub tables($$$) {
 
     # general iptables options
 
-    my $protocol_module = $rule->{protocol_module};
-
     foreach my $option (@{$rule->{options}}) {
         shell_append_option(\$rr, $option->[0], $option->[1]);
-
-        if ($protocol_module and $option->[0] eq 'protocol') {
-            $rr .= " --match $option->[1]"
-              unless exists $rule->{match}{$option->[1]};
-            undef $protocol_module;
-        }
     }
 
     # this line is done
@@ -1496,7 +1488,6 @@ sub parse_protocol_options($$$$) {
 
     my $module_name = $proto eq 'icmpv6' ? 'icmp6' : $proto;
     unless (exists $current->{match}{$module_name}) {
-        append_option(%$current, 'match', $module_name);
         $current->{match}{$module_name} = 1;
     }
 
@@ -1522,7 +1513,7 @@ sub new_level(\%$) {
         $current->{keywords} = $prev->{keywords};
         $current->{match} = { %{$prev->{match}} };
         $current->{options} = [@{$prev->{options}}];
-        foreach my $key (qw(domain domain_family table chain protocol protocol_index protocol_module has_action)) {
+        foreach my $key (qw(domain domain_family table chain protocol protocol_index has_action)) {
             $current->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -2133,7 +2124,6 @@ sub enter($$) {
                 append_option(%current, $keyword,
                               getvalues(undef, undef,
                                         allow_negation => 1));
-                $current{protocol_module} = 1;
                 next;
             }
 

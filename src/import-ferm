@@ -412,6 +412,20 @@ sub parse_option(\%$$\@) {
         my $value = parse_def_option($option, %def, $pre_negated, @$tokens);
         $line->{proto} = $value;
         push @$cur, [ 'proto', $value ];
+
+        my $module = netfilter_canonical_protocol($value);
+        if (exists $proto_defs{ip}{$module}) {
+            merge_keywords(%$line, $proto_defs{ip}{$module}{keywords});
+        }
+
+        if ($value =~ /^(?:tcp|udp|udplite|dccp|sctp)$/) {
+            my %def = (
+                params => 1,
+                negation => 1,
+               );
+            $line->{keywords}{sport} = \%def;
+            $line->{keywords}{dport} = \%def;
+        }
     } elsif ($option eq 'match') {
         die unless @$tokens;
         my $param = shift @$tokens;

@@ -58,10 +58,6 @@ EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
 IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT) test/arptables/% test/ebtables/%,$(FERM_SCRIPTS))
 
 # just a hack
-RESULT_SED += -e 's,--protocol tcp --match tcp,-p tcp,g'
-RESULT_SED += -e 's,--protocol udp --match udp,-p udp,g'
-RESULT_SED += -e 's,-p tcp -m tcp,-p tcp,g'
-RESULT_SED += -e 's,-p udp -m udp,-p udp,g'
 RESULT_SED += -e 's,--protocol,-p,g'
 RESULT_SED += -e 's,--in-interface,-i,g'
 RESULT_SED += -e 's,--out-interface,-o,g'
