@@ -1885,13 +1885,10 @@ sub enter($$) {
                 # create a deep copy of %rule, only containing values
                 # which must be in the subchain
                 my %inner = ( cow => { keywords => 1, },
-                              keywords => $rule{keywords},
                               match => {},
                               options => [],
                             );
-                $inner{domain} = $rule{domain};
-                $inner{domain_family} = $rule{domain_family};
-                $inner{table} = $rule{table};
+                $inner{$_} = $rule{$_} foreach qw(domain domain_family table keywords);
                 $inner{chain} = $inner{auto}{CHAIN} = $subchain;
 
                 if (exists $rule{protocol}) {
