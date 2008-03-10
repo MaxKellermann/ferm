@@ -1224,15 +1224,10 @@ sub transform_rule($$) {
       if $domain eq 'ip6' and $rule->{protocol} eq 'icmp';
 }
 
-sub printrule($$$$) {
-    my ($domain, $table, $chain, $rule) = @_;
+sub printrule($$$) {
+    my ($domain, $chain_info, $rule) = @_;
 
     transform_rule($domain, $rule);
-
-    my $domain_info = $domains{$domain};
-    $domain_info->{enabled} = 1;
-    my $table_info = $domain_info->{tables}{$table} ||= {};
-    my $chain_info = $table_info->{chains}{$chain} ||= {};
 
     # return if this is a declaration-only rule
     return if $option{flush} or not $rule->{has_rule};
@@ -1250,7 +1245,6 @@ sub printrule($$$$) {
                         };
 }
 
-
 sub check_unfold(\@$$) {
     my ($unfold, $parent, $key) = @_;
 
@@ -1260,8 +1254,8 @@ sub check_unfold(\@$$) {
     push @$unfold, $parent, $key, $parent->{$key};
 }
 
-sub mkrules2($$$$) {
-    my ($domain, $table, $chain, $fw) = @_;
+sub mkrules2($$$) {
+    my ($domain, $chain_info, $fw) = @_;
 
     my @unfold;
     foreach my $option (@{$fw->{options}}) {
@@ -1270,13 +1264,13 @@ sub mkrules2($$$$) {
     }
 
     if (@unfold == 0) {
-        printrule($domain, $table, $chain, $fw);
+        printrule($domain, $chain_info, $fw);
         return;
     }
 
     sub dofr {
         my $fw = shift;
-        my ($domain, $table, $chain) = (shift, shift, shift);
+        my ($domain, $chain_info) = (shift, shift);
         my $option = shift;
         my @values = @{$option->[1]};
 
@@ -1285,14 +1279,14 @@ sub mkrules2($$$$) {
             $fw->{protocol} = $value if $option->[0] eq 'protocol';
 
             if (@_) {
-                dofr($fw, $domain, $table, $chain, @_);
+                dofr($fw, $domain, $chain_info, @_);
             } else {
-                printrule($domain, $table, $chain, $fw);
+                printrule($domain, $chain_info, $fw);
             }
         }
     }
 
-    dofr($fw, $domain, $table, $chain, @unfold);
+    dofr($fw, $domain, $chain_info, @unfold);
 }
 
 # convert a bunch of internal rule structures in iptables calls,
@@ -1301,9 +1295,16 @@ sub mkrules($) {
     my $fw = shift;
 
     foreach my $domain (to_array $fw->{domain}) {
+        my $domain_info = $domains{$domain};
+        $domain_info->{enabled} = 1;
+
         foreach my $table (to_array $fw->{table}) {
+            my $table_info = $domain_info->{tables}{$table} ||= {};
+
             foreach my $chain (to_array $fw->{chain}) {
-                mkrules2($domain, $table, $chain, $fw);
+                my $chain_info = $table_info->{chains}{$chain} ||= {};
+
+                mkrules2($domain, $chain_info, $fw);
             }
         }
     }
