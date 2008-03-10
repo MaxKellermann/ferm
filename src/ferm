@@ -1217,17 +1217,11 @@ sub shell_append_option($$$) {
     }
 }
 
-sub transform_rule($$) {
-    my ($domain, $rule) = @_;
-
-    $rule->{options}[$rule->{protocol_index}][1] = 'icmpv6'
-      if $domain eq 'ip6' and $rule->{protocol} eq 'icmp';
-}
-
 sub printrule($$$) {
     my ($domain, $chain_rules, $rule) = @_;
 
-    transform_rule($domain, $rule);
+    $rule->{options}[$rule->{protocol_index}][1] = 'icmpv6'
+      if $domain eq 'ip6' and $rule->{protocol} eq 'icmp';
 
     # format iptables options
     my $rr = '';
