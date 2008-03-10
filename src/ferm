@@ -1244,15 +1244,6 @@ sub printrule($$$) {
                         };
 }
 
-sub check_unfold(\@$$) {
-    my ($unfold, $parent, $key) = @_;
-
-    return unless ref $parent->{$key} and
-      ref $parent->{$key} eq 'ARRAY';
-
-    push @$unfold, $parent, $key, $parent->{$key};
-}
-
 sub mkrules2($$$) {
     my ($domain, $chain_rules, $fw) = @_;
 
