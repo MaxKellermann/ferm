@@ -364,14 +364,14 @@ return 1 if $0 =~ /import-ferm$/;
 
 # parameter parser for ipt_multiport
 sub multiport_params {
-    my $fw = shift;
+    my $rule = shift;
 
     # multiport only allows 15 ports at a time. For this
     # reason, we do a little magic here: split the ports
     # into portions of 15, and handle these portions as
     # array elements
 
-    my $proto = $fw->{protocol};
+    my $proto = $rule->{protocol};
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
@@ -1236,27 +1236,27 @@ sub printrule($$$) {
 }
 
 sub mkrules2($$$) {
-    my ($domain, $chain_rules, $fw) = @_;
+    my ($domain, $chain_rules, $rule) = @_;
 
     my @unfold;
-    foreach my $option (@{$fw->{options}}) {
+    foreach my $option (@{$rule->{options}}) {
         push @unfold, $option
           if ref $option->[1] and ref $option->[1] eq 'ARRAY';
     }
 
     sub dofr {
-        my ($domain, $chain_rules, $fw) = (shift, shift, shift);
+        my ($domain, $chain_rules, $rule) = (shift, shift, shift);
         my $option = shift;
         my @values = @{$option->[1]};
 
         foreach my $value (@values) {
             $option->[1] = $value;
-            $fw->{protocol} = $value if $option->[0] eq 'protocol';
+            $rule->{protocol} = $value if $option->[0] eq 'protocol';
 
             if (@_) {
-                dofr($domain, $chain_rules, $fw, @_);
+                dofr($domain, $chain_rules, $rule, @_);
             } else {
-                printrule($domain, $chain_rules, $fw);
+                printrule($domain, $chain_rules, $rule);
             }
         }
 
@@ -1264,28 +1264,28 @@ sub mkrules2($$$) {
     }
 
     if (@unfold) {
-        dofr($domain, $chain_rules, $fw, @unfold);
+        dofr($domain, $chain_rules, $rule, @unfold);
     } else {
-        printrule($domain, $chain_rules, $fw);
+        printrule($domain, $chain_rules, $rule);
     }
 }
 
 # convert a bunch of internal rule structures in iptables calls,
 # unfold arrays during that
 sub mkrules($) {
-    my $fw = shift;
+    my $rule = shift;
 
-    foreach my $domain (to_array $fw->{domain}) {
+    foreach my $domain (to_array $rule->{domain}) {
         my $domain_info = $domains{$domain};
         $domain_info->{enabled} = 1;
 
-        foreach my $table (to_array $fw->{table}) {
+        foreach my $table (to_array $rule->{table}) {
             my $table_info = $domain_info->{tables}{$table} ||= {};
 
-            foreach my $chain (to_array $fw->{chain}) {
+            foreach my $chain (to_array $rule->{chain}) {
                 my $chain_rules = $table_info->{chains}{$chain}{rules} ||= [];
-                mkrules2($domain, $chain_rules, $fw)
-                  if $fw->{has_rule} and not $option{flush};
+                mkrules2($domain, $chain_rules, $rule)
+                  if $rule->{has_rule} and not $option{flush};
             }
         }
     }
@@ -1312,7 +1312,7 @@ sub filter_domains($) {
 
 # parse a keyword from a module definition
 sub parse_keyword($$$$) {
-    my ($current, $def, $keyword, $negated_ref) = @_;
+    my ($rule, $def, $keyword, $negated_ref) = @_;
 
     my $params = $def->{params};
 
@@ -1327,7 +1327,7 @@ sub parse_keyword($$$$) {
     unless (defined $params) {
         undef $value;
     } elsif (ref $params && ref $params eq 'CODE') {
-        $value = &$params($current);
+        $value = &$params($rule);
     } elsif ($params eq 'm') {
         $value = bless [ to_array getvalues() ], 'multi';
     } elsif ($params =~ /^[a-z]/) {
@@ -1395,15 +1395,15 @@ sub append_option(\%$$) {
 
 # parse options of a module
 sub parse_option($$$$) {
-    my ($def, $current, $keyword, $negated_ref) = @_;
+    my ($def, $rule, $keyword, $negated_ref) = @_;
 
     while (exists $def->{alias}) {
         ($keyword, $def) = @{$def->{alias}};
         die unless defined $def;
     }
 
-    append_option(%$current, $keyword,
-                  parse_keyword($current, $def, $keyword, $negated_ref));
+    append_option(%$rule, $keyword,
+                  parse_keyword($rule, $def, $keyword, $negated_ref));
     return 1;
 }
 
@@ -1415,24 +1415,24 @@ sub copy_on_write($$) {
 }
 
 sub new_level(\%$) {
-    my ($current, $prev) = @_;
+    my ($rule, $prev) = @_;
 
-    %$current = ();
+    %$rule = ();
     if (defined $prev) {
         # copy data from previous level
-        $current->{cow} = { keywords => 1, };
-        $current->{keywords} = $prev->{keywords};
-        $current->{match} = { %{$prev->{match}} };
-        $current->{options} = [@{$prev->{options}}];
+        $rule->{cow} = { keywords => 1, };
+        $rule->{keywords} = $prev->{keywords};
+        $rule->{match} = { %{$prev->{match}} };
+        $rule->{options} = [@{$prev->{options}}];
         foreach my $key (qw(domain domain_family table chain protocol has_action)) {
-            $current->{$key} = $prev->{$key}
+            $rule->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
     } else {
-        $current->{cow} = {};
-        $current->{keywords} = {};
-        $current->{match} = {};
-        $current->{options} = [];
+        $rule->{cow} = {};
+        $rule->{keywords} = {};
+        $rule->{match} = {};
+        $rule->{options} = [];
     }
 }
 
@@ -1496,8 +1496,8 @@ sub enter($$) {
     my $base_level = $script->{base_level} || 0;
     die if $base_level > $lev;
 
-    my %current;
-    new_level(%current, $prev);
+    my %rule;
+    new_level(%rule, $prev);
 
     # read keywords 1 by 1 and dump into parser
     while (defined (my $keyword = next_token())) {
@@ -1524,22 +1524,22 @@ sub enter($$) {
 
             # effectuation operator
             if ($keyword eq ';') {
-                if ($current{has_rule} and not exists $current{has_action}) {
+                if ($rule{has_rule} and not exists $rule{has_action}) {
                     # something is wrong when a rule was specified,
                     # but no action
                     error('No action defined; did you mean "NOP"?');
                 }
 
-                error('No chain defined') unless exists $current{chain};
+                error('No chain defined') unless exists $rule{chain};
 
-                $current{script} = { filename => $script->{filename},
+                $rule{script} = { filename => $script->{filename},
                                      line => $script->{line},
                                    };
 
-                mkrules(\%current);
+                mkrules(\%rule);
 
                 # and clean up variables set in this level
-                new_level(%current, $prev);
+                new_level(%rule, $prev);
 
                 next;
             }
@@ -1566,7 +1566,7 @@ sub enter($$) {
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
                 error('"hook" must be the first token in a command')
-                  if exists $current{domain};
+                  if exists $rule{domain};
 
                 my $position = getvar();
                 my $hooks;
@@ -1592,7 +1592,7 @@ sub enter($$) {
                 unshift @stack, { auto => { %{$stack[0]{auto} || {}} } };
 
                 # recurse
-                enter($lev + 1, \%current);
+                enter($lev + 1, \%rule);
 
                 # pop stack
                 shift @stack;
@@ -1600,7 +1600,7 @@ sub enter($$) {
 
                 # after a block, the command is finished, clear this
                 # level
-                new_level(%current, $prev);
+                new_level(%rule, $prev);
 
                 next;
             }
@@ -1612,7 +1612,7 @@ sub enter($$) {
                 # consistency check: check if they havn't forgotten
                 # the ';' before the last statement
                 error('Missing semicolon before "}"')
-                  if $current{has_rule};
+                  if $rule{has_rule};
 
                 # and exit
                 return;
@@ -1646,7 +1646,7 @@ sub enter($$) {
                     unshift @stack, $stack;
 
                     # parse the script
-                    enter($lev + 1, \%current);
+                    enter($lev + 1, \%rule);
 
                     # pop stack
                     shift @stack;
@@ -1662,7 +1662,7 @@ sub enter($$) {
             # definition of a variable or function
             if ($keyword eq '@def' or $keyword eq 'def') {
                 error('"def" must be the first token in a command')
-                  if $current{has_rule};
+                  if $rule{has_rule};
 
                 my $type = require_next_token();
                 if ($type eq '$') {
@@ -1787,50 +1787,50 @@ sub enter($$) {
             # where to put the rule?
             if ($keyword eq 'domain') {
                 error('Domain is already specified')
-                  if exists $current{domain};
+                  if exists $rule{domain};
 
-                set_domain(%current, getvalues());
+                set_domain(%rule, getvalues());
                 next;
             }
 
             if ($keyword eq 'table') {
                 error('Table is already specified')
-                  if exists $current{table};
-                $current{table} = $stack[0]{auto}{TABLE} = getvalues();
+                  if exists $rule{table};
+                $rule{table} = $stack[0]{auto}{TABLE} = getvalues();
 
-                set_domain(%current, 'ip')
-                  unless exists $current{domain};
+                set_domain(%rule, 'ip')
+                  unless exists $rule{domain};
 
                 next;
             }
 
             if ($keyword eq 'chain') {
                 error('Chain is already specified')
-                  if exists $current{chain};
-                $current{chain} = $stack[0]{auto}{CHAIN} = getvalues();
+                  if exists $rule{chain};
+                $rule{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
                 # ferm 1.1 allowed lower case built-in chain names
-                foreach (ref $current{chain} ? @{$current{chain}} : $current{chain}) {
+                foreach (ref $rule{chain} ? @{$rule{chain}} : $rule{chain}) {
                     error('Please write built-in chain names in upper case')
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
 
-                set_domain(%current, 'ip')
-                  unless exists $current{domain};
+                set_domain(%rule, 'ip')
+                  unless exists $rule{domain};
 
-                $current{table} = 'filter'
-                  unless exists $current{table};
+                $rule{table} = 'filter'
+                  unless exists $rule{table};
 
                 next;
             }
 
             error('Chain must be specified')
-              unless exists $current{chain};
+              unless exists $rule{chain};
 
             # policy for built-in chain
             if ($keyword eq 'policy') {
                 error('Cannot specify matches for policy')
-                  if $current{has_rule};
+                  if $rule{has_rule};
 
                 my $policy = getvar();
                 error("Invalid policy target: $policy")
@@ -1838,25 +1838,25 @@ sub enter($$) {
 
                 expect_token(';');
 
-                foreach my $domain (to_array $current{domain}) {
-                    foreach my $table (to_array $current{table}) {
-                        foreach my $chain (to_array $current{chain}) {
+                foreach my $domain (to_array $rule{domain}) {
+                    foreach my $table (to_array $rule{table}) {
+                        foreach my $chain (to_array $rule{chain}) {
                             $domains{$domain}{tables}{$table}{chains}{$chain}{policy} = $policy;
                         }
                     }
                 }
 
-                new_level(%current, $prev);
+                new_level(%rule, $prev);
                 next;
             }
 
             # create a subchain
             if ($keyword eq '@subchain' or $keyword eq 'subchain') {
                 error('Chain must be specified')
-                  unless exists $current{chain};
+                  unless exists $rule{chain};
 
                 error('No rule specified before "@subchain"')
-                  unless $current{has_rule};
+                  unless $rule{has_rule};
 
                 my $subchain;
                 $keyword = next_token();
@@ -1871,20 +1871,20 @@ sub enter($$) {
                 error('"{" or chain name expected after "@subchain"')
                   unless $keyword eq '{';
 
-                # create a deep copy of %current, only containing values
+                # create a deep copy of %rule, only containing values
                 # which must be in the subchain
                 my %inner = ( cow => { keywords => 1, },
-                              keywords => $current{keywords},
+                              keywords => $rule{keywords},
                               match => {},
                               options => [],
                             );
-                $inner{domain} = $current{domain};
-                $inner{domain_family} = $current{domain_family};
-                $inner{table} = $current{table};
+                $inner{domain} = $rule{domain};
+                $inner{domain_family} = $rule{domain_family};
+                $inner{table} = $rule{table};
                 $inner{chain} = $inner{auto}{CHAIN} = $subchain;
 
-                if (exists $current{protocol}) {
-                    $inner{protocol} = $current{protocol};
+                if (exists $rule{protocol}) {
+                    $inner{protocol} = $rule{protocol};
                     append_option(%inner, 'protocol', $inner{protocol});
                 }
 
@@ -1892,48 +1892,48 @@ sub enter($$) {
                 enter(1, \%inner);
 
                 # now handle the parent - it's a jump to the sub chain
-                $current{has_action} = 1;
-                append_option(%current, 'jump', $subchain);
+                $rule{has_action} = 1;
+                append_option(%rule, 'jump', $subchain);
 
-                $current{script} = { filename => $script->{filename},
+                $rule{script} = { filename => $script->{filename},
                                      line => $script->{line},
                                    };
 
-                mkrules(\%current);
+                mkrules(\%rule);
 
                 # and clean up variables set in this level
-                new_level(%current, $prev);
+                new_level(%rule, $prev);
 
                 next;
             }
 
             # everything else must be part of a "real" rule, not just
             # "policy only"
-            $current{has_rule}++;
+            $rule{has_rule}++;
 
             # extended parameters:
             if ($keyword =~ /^mod(?:ule)?$/) {
                 foreach my $module (to_array getvalues) {
-                    next if exists $current{match}{$module};
+                    next if exists $rule{match}{$module};
 
-                    my $domain_family = $current{domain_family};
+                    my $domain_family = $rule{domain_family};
                     my $defs = $match_defs{$domain_family}{$module};
 
-                    append_option(%current, 'match', $module);
-                    $current{match}{$module} = 1;
+                    append_option(%rule, 'match', $module);
+                    $rule{match}{$module} = 1;
 
-                    merge_keywords(%current, $defs->{keywords})
+                    merge_keywords(%rule, $defs->{keywords})
                       if defined $defs;
                 }
 
                 next;
             }
 
-            # keywords from $current{keywords}
+            # keywords from $rule{keywords}
 
-            if (exists $current{keywords}{$keyword}) {
-                my $def = $current{keywords}{$keyword};
-                parse_option($def, \%current, $keyword, \$negated);
+            if (exists $rule{keywords}{$keyword}) {
+                my $def = $rule{keywords}{$keyword};
+                parse_option($def, \%rule, $keyword, \$negated);
                 next;
             }
 
@@ -1944,72 +1944,72 @@ sub enter($$) {
             # jump action
             if ($keyword eq 'jump') {
                 error('There can only one action per rule')
-                  if exists $current{has_action};
+                  if exists $rule{has_action};
                 my $chain = getvar();
-                if (my $defs = is_netfilter_module_target($current{domain_family}, $chain)) {
-                    set_module_target(%current, $chain, $defs);
+                if (my $defs = is_netfilter_module_target($rule{domain_family}, $chain)) {
+                    set_module_target(%rule, $chain, $defs);
                 }
-                $current{has_action} = 1;
-                append_option(%current, 'jump', $chain);
+                $rule{has_action} = 1;
+                append_option(%rule, 'jump', $chain);
                 next;
             };
 
             # goto action
             if ($keyword eq 'realgoto') {
                 error('There can only one action per rule')
-                  if exists $current{has_action};
-                append_option(%current, 'goto', getvar());
-                $current{has_action} = 1;
+                  if exists $rule{has_action};
+                append_option(%rule, 'goto', getvar());
+                $rule{has_action} = 1;
                 next;
             };
 
             # action keywords
             if (is_netfilter_core_target($keyword)) {
                 error('There can only one action per rule')
-                  if exists $current{has_action};
-                $current{has_action} = 1;
-                append_option(%current, 'jump', $keyword);
+                  if exists $rule{has_action};
+                $rule{has_action} = 1;
+                append_option(%rule, 'jump', $keyword);
                 next;
             }
 
             if ($keyword eq 'NOP') {
                 error('There can only one action per rule')
-                  if exists $current{has_action};
-                $current{has_action} = 1;
+                  if exists $rule{has_action};
+                $rule{has_action} = 1;
                 next;
             }
 
-            if (my $defs = is_netfilter_module_target($current{domain_family}, $keyword)) {
+            if (my $defs = is_netfilter_module_target($rule{domain_family}, $keyword)) {
                 error('There can only one action per rule')
-                  if exists $current{has_action};
+                  if exists $rule{has_action};
 
-                set_module_target(%current, $keyword, $defs);
-                $current{has_action} = 1;
-                append_option(%current, 'jump', $keyword);
+                set_module_target(%rule, $keyword, $defs);
+                $rule{has_action} = 1;
+                append_option(%rule, 'jump', $keyword);
                 next;
             }
 
-            my $proto = $current{protocol};
+            my $proto = $rule{protocol};
 
             ###
             # protocol specific options
             #
 
             if ($keyword eq 'proto') {
-                my $protocol = parse_keyword(\%current,
+                my $protocol = parse_keyword(\%rule,
                                              { params => 1, negation => 1 },
                                              'proto', \$negated);
-                $current{protocol} = $protocol;
-                append_option(%current, 'protocol', $current{protocol});
+                $rule{protocol} = $protocol;
+                append_option(%rule, 'protocol', $rule{protocol});
 
                 unless (ref $protocol) {
                     $protocol = netfilter_canonical_protocol($protocol);
-                    my $domain_family = $current{domain_family};
+                    my $domain_family = $rule{domain_family};
                     my $defs = $proto_defs{$domain_family}{$protocol};
                     if (defined $defs) {
-                        merge_keywords(%current, $defs->{keywords});
+                        merge_keywords(%rule, $defs->{keywords});
                         my $module = netfilter_protocol_module($protocol);
-                        $current{match}{$module} = 1;
+                        $rule{match}{$module} = 1;
                     }
                 }
                 next;
@@ -2020,7 +2020,7 @@ sub enter($$) {
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
-                append_option(%current, $keyword,
+                append_option(%rule, $keyword,
                               getvalues(undef, undef,
                                         allow_negation => 1));
                 next;
@@ -2042,7 +2042,7 @@ sub enter($$) {
     # consistency check: check if they havn't forgotten
     # the ';' before the last statement
     error("Missing semicolon before end of file")
-      if exists $current{domain};
+      if exists $rule{domain};
 }
 
 sub execute_command {
