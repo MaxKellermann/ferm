@@ -1186,51 +1186,54 @@ sub shell_escape($) {
 
 # append an option to the shell command line, using information from
 # the module definition (see %match_defs etc.)
-sub shell_append_option($$$) {
-    my ($ref, $keyword, $value) = @_;
+sub shell_format_option($$) {
+    my ($keyword, $value) = @_;
 
+    my $cmd = '';
     if (ref $value) {
         if (ref $value eq 'negated') {
             $value = $value->[0];
             $keyword .= ' !';
         } elsif (ref $value eq 'pre_negated') {
             $value = $value->[0];
-            $$ref .= ' !';
+            $cmd = ' !';
         }
     }
 
     unless (defined $value) {
-        $$ref .= " --$keyword";
+        $cmd .= " --$keyword";
     } elsif (ref $value) {
         if (ref $value eq 'params') {
-            $$ref .= " --$keyword ";
-            $$ref .= join(' ', map { shell_escape($_) } @$value);
+            $cmd .= " --$keyword ";
+            $cmd .= join(' ', map { shell_escape($_) } @$value);
         } elsif (ref $value eq 'multi') {
             foreach (@$value) {
-                $$ref .= " --$keyword " . shell_escape($_);
+                $cmd .= " --$keyword " . shell_escape($_);
             }
         } else {
             die;
         }
     } else {
-        $$ref .= " --$keyword " . shell_escape($value);
+        $cmd .= " --$keyword " . shell_escape($value);
     }
+
+    return $cmd;
+}
+
+sub format_option($$) {
+    my ($domain, $option) = @_;
+    my ($name, $value) = @$option;
+    $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
+      and $value eq 'icmp';
+    return shell_format_option($name, $value);
 }
 
 sub printrule($$$) {
     my ($domain, $chain_rules, $rule) = @_;
 
-    # format iptables options
-    my $rr = '';
-    foreach my $option (@{$rule->{options}}) {
-        my ($name, $value) = @$option;
-        $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
-          and $value eq 'icmp';
-        shell_append_option(\$rr, $name, $value);
-    }
-
-    # append to rule list
-    push @$chain_rules, { rule => $rr,
+    my $cmd = join('', map { format_option($domain, $_) }
+                     @{$rule->{options}});
+    push @$chain_rules, { rule => $cmd,
                           script => $rule->{script},
                         };
 }
