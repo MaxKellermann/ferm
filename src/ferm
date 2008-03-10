@@ -1236,6 +1236,22 @@ sub printrule($$) {
                         };
 }
 
+sub dofr {
+    my ($domain, $chain_rules, $rule) = (shift, shift, shift);
+    my $option = shift;
+    my @values = @{$option->[1]};
+
+    foreach my $value (@values) {
+        $option->[2] = format_option($domain, $option->[0], $value);
+
+        if (@_) {
+            dofr($domain, $chain_rules, $rule, @_);
+        } else {
+            printrule($chain_rules, $rule);
+        }
+    }
+}
+
 sub mkrules2($$$) {
     my ($domain, $chain_rules, $rule) = @_;
 
@@ -1245,22 +1261,6 @@ sub mkrules2($$$) {
             push @unfold, $option
         } else {
             $option->[2] = format_option($domain, $option->[0], $option->[1]);
-        }
-    }
-
-    sub dofr {
-        my ($domain, $chain_rules, $rule) = (shift, shift, shift);
-        my $option = shift;
-        my @values = @{$option->[1]};
-
-        foreach my $value (@values) {
-            $option->[2] = format_option($domain, $option->[0], $value);
-
-            if (@_) {
-                dofr($domain, $chain_rules, $rule, @_);
-            } else {
-                printrule($chain_rules, $rule);
-            }
         }
     }
 
