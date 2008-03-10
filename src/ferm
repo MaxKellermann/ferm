@@ -1225,7 +1225,7 @@ sub transform_rule($$) {
 }
 
 sub printrule($$$) {
-    my ($domain, $chain_info, $rule) = @_;
+    my ($domain, $chain_rules, $rule) = @_;
 
     transform_rule($domain, $rule);
 
@@ -1239,7 +1239,6 @@ sub printrule($$$) {
     }
 
     # append to rule list
-    my $chain_rules = $chain_info->{rules} ||= [];
     push @$chain_rules, { rule => $rr,
                           script => $rule->{script},
                         };
@@ -1255,7 +1254,7 @@ sub check_unfold(\@$$) {
 }
 
 sub mkrules2($$$) {
-    my ($domain, $chain_info, $fw) = @_;
+    my ($domain, $chain_rules, $fw) = @_;
 
     my @unfold;
     foreach my $option (@{$fw->{options}}) {
@@ -1264,13 +1263,13 @@ sub mkrules2($$$) {
     }
 
     if (@unfold == 0) {
-        printrule($domain, $chain_info, $fw);
+        printrule($domain, $chain_rules, $fw);
         return;
     }
 
     sub dofr {
         my $fw = shift;
-        my ($domain, $chain_info) = (shift, shift);
+        my ($domain, $chain_rules) = (shift, shift);
         my $option = shift;
         my @values = @{$option->[1]};
 
@@ -1279,14 +1278,14 @@ sub mkrules2($$$) {
             $fw->{protocol} = $value if $option->[0] eq 'protocol';
 
             if (@_) {
-                dofr($fw, $domain, $chain_info, @_);
+                dofr($fw, $domain, $chain_rules, @_);
             } else {
-                printrule($domain, $chain_info, $fw);
+                printrule($domain, $chain_rules, $fw);
             }
         }
     }
 
-    dofr($fw, $domain, $chain_info, @unfold);
+    dofr($fw, $domain, $chain_rules, @unfold);
 }
 
 # convert a bunch of internal rule structures in iptables calls,
@@ -1302,9 +1301,8 @@ sub mkrules($) {
             my $table_info = $domain_info->{tables}{$table} ||= {};
 
             foreach my $chain (to_array $fw->{chain}) {
-                my $chain_info = $table_info->{chains}{$chain} ||= {};
-
-                mkrules2($domain, $chain_info, $fw);
+                my $chain_rules = $table_info->{chains}{$chain}{rules} ||= [];
+                mkrules2($domain, $chain_rules, $fw);
             }
         }
     }
