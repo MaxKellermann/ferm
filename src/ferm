@@ -1230,8 +1230,7 @@ sub format_option($$$) {
 sub printrule($$$) {
     my ($domain, $chain_rules, $rule) = @_;
 
-    my $cmd = join('', map { format_option($domain, $_->[0], $_->[1]) }
-                     @{$rule->{options}});
+    my $cmd = join('', map { $_->[2] } @{$rule->{options}});
     push @$chain_rules, { rule => $cmd,
                           script => $rule->{script},
                         };
@@ -1242,8 +1241,11 @@ sub mkrules2($$$) {
 
     my @unfold;
     foreach my $option (@{$rule->{options}}) {
-        push @unfold, $option
-          if ref $option->[1] and ref $option->[1] eq 'ARRAY';
+        if (ref $option->[1] and ref $option->[1] eq 'ARRAY') {
+            push @unfold, $option
+        } else {
+            $option->[2] = format_option($domain, $option->[0], $option->[1]);
+        }
     }
 
     sub dofr {
@@ -1252,8 +1254,7 @@ sub mkrules2($$$) {
         my @values = @{$option->[1]};
 
         foreach my $value (@values) {
-            $option->[1] = $value;
-            $rule->{protocol} = $value if $option->[0] eq 'protocol';
+            $option->[2] = format_option($domain, $option->[0], $value);
 
             if (@_) {
                 dofr($domain, $chain_rules, $rule, @_);
@@ -1261,8 +1262,6 @@ sub mkrules2($$$) {
                 printrule($domain, $chain_rules, $rule);
             }
         }
-
-        $option->[1] = \@values;
     }
 
     if (@unfold) {
