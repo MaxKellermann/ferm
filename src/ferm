@@ -1249,7 +1249,7 @@ sub mkrules2($$$) {
     }
 
     sub dofr {
-        my ($chain_rules, $rule) = (shift, shift);
+        my ($domain, $chain_rules, $rule) = (shift, shift, shift);
         my $option = shift;
         my @values = @{$option->[1]};
 
@@ -1257,7 +1257,7 @@ sub mkrules2($$$) {
             $option->[2] = format_option($domain, $option->[0], $value);
 
             if (@_) {
-                dofr($chain_rules, $rule, @_);
+                dofr($domain, $chain_rules, $rule, @_);
             } else {
                 printrule($chain_rules, $rule);
             }
@@ -1265,7 +1265,7 @@ sub mkrules2($$$) {
     }
 
     if (@unfold) {
-        dofr($chain_rules, $rule, @unfold);
+        dofr($domain, $chain_rules, $rule, @unfold);
     } else {
         printrule($chain_rules, $rule);
     }
