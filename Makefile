@@ -70,29 +70,29 @@ RESULT_SED += -e 's,--fragment,-f,g'
 
 EB_ARP_RESULT_SED = -e 's,--jump,-j,g'
 
-$(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm $(NEW_FERM)
+$(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(EB_ARP_RESULT_SED) >$@
+	$(PERL) src/ferm --test $< |sed $(EB_ARP_RESULT_SED) >$@
 
-$(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm $(NEW_FERM)
+$(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) $< |sed $(EB_ARP_RESULT_SED) >$@
+	$(PERL) src/ferm --test $< |sed $(EB_ARP_RESULT_SED) >$@
 
-$(STAMPDIR)/%.result: %.ferm $(NEW_FERM)
+$(STAMPDIR)/%.result: %.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) --noflush $(NEW_OPTIONS) $< |sed $(RESULT_SED) >$@
+	$(PERL) src/ferm --test --noflush $< |sed $(RESULT_SED) >$@
 
-$(STAMPDIR)/%.SAVE: %.ferm $(NEW_FERM)
+$(STAMPDIR)/%.SAVE: %.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< >$@.tmp
+	$(PERL) src/ferm --test --fast $< >$@.tmp
 	grep -v '^#' <$@.tmp >$@
 
 $(STAMPDIR)/test/ipv6/%.IMPORT: export FERM_DOMAIN=ip6
 $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 	$(PERL) src/import-ferm $< >$@
 
-$(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT $(NEW_FERM)
-	$(PERL) $(NEW_FERM) $(NEW_OPTIONS) --fast $< |grep -v '^#' >$@
+$(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT src/ferm
+	$(PERL) src/ferm --test --fast $< |grep -v '^#' >$@
 
 $(STAMPDIR)/%.check: %.result $(STAMPDIR)/%.result
 	diff -u $^

@@ -6,6 +6,3 @@ DOCDIR = $(PREFIX)/share/doc/ferm
 
 WEBDIR = /home/web/users/koka/ferm
 FTPDIR = /home/tecguest/ises/koka/anonftp
-
-NEW_FERM = $(TOPDIR)/src/ferm
-NEW_OPTIONS = --test
