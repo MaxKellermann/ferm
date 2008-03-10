@@ -448,12 +448,12 @@ if ($has_getopt) {
         exit 0;
     };
 
-    $option{'noexec'} = (defined $opt_noexec);
+    $option{noexec} = defined $opt_noexec;
     $option{flush} = defined $opt_flush;
     $option{noflush} = defined $opt_noflush;
-    $option{'lines'} = (defined $opt_lines);
-    $option{interactive} = (defined $opt_interactive);
-    $option{test} = (defined $opt_test);
+    $option{lines} = defined $opt_lines;
+    $option{interactive} = defined $opt_interactive;
+    $option{test} = defined $opt_test;
 
     if ($option{test}) {
         $option{noexec} = 1;
