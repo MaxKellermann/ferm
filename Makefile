@@ -9,9 +9,6 @@ VERSION := $(shell $(PERL) src/ferm --version | awk '{print $$2}' | head -1 | tr
 
 DISTDIR = build/ferm-$(VERSION)
 
-TARFILE = build/ferm-${VERSION}.tar.gz
-LSMFILE	= build/ferm-${VERSION}.lsm
-
 .PHONY: all clean
 
 all: doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1
