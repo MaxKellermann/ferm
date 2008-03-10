@@ -1245,8 +1245,7 @@ sub mkrules2($$$) {
     }
 
     sub dofr {
-        my $fw = shift;
-        my ($domain, $chain_rules) = (shift, shift);
+        my ($domain, $chain_rules, $fw) = (shift, shift, shift);
         my $option = shift;
         my @values = @{$option->[1]};
 
@@ -1255,7 +1254,7 @@ sub mkrules2($$$) {
             $fw->{protocol} = $value if $option->[0] eq 'protocol';
 
             if (@_) {
-                dofr($fw, $domain, $chain_rules, @_);
+                dofr($domain, $chain_rules, $fw, @_);
             } else {
                 printrule($domain, $chain_rules, $fw);
             }
@@ -1265,7 +1264,7 @@ sub mkrules2($$$) {
     }
 
     if (@unfold) {
-        dofr($fw, $domain, $chain_rules, @unfold);
+        dofr($domain, $chain_rules, $fw, @unfold);
     } else {
         printrule($domain, $chain_rules, $fw);
     }
