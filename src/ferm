@@ -1229,9 +1229,6 @@ sub printrule($$$) {
 
     transform_rule($domain, $rule);
 
-    # return if this is a declaration-only rule
-    return if $option{flush} or not $rule->{has_rule};
-
     # format iptables options
     my $rr = '';
     foreach my $option (@{$rule->{options}}) {
@@ -1295,7 +1292,8 @@ sub mkrules($) {
 
             foreach my $chain (to_array $fw->{chain}) {
                 my $chain_rules = $table_info->{chains}{$chain}{rules} ||= [];
-                mkrules2($domain, $chain_rules, $fw);
+                mkrules2($domain, $chain_rules, $fw)
+                  if $fw->{has_rule} and not $option{flush};
             }
         }
     }
