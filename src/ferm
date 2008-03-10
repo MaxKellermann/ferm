@@ -400,7 +400,6 @@ unshift @stack, {};
 # Get command line stuff
 if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_noflush, $opt_lines, $opt_interactive,
-        $opt_verbose, $opt_debug,
         $opt_help,
         $opt_version, $opt_test, $opt_fast, $opt_shell,
         $opt_domain);
@@ -426,8 +425,6 @@ if ($has_getopt) {
                'noflush' => \$opt_noflush,
                'lines|l' => \$opt_lines,
                'interactive|i' => \$opt_interactive,
-               'verbose|v' => \$opt_verbose,
-               'debug|d' => \$opt_debug,
                'help|h' => \$opt_help,
                'version|V' => \$opt_version,
                test => \$opt_test,
@@ -463,11 +460,6 @@ if ($has_getopt) {
       if $option{interactive} and not -t STDERR;
 
     $option{domain} = $opt_domain if defined $opt_domain;
-
-    print STDERR "Warning: ignoring the obsolete --debug option\n"
-      if defined $opt_debug;
-    print STDERR "Warning: ignoring the obsolete --verbose option\n"
-      if defined $opt_verbose;
 } else {
     # tiny getopt emulation for microperl
     my $filename;
