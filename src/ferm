@@ -448,30 +448,19 @@ if ($has_getopt) {
         exit 0;
     };
 
-    $option{noexec} = defined $opt_noexec;
-    $option{flush} = defined $opt_flush;
-    $option{noflush} = defined $opt_noflush;
-    $option{lines} = defined $opt_lines;
-    $option{interactive} = defined $opt_interactive;
-    $option{test} = defined $opt_test;
-
-    if ($option{test}) {
-        $option{noexec} = 1;
-        $option{lines} = 1;
-    }
-
-    delete $option{interactive} if $option{noexec};
+    $option{noexec} = $opt_noexec || $opt_test;
+    $option{flush} = $opt_flush;
+    $option{noflush} = $opt_noflush;
+    $option{lines} = $opt_lines || $opt_test || $opt_shell;
+    $option{interactive} = $opt_interactive && !$opt_noexec;
+    $option{test} = $opt_test;
+    $option{fast} = $opt_fast || $opt_shell;
+    $option{shell} = $opt_shell;
 
     mydie('ferm interactive mode not possible: /dev/stdin is not a tty')
       if $option{interactive} and not -t STDIN;
     mydie('ferm interactive mode not possible: /dev/stderr is not a tty')
       if $option{interactive} and not -t STDERR;
-
-    $option{fast} = 1 if defined $opt_fast;
-
-    if (defined $opt_shell) {
-        $option{$_} = 1 foreach qw(shell fast lines);
-    }
 
     $option{domain} = $opt_domain if defined $opt_domain;
 
