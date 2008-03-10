@@ -1999,8 +1999,7 @@ sub enter($$) {
                 unless (ref $protocol) {
                     $protocol = netfilter_canonical_protocol($protocol);
                     my $domain_family = $rule{domain_family};
-                    my $defs = $proto_defs{$domain_family}{$protocol};
-                    if (defined $defs) {
+                    if (my $defs = $proto_defs{$domain_family}{$protocol}) {
                         merge_keywords(%rule, $defs->{keywords});
                         my $module = netfilter_protocol_module($protocol);
                         $rule{match}{$module} = 1;
