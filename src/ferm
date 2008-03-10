@@ -1467,6 +1467,14 @@ sub set_domain(\%$) {
     $rule->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
 }
 
+sub set_target(\%$$) {
+    my ($rule, $name, $value) = @_;
+    error('There can only one action per rule')
+      if exists $rule->{has_action};
+    $rule->{has_action} = 1;
+    append_option(%$rule, $name, $value);
+}
+
 sub set_module_target(\%$$) {
     my ($rule, $name, $defs) = @_;
 
@@ -1944,32 +1952,23 @@ sub enter($$) {
 
             # jump action
             if ($keyword eq 'jump') {
-                error('There can only one action per rule')
-                  if exists $rule{has_action};
                 my $chain = getvar();
+                set_target(%rule, 'jump', $chain);
                 if (my $defs = is_netfilter_module_target($rule{domain_family}, $chain)) {
                     set_module_target(%rule, $chain, $defs);
                 }
-                $rule{has_action} = 1;
-                append_option(%rule, 'jump', $chain);
                 next;
             };
 
             # goto action
             if ($keyword eq 'realgoto') {
-                error('There can only one action per rule')
-                  if exists $rule{has_action};
-                append_option(%rule, 'goto', getvar());
-                $rule{has_action} = 1;
+                set_target(%rule, 'goto', getvar());
                 next;
             };
 
             # action keywords
             if (is_netfilter_core_target($keyword)) {
-                error('There can only one action per rule')
-                  if exists $rule{has_action};
-                $rule{has_action} = 1;
-                append_option(%rule, 'jump', $keyword);
+                set_target(%rule, 'jump', $keyword);
                 next;
             }
 
@@ -1981,12 +1980,8 @@ sub enter($$) {
             }
 
             if (my $defs = is_netfilter_module_target($rule{domain_family}, $keyword)) {
-                error('There can only one action per rule')
-                  if exists $rule{has_action};
-
+                set_target(%rule, 'jump', $keyword);
                 set_module_target(%rule, $keyword, $defs);
-                $rule{has_action} = 1;
-                append_option(%rule, 'jump', $keyword);
                 next;
             }
 
