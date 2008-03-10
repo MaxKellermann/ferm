@@ -1220,9 +1220,8 @@ sub shell_format_option($$) {
     return $cmd;
 }
 
-sub format_option($$) {
-    my ($domain, $option) = @_;
-    my ($name, $value) = @$option;
+sub format_option($$$) {
+    my ($domain, $name, $value) = @_;
     $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
       and $value eq 'icmp';
     return shell_format_option($name, $value);
@@ -1231,7 +1230,7 @@ sub format_option($$) {
 sub printrule($$$) {
     my ($domain, $chain_rules, $rule) = @_;
 
-    my $cmd = join('', map { format_option($domain, $_) }
+    my $cmd = join('', map { format_option($domain, $_->[0], $_->[1]) }
                      @{$rule->{options}});
     push @$chain_rules, { rule => $cmd,
                           script => $rule->{script},
