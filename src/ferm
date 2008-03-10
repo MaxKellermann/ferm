@@ -1220,13 +1220,13 @@ sub shell_append_option($$$) {
 sub printrule($$$) {
     my ($domain, $chain_rules, $rule) = @_;
 
-    $rule->{options}[$rule->{protocol_index}][1] = 'icmpv6'
-      if $domain eq 'ip6' and $rule->{protocol} eq 'icmp';
-
     # format iptables options
     my $rr = '';
     foreach my $option (@{$rule->{options}}) {
-        shell_append_option(\$rr, $option->[0], $option->[1]);
+        my ($name, $value) = @$option;
+        $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
+          and $value eq 'icmp';
+        shell_append_option(\$rr, $name, $value);
     }
 
     # append to rule list
@@ -1424,7 +1424,7 @@ sub new_level(\%$) {
         $current->{keywords} = $prev->{keywords};
         $current->{match} = { %{$prev->{match}} };
         $current->{options} = [@{$prev->{options}}];
-        foreach my $key (qw(domain domain_family table chain protocol protocol_index has_action)) {
+        foreach my $key (qw(domain domain_family table chain protocol has_action)) {
             $current->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -1885,7 +1885,6 @@ sub enter($$) {
 
                 if (exists $current{protocol}) {
                     $inner{protocol} = $current{protocol};
-                    $inner{protocol_index} = 0;
                     append_option(%inner, 'protocol', $inner{protocol});
                 }
 
@@ -2001,7 +2000,6 @@ sub enter($$) {
                                              { params => 1, negation => 1 },
                                              'proto', \$negated);
                 $current{protocol} = $protocol;
-                $current{protocol_index} = scalar(@{$current{options}});
                 append_option(%current, 'protocol', $current{protocol});
 
                 unless (ref $protocol) {
