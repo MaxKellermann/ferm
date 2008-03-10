@@ -1244,11 +1244,6 @@ sub mkrules2($$$) {
           if ref $option->[1] and ref $option->[1] eq 'ARRAY';
     }
 
-    if (@unfold == 0) {
-        printrule($domain, $chain_rules, $fw);
-        return;
-    }
-
     sub dofr {
         my $fw = shift;
         my ($domain, $chain_rules) = (shift, shift);
@@ -1269,7 +1264,11 @@ sub mkrules2($$$) {
         $option->[1] = \@values;
     }
 
-    dofr($fw, $domain, $chain_rules, @unfold);
+    if (@unfold) {
+        dofr($fw, $domain, $chain_rules, @unfold);
+    } else {
+        printrule($domain, $chain_rules, $fw);
+    }
 }
 
 # convert a bunch of internal rule structures in iptables calls,
