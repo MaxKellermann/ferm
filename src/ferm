@@ -1283,6 +1283,8 @@ sub mkrules2($$$) {
                 printrule($domain, $chain_rules, $fw);
             }
         }
+
+        $option->[1] = \@values;
     }
 
     dofr($fw, $domain, $chain_rules, @unfold);
