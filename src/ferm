@@ -1990,8 +1990,6 @@ sub enter($$) {
                 next;
             }
 
-            my $proto = $rule{protocol};
-
             ###
             # protocol specific options
             #
@@ -2018,6 +2016,7 @@ sub enter($$) {
 
             # port switches
             if ($keyword =~ /^[sd]port$/) {
+                my $proto = $rule{protocol};
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
