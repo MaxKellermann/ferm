@@ -1877,6 +1877,8 @@ sub enter($$) {
                     $subchain = 'ferm_auto_' . ++$auto_chain;
                 }
 
+                set_target(%rule, 'jump', $subchain);
+
                 error('"{" or chain name expected after "@subchain"')
                   unless $keyword eq '{';
 
@@ -1901,9 +1903,6 @@ sub enter($$) {
                 enter(1, \%inner);
 
                 # now handle the parent - it's a jump to the sub chain
-                $rule{has_action} = 1;
-                append_option(%rule, 'jump', $subchain);
-
                 $rule{script} = { filename => $script->{filename},
                                      line => $script->{line},
                                    };
