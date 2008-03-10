@@ -1217,31 +1217,6 @@ sub shell_append_option($$$) {
     }
 }
 
-# convert an internal rule structure into an iptables call
-sub tables($$$) {
-    my ($table_info, $chain_info, $rule) = @_;
-
-    return if $option{flush};
-
-    # return if this is a declaration-only rule
-    return
-      unless $rule->{has_rule};
-
-    my $rr = '';
-
-    # general iptables options
-
-    foreach my $option (@{$rule->{options}}) {
-        shell_append_option(\$rr, $option->[0], $option->[1]);
-    }
-
-    # this line is done
-    my $chain_rules = $chain_info->{rules} ||= [];
-    push @$chain_rules, { rule => $rr,
-                          script => $rule->{script},
-                        };
-};
-
 sub transform_rule($$) {
     my ($domain, $rule) = @_;
 
@@ -1259,8 +1234,20 @@ sub printrule($$$$) {
     my $table_info = $domain_info->{tables}{$table} ||= {};
     my $chain_info = $table_info->{chains}{$chain} ||= {};
 
-    # prints all rules in a hash
-    tables($table_info, $chain_info, $rule);
+    # return if this is a declaration-only rule
+    return if $option{flush} or not $rule->{has_rule};
+
+    # format iptables options
+    my $rr = '';
+    foreach my $option (@{$rule->{options}}) {
+        shell_append_option(\$rr, $option->[0], $option->[1]);
+    }
+
+    # append to rule list
+    my $chain_rules = $chain_info->{rules} ||= [];
+    push @$chain_rules, { rule => $rr,
+                          script => $rule->{script},
+                        };
 }
 
 
