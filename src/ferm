@@ -1236,6 +1236,13 @@ sub append_rule($$) {
                         };
 }
 
+sub format_option($$$) {
+    my ($domain, $name, $value) = @_;
+    $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
+      and $value eq 'icmp';
+    return shell_format_option($name, $value);
+}
+
 sub unfold_rule {
     my ($domain, $chain_rules, $rule) = (shift, shift, shift);
     return append_rule($chain_rules, $rule) unless @_;
