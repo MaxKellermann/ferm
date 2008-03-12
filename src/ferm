@@ -668,6 +668,25 @@ sub initialize_domain {
     $domain_info->{initialized} = 1;
 }
 
+sub filter_domains($) {
+    my $domains = shift;
+    my $result = [];
+
+    foreach my $domain (to_array $domains) {
+        next if exists $option{domain}
+          and $domain ne $option{domain};
+
+        eval {
+            initialize_domain($domain);
+        };
+        error($@) if $@;
+
+        push @$result, $domain;
+    }
+
+    return @$result == 1 ? $result->[0] : $result;
+}
+
 # split the an input string into words and delete comments
 sub tokenize_string($) {
     my $string = shift;
@@ -1290,25 +1309,6 @@ sub mkrules($) {
             }
         }
     }
-}
-
-sub filter_domains($) {
-    my $domains = shift;
-    my $result = [];
-
-    foreach my $domain (to_array $domains) {
-        next if exists $option{domain}
-          and $domain ne $option{domain};
-
-        eval {
-            initialize_domain($domain);
-        };
-        error($@) if $@;
-
-        push @$result, $domain;
-    }
-
-    return @$result == 1 ? $result->[0] : $result;
 }
 
 # parse a keyword from a module definition
