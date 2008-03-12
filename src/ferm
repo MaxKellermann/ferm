@@ -1236,7 +1236,7 @@ sub printrule($$) {
                         };
 }
 
-sub dofr {
+sub unfold_rule {
     my ($domain, $chain_rules, $rule) = (shift, shift, shift);
     return printrule($chain_rules, $rule) unless @_;
 
@@ -1245,7 +1245,7 @@ sub dofr {
 
     foreach my $value (@values) {
         $option->[2] = format_option($domain, $option->[0], $value);
-        dofr($domain, $chain_rules, $rule, @_);
+        unfold_rule($domain, $chain_rules, $rule, @_);
     }
 }
 
@@ -1261,7 +1261,7 @@ sub mkrules2($$$) {
         }
     }
 
-    dofr($domain, $chain_rules, $rule, @unfold);
+    unfold_rule($domain, $chain_rules, $rule, @unfold);
 }
 
 # convert a bunch of internal rule structures in iptables calls,
