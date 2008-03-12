@@ -687,7 +687,7 @@ sub filter_domains($) {
     return @$result == 1 ? $result->[0] : $result;
 }
 
-# split the an input string into words and delete comments
+# split the input string into words and delete comments
 sub tokenize_string($) {
     my $string = shift;
 
