@@ -1296,7 +1296,7 @@ sub mkrules($) {
 }
 
 # parse a keyword from a module definition
-sub parse_keyword($$$$) {
+sub parse_keyword(\%$$$) {
     my ($rule, $def, $keyword, $negated_ref) = @_;
 
     my $params = $def->{params};
@@ -1378,7 +1378,7 @@ sub append_option(\%$$) {
 }
 
 # parse options of a module
-sub parse_option($$$$) {
+sub parse_option($\%$$) {
     my ($def, $rule, $keyword, $negated_ref) = @_;
 
     while (exists $def->{alias}) {
@@ -1387,7 +1387,7 @@ sub parse_option($$$$) {
     }
 
     append_option(%$rule, $keyword,
-                  parse_keyword($rule, $def, $keyword, $negated_ref));
+                  parse_keyword(%$rule, $def, $keyword, $negated_ref));
     return 1;
 }
 
@@ -1922,7 +1922,7 @@ sub enter($$) {
 
             if (exists $rule{keywords}{$keyword}) {
                 my $def = $rule{keywords}{$keyword};
-                parse_option($def, \%rule, $keyword, \$negated);
+                parse_option($def, %rule, $keyword, \$negated);
                 next;
             }
 
@@ -1970,7 +1970,7 @@ sub enter($$) {
             #
 
             if ($keyword eq 'proto') {
-                my $protocol = parse_keyword(\%rule,
+                my $protocol = parse_keyword(%rule,
                                              { params => 1, negation => 1 },
                                              'proto', \$negated);
                 $rule{protocol} = $protocol;
