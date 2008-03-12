@@ -32,6 +32,7 @@ v2.0 - not yet released
     - use module data from ferm
     - write policy in chain block
   - do not generate implicit protocol modules
+  - do not allow targets options after "jump"
 
 
 v1.3.3 - 22 Jan 2008

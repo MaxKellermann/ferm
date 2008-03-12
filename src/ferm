@@ -1931,12 +1931,7 @@ sub enter($$) {
 
             # jump action
             if ($keyword eq 'jump') {
-                my $chain = getvar();
-                if (my $defs = is_netfilter_module_target($rule{domain_family}, $chain)) {
-                    set_module_target(%rule, $chain, $defs);
-                } else {
-                    set_target(%rule, 'jump', $chain);
-                }
+                set_target(%rule, 'jump', getvar());
                 next;
             };
 
