@@ -1040,7 +1040,7 @@ sub get_function_params(%) {
 
     my $token = peek_token();
     if ($token eq ')') {
-        require_next_token;
+        require_next_token();
         return;
     }
 
@@ -1320,7 +1320,7 @@ sub parse_keyword($$$$) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
             if ($token eq '!') {
-                require_next_token;
+                require_next_token();
                 $negated = 1;
             }
         }
@@ -1344,7 +1344,7 @@ sub parse_keyword($$$$) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
             if ($token eq '!') {
-                require_next_token;
+                require_next_token();
                 $negated = 1;
             }
         }
@@ -1357,7 +1357,7 @@ sub parse_keyword($$$$) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
             if ($token eq '!') {
-                require_next_token;
+                require_next_token();
                 $negated = 1;
             }
         }
@@ -1725,7 +1725,7 @@ sub enter($$) {
             }
 
             if ($keyword eq '&') {
-                my $name = require_next_token;
+                my $name = require_next_token();
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
