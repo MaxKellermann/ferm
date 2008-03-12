@@ -375,7 +375,7 @@ sub multiport_params {
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
-    my $value = getvalues(undef, undef,
+    my $value = getvalues(undef,
                           allow_negation => 1,
                           allow_array_negation => 1);
     if (ref $value and ref $value eq 'ARRAY') {
@@ -891,17 +891,17 @@ sub join_value($$) {
 
 # returns the next parameter, which may either be a scalar or an array
 sub getvalues {
-    my ($code, $param) = (shift, shift);
+    my $code = shift;
     my %options = @_;
 
-    my $token = require_next_token($code, $param);
+    my $token = require_next_token($code);
 
     if ($token eq '(') {
         # read an array until ")"
         my @wordlist;
 
         for (;;) {
-            $token = getvalues($code, $param,
+            $token = getvalues($code,
                                parenthesis_allowed => 1,
                                comma_allowed => 1);
 
@@ -969,7 +969,7 @@ sub getvalues {
         error('negation is not allowed here')
           unless $options{allow_negation};
 
-        $token = getvalues($code, $param);
+        $token = getvalues($code);
 
         error('it is not possible to negate an array')
           if ref $token and not $options{allow_array_negation};
@@ -983,7 +983,7 @@ sub getvalues {
     } elsif ($token eq '=') {
         error('equals operator ("=") is not allowed here');
     } elsif ($token eq '$') {
-        my $name = require_next_token($code, $param);
+        my $name = require_next_token($code);
         error('variable name expected - if you want to concatenate strings, try using double quotes')
           unless $name =~ /^\w+$/;
 
@@ -1057,7 +1057,7 @@ sub get_function_params(%) {
               unless $token eq ',';
         }
 
-        push @params, getvalues(undef, undef, @_);
+        push @params, getvalues(undef, @_);
     }
 
     return @params;
@@ -1331,7 +1331,7 @@ sub parse_keyword($$$$) {
             if ($p eq 's') {
                 push @params, getvar();
             } elsif ($p eq 'c') {
-                my @v = to_array getvalues(undef, undef,
+                my @v = to_array getvalues(undef,
                                            non_empty => 1);
                 push @params, join(',', @v);
             } else {
@@ -1667,7 +1667,7 @@ sub enter($$) {
 
                     expect_token('=');
 
-                    my $value = getvalues(undef, undef, allow_negation => 1);
+                    my $value = getvalues(undef, allow_negation => 1);
 
                     expect_token(';');
 
@@ -1997,7 +1997,7 @@ sub enter($$) {
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
                 append_option(%rule, $keyword,
-                              getvalues(undef, undef,
+                              getvalues(undef,
                                         allow_negation => 1));
                 next;
             }
