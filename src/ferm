@@ -665,7 +665,7 @@ sub filter_domains($) {
     my $domains = shift;
     my $result = [];
 
-    foreach my $domain (to_array $domains) {
+    foreach my $domain (to_array($domains)) {
         next if exists $option{domain}
           and $domain ne $option{domain};
 
