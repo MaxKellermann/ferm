@@ -1388,7 +1388,6 @@ sub parse_option($\%$$) {
 
     append_option(%$rule, $keyword,
                   parse_keyword(%$rule, $def, $keyword, $negated_ref));
-    return 1;
 }
 
 sub copy_on_write($$) {
