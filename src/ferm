@@ -375,8 +375,7 @@ sub multiport_params {
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
-    my $value = getvalues(undef,
-                          allow_negation => 1,
+    my $value = getvalues(undef, allow_negation => 1,
                           allow_array_negation => 1);
     if (ref $value and ref $value eq 'ARRAY') {
         my @value = @$value;
@@ -1331,8 +1330,7 @@ sub parse_keyword($$$$) {
             if ($p eq 's') {
                 push @params, getvar();
             } elsif ($p eq 'c') {
-                my @v = to_array getvalues(undef,
-                                           non_empty => 1);
+                my @v = to_array getvalues(undef, non_empty => 1);
                 push @params, join(',', @v);
             } else {
                 die;
@@ -1997,8 +1995,7 @@ sub enter($$) {
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
                 append_option(%rule, $keyword,
-                              getvalues(undef,
-                                        allow_negation => 1));
+                              getvalues(undef, allow_negation => 1));
                 next;
             }
 
