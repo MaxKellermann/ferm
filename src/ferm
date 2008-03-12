@@ -1126,8 +1126,7 @@ sub eval_bool($) {
 sub is_netfilter_core_target($) {
     my $target = shift;
     die unless defined $target and length $target;
-
-    return $target =~ /^(?:ACCEPT|DROP|RETURN|QUEUE)$/;
+    return grep { $_ eq $target } qw(ACCEPT DROP RETURN QUEUE);
 }
 
 sub is_netfilter_module_target($$) {
