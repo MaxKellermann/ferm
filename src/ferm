@@ -663,7 +663,7 @@ sub initialize_domain {
 
 sub filter_domains($) {
     my $domains = shift;
-    my $result = [];
+    my @result;
 
     foreach my $domain (to_array($domains)) {
         next if exists $option{domain}
@@ -674,10 +674,10 @@ sub filter_domains($) {
         };
         error($@) if $@;
 
-        push @$result, $domain;
+        push @result, $domain;
     }
 
-    return @$result == 1 ? $result->[0] : $result;
+    return @result == 1 ? @result[0] : \@result;
 }
 
 # split the input string into words and delete comments
