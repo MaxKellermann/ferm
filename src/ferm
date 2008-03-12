@@ -413,7 +413,7 @@ if ($has_getopt) {
           unless $value =~ /^\$?(\w+)=(.*)$/s;
         my ($name, $unparsed_value) = ($1, $2);
         my $tokens = tokenize_string($unparsed_value);
-        my $value = getvalues(\&next_array_token, $tokens);
+        my $value = getvalues(sub { shift @$tokens; });
         die 'Extra tokens after --def'
           if @$tokens > 0;
         $stack[0]{vars}{$name} = $value;
@@ -694,12 +694,6 @@ sub tokenize_string($) {
     return \@ret;
 }
 
-# shift an array; helper function to be passed to &getvar / &getvalues
-sub next_array_token {
-    my $array = shift;
-    shift @$array;
-}
-
 # read some more tokens from the input file into a buffer
 sub prepare_tokens() {
     my $tokens = $script->{tokens};
@@ -955,7 +949,7 @@ sub getvalues {
 
         my @values;
         while (@tokens) {
-            my $value = getvalues(\&next_array_token, \@tokens);
+            my $value = getvalues(sub { shift @tokens });
             push @values, to_array($value);
         }
 
