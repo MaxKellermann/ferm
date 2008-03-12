@@ -1227,7 +1227,7 @@ sub format_option($$$) {
     return shell_format_option($name, $value);
 }
 
-sub printrule($$) {
+sub append_rule($$) {
     my ($chain_rules, $rule) = @_;
 
     my $cmd = join('', map { $_->[2] } @{$rule->{options}});
@@ -1238,7 +1238,7 @@ sub printrule($$) {
 
 sub unfold_rule {
     my ($domain, $chain_rules, $rule) = (shift, shift, shift);
-    return printrule($chain_rules, $rule) unless @_;
+    return append_rule($chain_rules, $rule) unless @_;
 
     my $option = shift;
     my @values = @{$option->[1]};
