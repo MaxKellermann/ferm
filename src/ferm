@@ -454,9 +454,9 @@ if ($has_getopt) {
     $option{fast} = $opt_fast || $opt_shell;
     $option{shell} = $opt_shell;
 
-    mydie('ferm interactive mode not possible: /dev/stdin is not a tty')
+    die("ferm interactive mode not possible: /dev/stdin is not a tty\n")
       if $option{interactive} and not -t STDIN;
-    mydie('ferm interactive mode not possible: /dev/stderr is not a tty')
+    die("ferm interactive mode not possible: /dev/stderr is not a tty\n")
       if $option{interactive} and not -t STDERR;
 
     $option{domain} = $opt_domain if defined $opt_domain;
@@ -558,13 +558,6 @@ sub printversion {
 }
 
 
-sub mydie {
-    print STDERR @_;
-    print STDERR "\n";
-    exit 1;
-}
-
-
 sub error {
     # returns a nice formatted error message, showing the
     # location of the error.
@@ -603,7 +596,7 @@ sub error {
     for $l ( $start .. $#lines)
         { print STDERR $lines[$l]; if ($l != $#lines ) {print STDERR "\n"} ; };
     print STDERR "<--\n";
-    mydie(@_);
+    die(@_ . "\n");
 }
 
 # print a warning message about code from an input file
@@ -729,13 +722,12 @@ sub open_script($) {
     my $filename = shift;
 
     for (my $s = $script; defined $s; $s = $s->{parent}) {
-        mydie("Circular reference in $script->{filename} line $script->{line}: $filename")
+        die("Circular reference in $script->{filename} line $script->{line}: $filename\n")
           if $s->{filename} eq $filename;
     }
 
     local *FILE;
-    open FILE, "<$filename"
-      or mydie("Failed to open $filename: $!");
+    open FILE, "<$filename" or die("Failed to open $filename: $!\n");
     my $handle = *FILE;
 
     $script = { filename => $filename,
