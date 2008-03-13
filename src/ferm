@@ -523,8 +523,7 @@ while (my ($domain, $domain_info) = each %domains) {
     next unless $domain_info->{enabled};
     my $s = $option{fast} &&
       defined $domain_info->{tools}{'tables-restore'}
-      ? execute_fast($domain_info)
-        : execute_slow($domain, $domain_info);
+      ? execute_fast($domain_info) : execute_slow($domain_info);
     $status = $s if defined $s;
 }
 
@@ -2037,8 +2036,8 @@ sub execute_command {
     return;
 }
 
-sub execute_slow($$) {
-    my ($domain, $domain_info) = @_;
+sub execute_slow($) {
+    my $domain_info = shift;
 
     my $domain_cmd = $domain_info->{tools}{tables};
 
