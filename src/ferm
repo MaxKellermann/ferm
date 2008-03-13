@@ -2127,9 +2127,9 @@ sub rules_to_save($) {
 }
 
 sub restore_domain($$) {
-    my ($domain, $save) = @_;
+    my ($domain_info, $save) = @_;
 
-    my $path = $domains{$domain}{tools}{'tables-restore'};
+    my $path = $domain_info->{tools}{'tables-restore'};
 
     local *RESTORE;
     open RESTORE, "|$path"
@@ -2157,7 +2157,7 @@ sub execute_fast($$) {
     return if $option{noexec};
 
     eval {
-        restore_domain($domain, $save);
+        restore_domain($domain_info, $save);
     };
     if ($@) {
         print STDERR $@;
@@ -2190,7 +2190,7 @@ sub rollback() {
         $reset .= $domain_info->{previous}
           if defined $domain_info->{previous};
 
-        restore_domain($domain, $reset);
+        restore_domain($domain_info, $reset);
     }
 
     print STDERR "\nFirewall rules rolled back.\n" unless $error;
