@@ -2178,7 +2178,7 @@ sub rollback() {
         my $reset = '';
         while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
             my $reset_chain = '';
-            foreach my $chain (keys %{$table_info->{chains}{$table}}) {
+            foreach my $chain (keys %{$table_info->{chains}}) {
                 next unless is_netfilter_builtin_chain($table, $chain);
                 $reset_chain .= ":${chain} ACCEPT [0:0]\n";
             }

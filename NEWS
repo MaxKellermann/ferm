@@ -33,6 +33,7 @@ v2.0 - not yet released
     - write policy in chain block
   - do not generate implicit protocol modules
   - do not allow targets options after "jump"
+  - fixed rollback when there is no iptables-save
 
 
 v1.3.3 - 22 Jan 2008
