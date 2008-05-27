@@ -2069,6 +2069,7 @@ sub enter($@) {
 
                 # and clean up variables set in this level
                 %$current = ();
+                %modules = map { $_->{modules} ? %{$_->{modules}} : () } @fw;
 
                 next;
             }
