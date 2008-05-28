@@ -107,7 +107,7 @@ Try using comments to show what you are doing:
 
     # this line enables transparent http-proxying for the internal network:
     proto tcp if eth0 daddr ! 192.168.0.0/255.255.255.0
-        dport http REDIRECT 3128;
+        dport http REDIRECT to-ports 3128;
 
 You will be thankful for it later!
 

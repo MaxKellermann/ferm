@@ -11,6 +11,7 @@ v1.3.4 - not yet released
   - fixed single quote escaping
   - escape empty strings
   - reset module list after semicolon handler (reported by Ralph Oesker)
+  - fixed REDIRECT example in the manual
 
 
 v1.3.3 - 22 Jan 2008
