@@ -165,14 +165,11 @@ syn mss
 physdev-is-in physdev-is-out physdev-is-bridged
 );
 
-my @mix_negated = qw(
+my @negated = qw(
 iplimit-above
 src-range dst-range
 realm
 tos
-);
-
-my @negated = qw(
 protocol saddr daddr interface outerface sport dport
 ahspi ahlen condition connrate
 ctorigsrc ctorigdst ctreplsrc ctrepldst
@@ -547,7 +544,7 @@ sub wrap_pre_negated {
     my $wrap;
     if (grep { $_ eq $option } @pre_negated) {
         $wrap = 'pre-negation';
-    } elsif (grep { $_ eq $option } @mix_negated) {
+    } elsif (grep { $_ eq $option } @negated) {
         $wrap = 'negation';
     }
 
