@@ -1602,7 +1602,7 @@ sub enter($$) {
                   if $lev <= $base_level;
 
                 # consistency check: check if they havn't forgotten
-                # the ';' before the last statement
+                # the ';' after the last statement
                 error('Missing semicolon before "}"')
                   if $rule{has_rule};
 
