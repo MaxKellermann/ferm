@@ -349,11 +349,6 @@ sub merge_keywords(\%$) {
 sub parse_def_option($\%$\@) {
     my ($option, $def, $negated, $tokens) = @_;
 
-    while (exists $def->{alias}) {
-        ($option, $def) = @{$def->{alias}};
-        die unless defined $def;
-    }
-
     my $params = $def->{params};
     my $value;
 

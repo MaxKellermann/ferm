@@ -158,7 +158,9 @@ sub add_def_x {
         $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
         $k->{negation} = 1 if $keyword =~ s,!$,,;
 
-        $k->{alias} = [$1, $def->{keywords}{$1} || die] if $keyword =~ s,:=(\S+)$,,;
+        $k = $def->{keywords}{$1} || die if $keyword =~ s,:=(\S+)$,,;
+
+        $k->{name} ||= $keyword;
 
         $def->{keywords}{$keyword} = $k;
     }
@@ -1385,7 +1387,7 @@ sub parse_option($\%$$) {
         die unless defined $def;
     }
 
-    append_option(%$rule, $keyword,
+    append_option(%$rule, $def->{name},
                   parse_keyword(%$rule, $def, $keyword, $negated_ref));
 }
 
