@@ -1382,11 +1382,6 @@ sub append_option(\%$$) {
 sub parse_option($\%$$) {
     my ($def, $rule, $keyword, $negated_ref) = @_;
 
-    while (exists $def->{alias}) {
-        ($keyword, $def) = @{$def->{alias}};
-        die unless defined $def;
-    }
-
     append_option(%$rule, $def->{name},
                   parse_keyword(%$rule, $def, $keyword, $negated_ref));
 }
