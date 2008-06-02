@@ -66,7 +66,7 @@ use vars qw($indent $table $chain @rules $domain $next_domain);
 
 sub ferm_escape($) {
     local $_ = shift;
-    return $_ unless /[^-\w.:]/s;
+    return $_ unless /[^-\w.:\/]/s;
     return "\'$_\'";
 }
 
