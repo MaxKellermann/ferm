@@ -1297,8 +1297,8 @@ sub mkrules($) {
 }
 
 # parse a keyword from a module definition
-sub parse_keyword(\%$$$) {
-    my ($rule, $def, $keyword, $negated_ref) = @_;
+sub parse_keyword(\%$$) {
+    my ($rule, $def, $negated_ref) = @_;
 
     my $params = $def->{params};
 
@@ -1352,7 +1352,7 @@ sub parse_keyword(\%$$$) {
         $value = getvalues();
 
         warning("log-prefix is too long; truncating to 29 characters: '$1'")
-          if $keyword eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
+          if $def->{name} eq 'log-prefix' && $value =~ s,^(.{29}).+$,$1,;
     } else {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
@@ -1379,11 +1379,11 @@ sub append_option(\%$$) {
 }
 
 # parse options of a module
-sub parse_option($\%$$) {
-    my ($def, $rule, $keyword, $negated_ref) = @_;
+sub parse_option($\%$) {
+    my ($def, $rule, $negated_ref) = @_;
 
     append_option(%$rule, $def->{name},
-                  parse_keyword(%$rule, $def, $keyword, $negated_ref));
+                  parse_keyword(%$rule, $def, $negated_ref));
 }
 
 sub copy_on_write($$) {
@@ -1917,7 +1917,7 @@ sub enter($$) {
 
             if (exists $rule{keywords}{$keyword}) {
                 my $def = $rule{keywords}{$keyword};
-                parse_option($def, %rule, $keyword, \$negated);
+                parse_option($def, %rule, \$negated);
                 next;
             }
 
@@ -1962,7 +1962,7 @@ sub enter($$) {
             if ($keyword eq 'proto') {
                 my $protocol = parse_keyword(%rule,
                                              { params => 1, negation => 1 },
-                                             'proto', \$negated);
+                                             \$negated);
                 $rule{protocol} = $protocol;
                 append_option(%rule, 'protocol', $rule{protocol});
 
