@@ -418,8 +418,8 @@ sub parse_option(\%$$\@) {
                 params => 1,
                 negation => 1,
                );
-            $line->{keywords}{sport} = \%def;
-            $line->{keywords}{dport} = \%def;
+            $line->{keywords}{sport} = { name => 'sport', %def };
+            $line->{keywords}{dport} = { name => 'dport', %def };
         }
     } elsif ($option eq 'match') {
         die unless @$tokens;
@@ -444,8 +444,8 @@ sub parse_option(\%$$\@) {
                 params => 1,
                 negation => 1,
                );
-            $line->{keywords}{sport} = \%def;
-            $line->{keywords}{dport} = \%def;
+            $line->{keywords}{sport} = { name => 'sport', %def };
+            $line->{keywords}{dport} = { name => 'dport', %def };
         }
     } elsif (exists $line->{keywords}{$option}) {
         my $def = $line->{keywords}{$option};
@@ -460,7 +460,7 @@ sub parse_option(\%$$\@) {
         }
 
         undef $pre_negated;
-        push @{$line->{cur}}, [ $option, $value ];
+        push @{$line->{cur}}, [ $def->{name}, $value ];
     } elsif ($option eq 'jump') {
         die unless @$tokens;
         my $target = shift @$tokens;
