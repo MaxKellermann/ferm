@@ -594,7 +594,7 @@ sub error {
     for $l ( $start .. $#lines)
         { print STDERR $lines[$l]; if ($l != $#lines ) {print STDERR "\n"} ; };
     print STDERR "<--\n";
-    die(@_ . "\n");
+    die("@_\n");
 }
 
 # print a warning message about code from an input file
