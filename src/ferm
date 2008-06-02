@@ -144,23 +144,26 @@ sub add_def_x {
     my $def = $defs->{$domain_family}{$name} = {};
     foreach (@_) {
         my $keyword = $_;
-        my $k = {};
+        my $k;
 
-        my $params = $params_default;
-        $params = $1 if $keyword =~ s,\*(\d+)$,,;
-        $params = $1 if $keyword =~ s,=([acs]+|m)$,,;
-        if ($keyword =~ s,&(\S+)$,,) {
-            $params = eval "\\&$1";
-            die $@ if $@;
+        if ($keyword =~ s,:=(\S+)$,,) {
+            $k = $def->{keywords}{$1} || die;
+        } else {
+            my $params = $params_default;
+            $params = $1 if $keyword =~ s,\*(\d+)$,,;
+            $params = $1 if $keyword =~ s,=([acs]+|m)$,,;
+            if ($keyword =~ s,&(\S+)$,,) {
+                $params = eval "\\&$1";
+                die $@ if $@;
+            }
+
+            $k = {};
+            $k->{params} = $params if $params;
+
+            $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
+            $k->{negation} = 1 if $keyword =~ s,!$,,;
+            $k->{name} = $keyword;
         }
-        $k->{params} = $params if $params;
-
-        $k->{negation} = $k->{pre_negation} = 1 if $keyword =~ s,^!,,;
-        $k->{negation} = 1 if $keyword =~ s,!$,,;
-
-        $k = $def->{keywords}{$1} || die if $keyword =~ s,:=(\S+)$,,;
-
-        $k->{name} ||= $keyword;
 
         $def->{keywords}{$keyword} = $k;
     }
