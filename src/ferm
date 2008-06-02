@@ -148,6 +148,7 @@ sub add_def_x {
 
         if ($keyword =~ s,:=(\S+)$,,) {
             $k = $def->{keywords}{$1} || die;
+            $k->{ferm_name} ||= $keyword;
         } else {
             my $params = $params_default;
             $params = $1 if $keyword =~ s,\*(\d+)$,,;

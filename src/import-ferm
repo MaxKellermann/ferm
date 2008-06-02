@@ -460,7 +460,7 @@ sub parse_option(\%$$\@) {
         }
 
         undef $pre_negated;
-        push @{$line->{cur}}, [ $def->{name}, $value ];
+        push @{$line->{cur}}, [ $def->{ferm_name} || $def->{name}, $value ];
     } elsif ($option eq 'jump') {
         die unless @$tokens;
         my $target = shift @$tokens;
