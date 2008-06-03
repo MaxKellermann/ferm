@@ -1705,7 +1705,7 @@ A lot of shortcuts are deprecated, since they are polluting the namespace, e.g. 
 
 =item *
 
-"source addr $A port $B" is deprecated, use "sdaddr $A sport $B"
+"source addr $A port $B" is deprecated, use "saddr $A sport $B"
 instead.  The same for "destination".
 
 =back
