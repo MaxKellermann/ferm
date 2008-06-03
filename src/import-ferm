@@ -155,33 +155,6 @@ sub array_match_count($\@) {
 sub optimize {
     my @result;
 
-    # try to combine rules with arrays:
-    # saddr 1.2.3.4 proto tcp ACCEPT;
-    # saddr 5.6.7.8 proto tcp ACCEPT;
-    # ->
-    # saddr (1.2.3.4 5.6.7.8) proto tcp ACCEPT;
-    while (@_ > 0) {
-        my $rule = shift;
-        my $match_count = array_match_count($rule, @_);
-
-        if ($match_count > 0) {
-            my $option = $rule->{match}[0][0];
-            my @matching = ( $rule, splice(@_, 0, $match_count) );
-            my @params = map {
-                (ref $_ and ref $_ eq 'ARRAY') ? @$_ : $_
-            } map {
-                $_->{match}[0][1]
-            } @matching;
-
-            $rule->{match}[0][1] = \@params;
-        }
-
-        push @result, $rule;
-    }
-
-    @_ = @result;
-    undef @result;
-
     # try to find a common prefix and put rules in a block:
     # saddr 1.2.3.4 proto tcp dport ssh ACCEPT;
     # saddr 5.6.7.8 proto tcp dport ssh DROP;
@@ -218,6 +191,33 @@ sub optimize {
         } else {
             push @result, $rule;
         }
+    }
+
+    @_ = @result;
+    undef @result;
+
+    # try to combine rules with arrays:
+    # saddr 1.2.3.4 proto tcp ACCEPT;
+    # saddr 5.6.7.8 proto tcp ACCEPT;
+    # ->
+    # saddr (1.2.3.4 5.6.7.8) proto tcp ACCEPT;
+    while (@_ > 0) {
+        my $rule = shift;
+        my $match_count = array_match_count($rule, @_);
+
+        if ($match_count > 0) {
+            my $option = $rule->{match}[0][0];
+            my @matching = ( $rule, splice(@_, 0, $match_count) );
+            my @params = map {
+                (ref $_ and ref $_ eq 'ARRAY') ? @$_ : $_
+            } map {
+                $_->{match}[0][1]
+            } @matching;
+
+            $rule->{match}[0][1] = \@params;
+        }
+
+        push @result, $rule;
     }
 
     return @result;
