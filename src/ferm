@@ -406,7 +406,7 @@ unshift @stack, {};
 if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_noflush, $opt_lines, $opt_interactive,
         $opt_help,
-        $opt_version, $opt_test, $opt_fast, $opt_shell,
+        $opt_version, $opt_test, $opt_fast, $opt_slow, $opt_shell,
         $opt_domain);
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
@@ -435,6 +435,7 @@ if ($has_getopt) {
                test => \$opt_test,
                remote => \$opt_test,
                fast => \$opt_fast,
+               slow => \$opt_slow,
                shell => \$opt_shell,
                'domain=s' => \$opt_domain,
                'def=s' => \&opt_def,
@@ -456,7 +457,7 @@ if ($has_getopt) {
     $option{lines} = $opt_lines || $opt_test || $opt_shell;
     $option{interactive} = $opt_interactive && !$opt_noexec;
     $option{test} = $opt_test;
-    $option{fast} = $opt_fast || $opt_shell;
+    $option{fast} = !$opt_slow;
     $option{shell} = $opt_shell;
 
     die("ferm interactive mode not possible: /dev/stdin is not a tty\n")
@@ -2249,7 +2250,7 @@ B<ferm> I<options> I<inputfiles>
                    This implies --noexec and --lines.
  -V, --version     Show current version number
  -h, --help        Look at this text
- --fast            Generate an iptables-save file, used by iptables-restore
+ --slow            Slow mode, don't use iptables-restore
  --shell           Generate a shell script which calls iptables-restore
  --domain {ip|ip6} Handle only the specified domain
  --def '$name=v'   Override a variable

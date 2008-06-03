@@ -34,6 +34,7 @@ v2.0 - not yet released
   - do not generate implicit protocol modules
   - do not allow targets options after "jump"
   - fixed rollback when there is no iptables-save
+  - enable fast mode by default, can be disabled with --slow
 
 
 v1.3.4 - 28 May 2008
