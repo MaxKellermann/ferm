@@ -200,38 +200,24 @@ sub optimize {
                 my @matching = ( $rule, splice(@_, 0, $match_count) );
                 map { shift @{$_->{match}} } @matching;
 
-                push @result, { match => [ $match ],
-                                block => [ optimize(@matching) ],
-                              };
+                my @block = optimize(@matching);
+
+                if (@block == 1) {
+                    $rule = $block[0];
+                    unshift @{$rule->{match}}, $match;
+                    push @result, $rule;
+                } else {
+                    push @result, {
+                        match => [ $match ],
+                        block => \@block,
+                    };
+                }
             } else {
                 push @result, $rule;
             }
         } else {
             push @result, $rule;
         }
-    }
-
-    # combine simple closures:
-    # proto tcp { dport http { LOG; ACCEPT; } }
-    # ->
-    # proto tcp dport http { LOG; ACCEPT; }
-    foreach my $rule (@result) {
-        next unless exists $rule->{block} && @{$rule->{block}} == 1;
-
-        # a block with only one item can be merged
-        my $inner = $rule->{block}[0];
-        delete $rule->{block};
-
-        # merge rule
-        push @{$rule->{match}}, @{$inner->{match}};
-        $rule->{jump} = $inner->{jump}
-          if exists $inner->{jump};
-        $rule->{goto} = $inner->{goto}
-          if exists $inner->{goto};
-        $rule->{block} = $inner->{block}
-          if exists $inner->{block};
-        push @{$rule->{target} ||= []}, @{$inner->{target}}
-          if exists $inner->{target};
     }
 
     return @result;
