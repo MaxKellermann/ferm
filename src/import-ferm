@@ -127,6 +127,7 @@ sub is_merging_array_member {
 
 sub array_matches($$) {
     my ($rule1, $rule2) = @_;
+    return if @{$rule1->{match}} == 0 or @{$rule2->{match}} == 0;
     return unless is_merging_array_member($rule1->{match}[0][1]);
     return unless is_merging_array_member($rule2->{match}[0][1]);
     return unless @{$rule2->{match}} > 0;
