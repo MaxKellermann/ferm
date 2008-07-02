@@ -2664,8 +2664,8 @@ sub enter($@) {
             my $action = find_option(\@fw, 'action');
             if (defined $action and $action->{type} eq 'target') {
                 parse_target_options(\@fw, $current,
-                                     $action->{target}, $keyword);
-                next;
+                                     $action->{target}, $keyword)
+                  and next;
             }
 
             # default
