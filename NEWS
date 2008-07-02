@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v1.3.5 - not yet released
+
+
 v1.3.4 - 28 May 2008
   - fixed single quote escaping
   - escape empty strings
