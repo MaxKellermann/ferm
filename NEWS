@@ -10,6 +10,7 @@
 v1.3.5 - not yet released
   - don't ignore unknown keywords after target (reported by Kai
     Sassmannshausen)
+  - don't include hidden files (reported by Florian Reitmeir)
 
 
 v1.3.4 - 28 May 2008

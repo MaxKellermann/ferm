@@ -924,7 +924,7 @@ sub collect_filenames(@) {
             # sort those names for a well-defined order
             foreach my $name (sort { $a cmp $b } @names) {
                 # don't include hidden and backup files
-                next if /^\.|~$/;
+                next if $name =~ /^\.|~$/;
 
                 my $filename = $pathname . $name;
                 push @ret, $filename
