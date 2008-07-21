@@ -69,19 +69,19 @@ EB_ARP_RESULT_SED = -e 's,--jump,-j,g'
 
 $(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test $< |sed $(EB_ARP_RESULT_SED) >$@
+	$(PERL) src/ferm --test --slow $< |sed $(EB_ARP_RESULT_SED) >$@
 
 $(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test $< |sed $(EB_ARP_RESULT_SED) >$@
+	$(PERL) src/ferm --test --slow $< |sed $(EB_ARP_RESULT_SED) >$@
 
 $(STAMPDIR)/%.result: %.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test --noflush $< |sed $(RESULT_SED) >$@
+	$(PERL) src/ferm --test --slow --noflush $< |sed $(RESULT_SED) >$@
 
 $(STAMPDIR)/%.SAVE: %.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test --fast $< >$@.tmp
+	$(PERL) src/ferm --test $< >$@.tmp
 	grep -v '^#' <$@.tmp >$@
 
 $(STAMPDIR)/test/ipv6/%.IMPORT: export FERM_DOMAIN=ip6
