@@ -37,7 +37,7 @@ v2.0 - not yet released
   - enable fast mode by default, can be disabled with --slow
 
 
-v1.3.5 - not yet released
+v1.3.5 - 21 Jul 2008
   - don't ignore unknown keywords after target (reported by Kai
     Sassmannshausen)
   - don't include hidden files (reported by Florian Reitmeir)
