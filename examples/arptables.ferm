@@ -1,0 +1,18 @@
+# -*- shell-script -*-
+#
+# Ferm example script
+#
+# arptables demo.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+domain arp chain INPUT {
+    policy DROP;
+
+    interface eth0 ACCEPT;
+
+    interface eth1 {
+        source-mac 00:00:de:ad:be:ef ACCEPT;
+    }
+}

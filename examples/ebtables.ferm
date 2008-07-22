@@ -1,0 +1,16 @@
+# -*- shell-script -*-
+#
+# Ferm example script
+#
+# ebtables demo.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+domain eb chain FORWARD {
+    policy DROP;
+
+    logical-in br0 logical-out br0 { 
+        proto (IPv4 ARP) ACCEPT;
+    }
+}
