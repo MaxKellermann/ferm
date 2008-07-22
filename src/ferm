@@ -361,7 +361,7 @@ add_match_def_x 'eb', '',
 
 add_target_def_x 'eb', 'arpreply', qw(arpreply-mac arpreply-target);
 add_target_def_x 'eb', 'dnat', qw(to-destination dnat-target);
-add_target_def_x 'eb', 'mark', qw(set-mark mark-target);
+add_target_def_x 'eb', 'MARK', qw(set-mark mark-target);
 add_target_def_x 'eb', 'redirect', qw(redirect-target);
 add_target_def_x 'eb', 'snat', qw(to-source snat-target);
 
@@ -1470,6 +1470,9 @@ sub set_module_target(\%$$) {
               unless $proto eq 'tcp';
         }
     }
+
+    # in ebtables, there is both "--mark" and "-j mark"... workaround:
+    $name = 'mark' if $name eq 'MARK' and $rule->{domain_family} eq 'eb';
 
     set_target(%$rule, 'jump', $name);
     merge_keywords(%$rule, $defs->{keywords});
