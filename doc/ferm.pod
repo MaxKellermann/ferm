@@ -1402,11 +1402,11 @@ pkttype, stp, vlan, log.
 The following target extensions are supported: arpreply, dnat, mark,
 redirect, snat.
 
-Please note that there is a conflict between "--mark" from the mark_m
-match module and "-j mark".  Since both would be implemented with the
-ferm keyword "mark", we decided to solve this by writing the target's
-name in uppercase, like in the other domains.  The following example
-rewrites mark 1 to 2:
+Please note that there is a conflict between I<--mark> from the
+I<mark_m> match module and I<-j mark>.  Since both would be
+implemented with the ferm keyword B<mark>, we decided to solve this by
+writing the target's name in uppercase, like in the other domains.
+The following example rewrites mark 1 to 2:
 
     mark 1 MARK 2;
 
