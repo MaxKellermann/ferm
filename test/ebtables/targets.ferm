@@ -1,0 +1,7 @@
+domain eb chain INPUT {
+    logical-in br0 arpreply arpreply-mac 00:00:de:ad:be:ef arpreply-target DROP;
+    logical-in br1 dnat to-destination 00:00:de:ad:be:ef dnat-target DROP;
+    logical-in br2 MARK set-mark 1 mark-target DROP;
+    logical-in br3 redirect redirect-target DROP;
+    logical-in br4 snat to-source 00:00:de:ad:be:ef snat-target DROP;
+}
