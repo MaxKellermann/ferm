@@ -1318,7 +1318,7 @@ Log packets to a userspace program.
 
 =head1 OTHER DOMAINS
 
-Since verison 2.0, B<ferm> supports not only I<ip> and I<ip6>, but
+Since version 2.0, B<ferm> supports not only I<ip> and I<ip6>, but
 also I<arp> (ARP tables) and I<eb> (ethernet bridging tables).  The
 concepts are similar to I<iptables>.
 
