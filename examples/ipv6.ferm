@@ -1,0 +1,38 @@
+# -*- shell-script -*-
+#
+# Ferm example script
+#
+# IPv6 demo.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+domain ip6 table filter {
+    chain INPUT {
+        policy DROP;
+
+        # connection tracking
+        mod state state INVALID DROP;
+        mod state state (ESTABLISHED RELATED) ACCEPT;
+
+        # allow local connections
+        interface lo ACCEPT;
+
+        # allow ICMP (for neighbor solicitation, like ARP for IPv4)
+        proto ipv6-icmp ACCEPT;
+
+        # allow SSH connections
+        proto tcp dport ssh ACCEPT;
+
+        # ident connections are also allowed
+        proto tcp dport auth ACCEPT;
+
+        # the rest is dropped by the above policy
+    }
+
+    # outgoing connections are not limited
+    chain OUTPUT policy ACCEPT;
+
+    # this is not a router
+    chain FORWARD policy DROP;
+}
