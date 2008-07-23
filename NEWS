@@ -7,6 +7,9 @@
     Max Kellermann <max@foo-projects.org>
 
 
+v2.0.1 - not yet released
+
+
 v2.0 - 22 Jul 2008
   - don't hard code built-in match modules
   - support for arptables and ebtables
