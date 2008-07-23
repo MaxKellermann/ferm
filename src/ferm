@@ -2089,6 +2089,17 @@ sub execute_slow($) {
     return $status;
 }
 
+sub table_to_save($$) {
+    my ($result_r, $table_info) = @_;
+
+    foreach my $chain (sort keys %{$table_info->{chains}}) {
+        my $chain_info = $table_info->{chains}{$chain};
+        foreach my $rule (@{$chain_info->{rules}}) {
+            $$result_r .= "-A $chain$rule->{rule}\n";
+        }
+    }
+}
+
 sub rules_to_save($) {
     my ($domain_info) = @_;
 
@@ -2115,13 +2126,7 @@ sub rules_to_save($) {
 
         next if $option{flush};
 
-        # dump rules
-        foreach my $chain (sort keys %{$table_info->{chains}}) {
-            my $chain_info = $table_info->{chains}{$chain};
-            foreach my $rule (@{$chain_info->{rules}}) {
-                $result .= "-A $chain$rule->{rule}\n";
-            }
-        }
+        table_to_save(\$result, $table_info);
 
         # do it
         $result .= "COMMIT\n";
