@@ -2124,9 +2124,8 @@ sub rules_to_save($) {
             $result .= ":$chain $policy\ [0:0]\n";
         }
 
-        next if $option{flush};
-
-        table_to_save(\$result, $table_info);
+        table_to_save(\$result, $table_info)
+          unless $option{flush};
 
         # do it
         $result .= "COMMIT\n";

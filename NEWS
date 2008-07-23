@@ -8,6 +8,7 @@
 
 
 v2.0.1 - not yet released
+  - generate "COMMIT" lines when flushing in fast mode
 
 
 v2.0 - 22 Jul 2008
