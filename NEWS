@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.0.1 - not yet released
+v2.0.1 - 24 Jul 2008
   - generate "COMMIT" lines when flushing in fast mode
   - don't hard-code the path of iptables-save
   - install manpages in PREFIX/share/man
