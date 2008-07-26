@@ -1790,7 +1790,7 @@ sub enter($$) {
             }
 
             if ($keyword eq 'table') {
-                error('Table is already specified')
+                warning('Table is already specified')
                   if exists $rule{table};
                 $rule{table} = $stack[0]{auto}{TABLE} = getvalues();
 
@@ -1801,7 +1801,7 @@ sub enter($$) {
             }
 
             if ($keyword eq 'chain') {
-                error('Chain is already specified')
+                warning('Chain is already specified')
                   if exists $rule{chain};
                 $rule{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
