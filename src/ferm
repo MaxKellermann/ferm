@@ -1887,9 +1887,10 @@ sub enter($$) {
                 enter(1, \%inner);
 
                 # now handle the parent - it's a jump to the sub chain
-                $rule{script} = { filename => $script->{filename},
-                                     line => $script->{line},
-                                   };
+                $rule{script} = {
+                    filename => $script->{filename},
+                    line => $script->{line},
+                };
 
                 mkrules(\%rule);
 
