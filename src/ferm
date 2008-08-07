@@ -1803,7 +1803,8 @@ sub enter($$) {
             if ($keyword eq 'chain') {
                 warning('Chain is already specified')
                   if exists $rule{chain};
-                $rule{chain} = $stack[0]{auto}{CHAIN} = getvalues();
+
+                my $chain = $rule{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
                 # ferm 1.1 allowed lower case built-in chain names
                 foreach (ref $rule{chain} ? @{$rule{chain}} : $rule{chain}) {
@@ -1816,6 +1817,14 @@ sub enter($$) {
 
                 $rule{table} = 'filter'
                   unless exists $rule{table};
+
+                foreach my $domain (to_array $rule{domain}) {
+                    foreach my $table (to_array $rule{table}) {
+                        foreach my $c (to_array $chain) {
+                            $domains{$domain}{tables}{$table}{chains}{$c} ||= {};
+                        }
+                    }
+                }
 
                 next;
             }
@@ -1862,6 +1871,12 @@ sub enter($$) {
                     $keyword = next_token();
                 } else {
                     $subchain = 'ferm_auto_' . ++$auto_chain;
+                }
+
+                foreach my $domain (to_array $rule{domain}) {
+                    foreach my $table (to_array $rule{table}) {
+                        $domains{$domain}{tables}{$table}{chains}{$subchain} ||= {};
+                    }
                 }
 
                 set_target(%rule, 'jump', $subchain);
