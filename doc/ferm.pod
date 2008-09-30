@@ -925,6 +925,10 @@ Matches IPsec policy being applied to this packet.
     mod policy mode tunnel tunnel-dst 192.168.2.1 ACCEPT;
     mod policy strict next reqid 24 spi 0x11 ACCEPT;
 
+Note that the keyword I<proto> is also used as a shorthand version of
+I<protocol> (built-in match module).  You can fix this conflict by
+always using the long keyword I<protocol>.
+
 =item B<psd>
 
 Detect TCP/UDP port scans.

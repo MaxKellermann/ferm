@@ -1989,7 +1989,7 @@ sub enter($$) {
             # protocol specific options
             #
 
-            if ($keyword eq 'proto') {
+            if ($keyword eq 'proto' or $keyword eq 'protocol') {
                 my $protocol = parse_keyword(%rule,
                                              { params => 1, negation => 1 },
                                              \$negated);
