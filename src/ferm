@@ -1905,7 +1905,7 @@ sub enter($$) {
                 }
 
                 # enter the block
-                enter(1, \%inner);
+                enter($lev + 1, \%inner);
 
                 # now handle the parent - it's a jump to the sub chain
                 $rule{script} = {
