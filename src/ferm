@@ -1608,7 +1608,7 @@ sub enter($$) {
                 # consistency check: check if they havn't forgotten
                 # the ';' after the last statement
                 error('Missing semicolon before "}"')
-                  if $rule{has_rule};
+                  if $rule{non_empty};
 
                 # and exit
                 return;
@@ -1658,7 +1658,7 @@ sub enter($$) {
             # definition of a variable or function
             if ($keyword eq '@def' or $keyword eq 'def') {
                 error('"def" must be the first token in a command')
-                  if $rule{has_rule};
+                  if $rule{non_empty};
 
                 my $type = require_next_token();
                 if ($type eq '$') {
@@ -1721,6 +1721,12 @@ sub enter($$) {
 
                 next;
             }
+
+            # this rule has something which isn't inherited by its
+            # parent closure.  This variable is used in a lot of
+            # syntax checks.
+
+            $rule{non_empty} = 1;
 
             # def references
             if ($keyword eq '$') {
@@ -2029,7 +2035,7 @@ sub enter($$) {
     # consistency check: check if they havn't forgotten
     # the ';' before the last statement
     error("Missing semicolon before end of file")
-      if exists $rule{domain};
+      if $rule{non_empty};
 }
 
 sub execute_command {

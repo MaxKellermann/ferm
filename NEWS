@@ -9,6 +9,7 @@
 
 v2.0.3 - not yet released
   - create chains and subchains even if they are empty
+  - fix includes within a rule ("Missing semicolon...")
 
 
 v2.0.2 - 26 Jul 2008
