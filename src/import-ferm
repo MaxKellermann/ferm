@@ -393,7 +393,7 @@ sub parse_option(\%$$\@) {
         my %def = ( params => 1 );
         my $value = parse_def_option($option, %def, $pre_negated, @$tokens);
         $line->{proto} = $value;
-        push @$cur, [ 'proto', $value ];
+        push @$cur, [ 'protocol', $value ];
 
         my $module = netfilter_canonical_protocol($value);
         if (exists $proto_defs{ip}{$module}) {
