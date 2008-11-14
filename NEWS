@@ -7,6 +7,9 @@
     Auke Kok <sofar@foo-projects.org>
 
 
+v2.0.4 - not yet released
+
+
 v2.0.3 - 30 Sep 2008
   - create chains and subchains even if they are empty
   - fix includes within a rule ("Missing semicolon...")

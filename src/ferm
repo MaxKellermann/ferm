@@ -49,8 +49,8 @@ use vars qw($DATE $VERSION);
 # subversion keyword magic
 $DATE = '$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '';
 
-$VERSION = '2.0.3';
-#$VERSION .= '~svn' . $DATE;
+$VERSION = '2.0.4';
+$VERSION .= '~svn' . $DATE;
 
 ## interface variables
 # %option = command line and other options
