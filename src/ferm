@@ -1850,9 +1850,12 @@ sub enter($$) {
                 expect_token(';');
 
                 foreach my $domain (to_array $rule{domain}) {
+                    my $domain_info = $domains{$domain};
+                    $domain_info->{enabled} = 1;
+
                     foreach my $table (to_array $rule{table}) {
                         foreach my $chain (to_array $rule{chain}) {
-                            $domains{$domain}{tables}{$table}{chains}{$chain}{policy} = $policy;
+                            $domain_info->{tables}{$table}{chains}{$chain}{policy} = $policy;
                         }
                     }
                 }

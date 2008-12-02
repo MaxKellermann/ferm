@@ -8,6 +8,7 @@
 
 
 v2.0.4 - not yet released
+  - enable policy-only domains (no rules, just policy declarations)
 
 
 v2.0.3 - 30 Sep 2008
