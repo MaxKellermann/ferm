@@ -2138,7 +2138,9 @@ sub rules_to_save($) {
         # create chains / set policy
         foreach my $chain (sort keys %{$table_info->{chains}}) {
             my $chain_info = $table_info->{chains}{$chain};
-            my $policy = $option{flush} ? 'ACCEPT' : $chain_info->{policy};
+            my $policy = $option{flush} &&
+              is_netfilter_builtin_chain($table, $chain)
+              ? 'ACCEPT' : $chain_info->{policy};
             unless (defined $policy) {
                 if (is_netfilter_builtin_chain($table, $chain)) {
                     $policy = 'ACCEPT';
