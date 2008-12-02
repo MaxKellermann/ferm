@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.0.4 - not yet released
+v2.0.4 - 2 Dec 2008
   - enable policy-only domains (no rules, just policy declarations)
   - don't list custom chains in --flush --fast mode
 
