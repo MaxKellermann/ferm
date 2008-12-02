@@ -9,7 +9,7 @@
 
 v2.0.4 - not yet released
   - enable policy-only domains (no rules, just policy declarations)
-  - don't set policy for custom chains in --flush --fast mode
+  - don't list custom chains in --flush --fast mode
 
 
 v2.0.3 - 30 Sep 2008

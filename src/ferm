@@ -2143,6 +2143,7 @@ sub rules_to_save($) {
                 if (is_netfilter_builtin_chain($table, $chain)) {
                     $policy = 'ACCEPT';
                 } else {
+                    next if $option{flush};
                     $policy = '-';
                 }
             }
