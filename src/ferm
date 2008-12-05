@@ -898,6 +898,9 @@ sub negate_value($$;$) {
     my ($value, $class, $allow_array) = @_;
 
     if (ref $value) {
+        error('double negation is not allowed')
+          if ref $value eq 'negated' or ref $value eq 'pre_negated';
+
         error('it is not possible to negate an array')
           if ref $value eq 'ARRAY' and not $allow_array;
     }
