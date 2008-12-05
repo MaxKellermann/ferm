@@ -894,7 +894,7 @@ sub join_value($$) {
     }
 }
 
-sub negate_value($$$) {
+sub negate_value($$;$) {
     my ($value, $class, $allow_array) = @_;
 
     if (ref $value) {
@@ -1380,7 +1380,7 @@ sub parse_keyword(\%$$) {
         } (1..$params) ], 'params';
     }
 
-    $value = bless [ $value ], exists $def->{pre_negation} ? 'pre_negated' : 'negated'
+    $value = negate_value($value, exists $def->{pre_negation} && 'pre_negated')
       if $negated;
 
     return $value;
