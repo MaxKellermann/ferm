@@ -894,6 +894,17 @@ sub join_value($$) {
     }
 }
 
+sub negate_value($$$) {
+    my ($value, $class, $allow_array) = @_;
+
+    if (ref $value) {
+        error('it is not possible to negate an array')
+          if ref $value eq 'ARRAY' and not $allow_array;
+    }
+
+    return bless [ $value ], $class || 'negated';
+}
+
 # returns the next parameter, which may either be a scalar or an array
 sub getvalues {
     my $code = shift;
@@ -976,10 +987,7 @@ sub getvalues {
 
         $token = getvalues($code);
 
-        error('it is not possible to negate an array')
-          if ref $token and not $options{allow_array_negation};
-
-        return bless [ $token ], 'negated';
+        return negate_value($token, undef, $options{allow_array_negation});
     } elsif ($token eq ',') {
         return $token
           if $options{comma_allowed};
