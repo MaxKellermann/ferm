@@ -10,6 +10,7 @@
 v2.0.5 - not yet released
   - detect double negation
   - improved detection of negated arrays
+  - ignore dpkg's backup/temporary files on @include
 
 
 v2.0.4 - 2 Dec 2008
