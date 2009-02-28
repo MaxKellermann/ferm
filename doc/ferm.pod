@@ -1588,10 +1588,13 @@ To run custom commands, you may install hooks:
 
     @hook pre "echo 0 >/proc/sys/net/ipv4/conf/eth0/forwarding";
     @hook post "echo 1 >/proc/sys/net/ipv4/conf/eth0/forwarding";
+    @hook flush "echo 0 >/proc/sys/net/ipv4/conf/eth0/forwarding";
 
 The specified command is executed using the shell.  "pre" means run
 the command before applying the firewall rules, and "post" means run
-the command afterwards.  You may install any number of hooks.
+the command afterwards.  "flush" hooks are run after ferm has flushed
+the firewall rules (option --flush).  You may install any number of
+hooks.
 
 =head1 FUNCTIONS
 

@@ -57,7 +57,7 @@ $VERSION .= '~svn' . $DATE;
 use vars qw(%option);
 
 ## hooks
-use vars qw(@pre_hooks @post_hooks);
+use vars qw(@pre_hooks @post_hooks @flush_hooks);
 
 ## parser variables
 # $script: current script file
@@ -523,6 +523,8 @@ die unless @stack == 2;
 if ($option{flush}) {
     undef @pre_hooks;
     undef @post_hooks;
+} else {
+    undef @flush_hooks;
 }
 
 # execute all generated rules
@@ -541,7 +543,7 @@ while (my ($domain, $domain_info) = each %domains) {
     $status = $s if defined $s;
 }
 
-foreach my $cmd (@post_hooks) {
+foreach my $cmd (@post_hooks, @flush_hooks) {
     print "$cmd\n" if $option{lines};
     system($cmd) unless $option{noexec};
 }
@@ -1595,6 +1597,8 @@ sub enter($$) {
                     $hooks = \@pre_hooks;
                 } elsif ($position eq 'post') {
                     $hooks = \@post_hooks;
+                } elsif ($position eq 'flush') {
+                    $hooks = \@flush_hooks;
                 } else {
                     error("Invalid hook position: '$position'");
                 }

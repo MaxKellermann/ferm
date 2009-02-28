@@ -13,6 +13,7 @@ v2.0.5 - not yet released
   - ignore dpkg's backup/temporary files on @include
   - renamed "hook" to "@hook"
   - disable "pre" and "post" hooks with --flush
+  - added "flush" hooks
 
 
 v2.0.4 - 2 Dec 2008
