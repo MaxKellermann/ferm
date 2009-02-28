@@ -1586,8 +1586,8 @@ There is no B<@elsif>, use B<@else @if> instead.
 
 To run custom commands, you may install hooks:
 
-    hook pre "echo 0 >/proc/sys/net/ipv4/conf/eth0/forwarding";
-    hook post "echo 1 >/proc/sys/net/ipv4/conf/eth0/forwarding";
+    @hook pre "echo 0 >/proc/sys/net/ipv4/conf/eth0/forwarding";
+    @hook post "echo 1 >/proc/sys/net/ipv4/conf/eth0/forwarding";
 
 The specified command is executed using the shell.  "pre" means run
 the command before applying the firewall rules, and "post" means run

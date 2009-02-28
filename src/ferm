@@ -1574,6 +1574,11 @@ sub enter($$) {
 
             # hooks for custom shell commands
             if ($keyword eq 'hook') {
+                warning("'hook' is deprecated, use '\@hook'");
+                $keyword = '@hook';
+            }
+
+            if ($keyword eq '@hook') {
                 error('"hook" must be the first token in a command')
                   if exists $rule{domain};
 
