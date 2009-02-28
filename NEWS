@@ -12,6 +12,7 @@ v2.0.5 - not yet released
   - improved detection of negated arrays
   - ignore dpkg's backup/temporary files on @include
   - renamed "hook" to "@hook"
+  - disable "pre" and "post" hooks with --flush
 
 
 v2.0.4 - 2 Dec 2008

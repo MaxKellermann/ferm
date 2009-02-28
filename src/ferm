@@ -518,6 +518,13 @@ open_script($ARGV[0]);
 enter(0);
 die unless @stack == 2;
 
+# enable/disable hooks depending on --flush
+
+if ($option{flush}) {
+    undef @pre_hooks;
+    undef @post_hooks;
+}
+
 # execute all generated rules
 my $status;
 
