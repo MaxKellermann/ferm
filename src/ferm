@@ -44,13 +44,10 @@ BEGIN {
 
 use vars qw($has_strict $has_getopt);
 
-use vars qw($DATE $VERSION);
+use vars qw($VERSION);
 
-# subversion keyword magic
-$DATE = '$Date$' =~ m,(\d{4})-(\d\d)-(\d\d), ? $1.$2.$3 : '';
-
-$VERSION = '2.0.5';
-#$VERSION .= '~svn' . $DATE;
+$VERSION = '2.0.6';
+$VERSION .= '~git';
 
 ## interface variables
 # %option = command line and other options

@@ -7,6 +7,9 @@
     Auke Kok <sofar@foo-projects.org>
 
 
+v2.0.6 - not yet released
+
+
 v2.0.5 - 28 Feb 2009
   - detect double negation
   - improved detection of negated arrays
