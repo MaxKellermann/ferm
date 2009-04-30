@@ -1540,6 +1540,9 @@ sub enter($$) {
 
             # effectuation operator
             if ($keyword eq ';') {
+                error('Empty rule before ";" not allowed')
+                  unless $rule{non_empty};
+
                 if ($rule{has_rule} and not exists $rule{has_action}) {
                     # something is wrong when a rule was specified,
                     # but no action

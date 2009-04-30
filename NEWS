@@ -12,6 +12,7 @@ v2.0.6 - not yet released
   - support negation in set
   - added automatic variable $FILENAME
   - allow @subchain as the first keyword in a closure
+  - don't allow semicolon after empty rule
 
 
 v2.0.5 - 28 Feb 2009
