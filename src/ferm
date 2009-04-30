@@ -1428,7 +1428,7 @@ sub new_level(\%$) {
         $rule->{keywords} = $prev->{keywords};
         $rule->{match} = { %{$prev->{match}} };
         $rule->{options} = [@{$prev->{options}}];
-        foreach my $key (qw(domain domain_family table chain protocol has_action)) {
+        foreach my $key (qw(domain domain_family table chain protocol has_rule has_action)) {
             $rule->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -1949,6 +1949,7 @@ sub enter($$) {
 
                 # and clean up variables set in this level
                 new_level(%rule, $prev);
+                delete $rule{has_rule};
 
                 next;
             }
