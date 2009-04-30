@@ -1472,6 +1472,10 @@ just like any other variable.
 
 =over 8
 
+=item B<$FILENAME>
+
+The name of the configuration file.
+
 =item B<$DOMAIN>
 
 The current domain.  One of I<ip>, I<ip6>, I<arp>, I<eb>.

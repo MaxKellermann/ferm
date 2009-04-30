@@ -510,6 +510,7 @@ if ($has_strict) {
 
 unshift @stack, {};
 open_script($ARGV[0]);
+$stack[0]{auto}{FILENAME} = $ARGV[0];
 
 # parse all input recursively
 enter(0);
@@ -1664,6 +1665,8 @@ sub enter($$) {
                         $stack->{functions} = ($stack[0]{functions} ||= {});
                         $stack->{auto} = { %{ $stack[0]{auto} || {} } };
                     }
+
+                    $stack->{auto}{FILENAME} = $filename;
 
                     unshift @stack, $stack;
 

@@ -10,6 +10,7 @@
 v2.0.6 - not yet released
   - support negation in mark/connmark
   - support negation in set
+  - added automatic variable $FILENAME
 
 
 v2.0.5 - 28 Feb 2009
