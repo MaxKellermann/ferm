@@ -13,6 +13,7 @@ v2.0.6 - not yet released
   - added automatic variable $FILENAME
   - allow @subchain as the first keyword in a closure
   - don't allow semicolon after empty rule
+  - enable @include to run a program
 
 
 v2.0.5 - 28 Feb 2009

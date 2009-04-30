@@ -733,7 +733,7 @@ sub open_script($) {
     }
 
     local *FILE;
-    open FILE, "<$filename" or die("Failed to open $filename: $!\n");
+    open FILE, "$filename" or die("Failed to open $filename: $!\n");
     my $handle = *FILE;
 
     $script = { filename => $filename,
@@ -761,7 +761,7 @@ sub collect_filenames(@) {
         # non-absolute file names are relative to the parent script's
         # file name
         $pathname = $parent_dir . $pathname
-          unless $pathname =~ m,^/,;
+          unless $pathname =~ m,^/|\|$,;
 
         if ($pathname =~ m,/$,) {
             # include all regular files in a directory

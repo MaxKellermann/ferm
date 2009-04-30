@@ -1551,6 +1551,11 @@ directory are included, sorted alphabetically:
 
     @include 'ferm.d/';
 
+With a trailing pipe symbol, B<ferm> executes a program and parses its
+output:
+
+    @include '/root/generate_ferm_rules.sh $HOSTNAME|'
+
 =head2 Conditionals
 
 The keyword B<@if> introduces a conditional expression:
