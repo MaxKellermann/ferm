@@ -1943,8 +1943,18 @@ sub enter($$) {
                     append_option(%inner, 'protocol', $inner{protocol});
                 }
 
+                # create a new stack frame
+                my $old_stack_depth = @stack;
+                my $stack = { auto => { %{$stack[0]{auto} || {}} } };
+                $stack->{auto}{CHAIN} = $subchain;
+                unshift @stack, $stack;
+
                 # enter the block
                 enter($lev + 1, \%inner);
+
+                # pop stack frame
+                shift @stack;
+                die unless @stack == $old_stack_depth;
 
                 # now handle the parent - it's a jump to the sub chain
                 $rule{script} = {
