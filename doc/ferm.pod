@@ -1591,6 +1591,15 @@ need for semicolon.
 
 There is no B<@elsif>, use B<@else @if> instead.
 
+Example:
+
+    @def $have_ipv6 = `test -f /proc/net/ip6_tables_names && echo 1 || echo`;
+    @if $have_ipv6 {
+        domain ip6 {
+            # ....
+        }
+    }
+
 =head2 Hooks
 
 To run custom commands, you may install hooks:
