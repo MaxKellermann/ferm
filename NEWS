@@ -14,6 +14,7 @@ v2.0.6 - not yet released
   - allow @subchain as the first keyword in a closure
   - don't allow semicolon after empty rule
   - enable @include to run a program
+  - removed superfluous tokens from error message
 
 
 v2.0.5 - 28 Feb 2009

@@ -824,8 +824,12 @@ sub next_token() {
         my $prev_token = $past_tokens->[-1][-1];
         $past_tokens->[-1] = @$past_tokens > 1 ? ['{'] : []
           if $prev_token eq ';';
-        pop @$past_tokens
-          if $prev_token eq '}';
+        if ($prev_token eq '}') {
+            pop @$past_tokens;
+            $past_tokens->[-1] = $past_tokens->[-1][0] eq '{'
+              ? [ '{' ] : []
+                if @$past_tokens > 0;
+        }
     }
 
     push @$past_tokens, [] if $token eq '{' or @$past_tokens == 0;
