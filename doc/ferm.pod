@@ -1614,7 +1614,7 @@ the command afterwards.  "flush" hooks are run after ferm has flushed
 the firewall rules (option --flush).  You may install any number of
 hooks.
 
-=head1 FUNCTIONS
+=head1 BUILT-IN FUNCTIONS
 
 There are several built-in functions which you might find useful.
 
