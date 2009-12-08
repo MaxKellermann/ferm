@@ -13,7 +13,7 @@ v2.0.7 - not yet released
   - updated netfilter modules:
     * addrtype: support negation and --limit-iface-{in,out}
     * conntrack: support negation and --ctdir
-    * owner: support negation
+    * owner: support negation and --socket-exists
 
 
 v2.0.6 - 18 Jul 2009

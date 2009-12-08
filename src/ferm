@@ -256,7 +256,8 @@ add_match_def 'mark', qw(!mark);
 add_match_def 'multiport', qw(source-ports!&multiport_params),
   qw(destination-ports!&multiport_params ports!&multiport_params);
 add_match_def 'nth', qw(every counter start packet);
-add_match_def 'owner', qw(!uid-owner !gid-owner pid-owner sid-owner cmd-owner);
+add_match_def 'owner', qw(!uid-owner !gid-owner pid-owner sid-owner),
+  qw(cmd-owner !socket-exists=0);
 add_match_def 'physdev', qw(physdev-in! physdev-out!),
   qw(!physdev-is-in*0 !physdev-is-out*0 !physdev-is-bridged*0);
 add_match_def 'pkttype', qw(pkt-type),
