@@ -542,7 +542,7 @@ while (my ($domain, $domain_info) = each %domains) {
 }
 
 foreach my $cmd (@post_hooks, @flush_hooks) {
-    print "$cmd\n" if $option{lines};
+    print LINES "$cmd\n" if $option{lines};
     system($cmd) unless $option{noexec};
 }
 
