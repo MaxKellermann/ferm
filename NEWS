@@ -8,6 +8,10 @@
 
 
 v2.0.7 - not yet released
+  - fix post and flush hooks with --lines
+  - always prefix the negation operator
+  - updated netfilter modules:
+    * owner: support negation
 
 
 v2.0.6 - 18 Jul 2009
