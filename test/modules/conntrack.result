@@ -3,8 +3,8 @@ iptables -t filter -A INPUT -m conntrack --ctstate DNAT,SNAT -j REJECT
 iptables -t filter -A INPUT -m conntrack --ctproto ftp -j ACCEPT
 iptables -t filter -A INPUT -m conntrack --ctorigsrc 10.0.0.0/8 -j ACCEPT
 iptables -t filter -A INPUT -m conntrack --ctorigdst 127.0.0.01 -j ACCEPT
-iptables -t filter -A INPUT -m conntrack --ctreplsrc ! 1.2.3.3 -j ACCEPT
-iptables -t filter -A INPUT -m conntrack --ctreplsrc ! 1.2.3.4 -j ACCEPT
+iptables -t filter -A INPUT -m conntrack ! --ctreplsrc 1.2.3.3 -j ACCEPT
+iptables -t filter -A INPUT -m conntrack ! --ctreplsrc 1.2.3.4 -j ACCEPT
 iptables -t filter -A INPUT -m conntrack --ctrepldst 1.2.3.5 -j REJECT
 iptables -t filter -A INPUT -m conntrack --ctrepldst 1.2.3.6 -j REJECT
 iptables -t filter -A INPUT -m conntrack --ctstatus ASSURED -j ACCEPT

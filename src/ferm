@@ -1224,10 +1224,7 @@ sub shell_format_option($$) {
 
     my $cmd = '';
     if (ref $value) {
-        if (ref $value eq 'negated') {
-            $value = $value->[0];
-            $keyword .= ' !';
-        } elsif (ref $value eq 'pre_negated') {
+        if ((ref $value eq 'negated') || (ref $value eq 'pre_negated')) {
             $value = $value->[0];
             $cmd = ' !';
         }

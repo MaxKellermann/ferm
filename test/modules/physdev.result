@@ -1,8 +1,8 @@
 iptables -t filter -A INPUT -m physdev --physdev-in eth0 -j DROP
 iptables -t filter -A INPUT -m physdev --physdev-in ppp0 -j DROP
-iptables -t filter -A INPUT -m physdev --physdev-in ! eth1 -j ACCEPT
+iptables -t filter -A INPUT -m physdev ! --physdev-in eth1 -j ACCEPT
 iptables -t filter -A INPUT -m physdev --physdev-out ppp1 -j ACCEPT
-iptables -t filter -A INPUT -m physdev --physdev-out ! ppp2 -j ACCEPT
+iptables -t filter -A INPUT -m physdev ! --physdev-out ppp2 -j ACCEPT
 iptables -t filter -A INPUT -m physdev --physdev-is-in -j DROP
 iptables -t filter -A INPUT -m physdev ! --physdev-is-in -j ACCEPT
 iptables -t filter -A INPUT -m physdev --physdev-is-out -j ACCEPT

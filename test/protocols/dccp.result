@@ -1,5 +1,5 @@
 iptables -t filter -A INPUT -p dccp --sport 1234 --dport 5678 -j ACCEPT
 iptables -t filter -A INPUT -p dccp --dccp-types DATA,CLOSEREQ -j DROP
-iptables -t filter -A INPUT -p dccp --dccp-types ! RESET,SYNC -j REJECT
+iptables -t filter -A INPUT -p dccp ! --dccp-types RESET,SYNC -j REJECT
 iptables -t filter -A INPUT -p dccp --dccp-option 100 -j ACCEPT
-iptables -t filter -A INPUT -p dccp --dccp-option ! 99 -j DROP
+iptables -t filter -A INPUT -p dccp ! --dccp-option 99 -j DROP

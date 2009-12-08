@@ -1,8 +1,8 @@
 iptables -t filter -A INPUT -m ah --ahspi 0x100 -j ACCEPT
-iptables -t filter -A INPUT -m ah --ahspi ! 0x101 -j DROP
+iptables -t filter -A INPUT -m ah ! --ahspi 0x101 -j DROP
 iptables -t filter -A INPUT -m ah --ahspi 0x102 -j REJECT
 iptables -t filter -A INPUT -m ah --ahspi 0x105 -j REJECT
 iptables -t filter -A INPUT -m ah --ahspi 0x200:0x2ff -j REJECT
 iptables -t filter -A INPUT -m ah --ahlen 32 --ahres -j ACCEPT
 iptables -t filter -A INPUT -m ah --ahlen 16 --ahres -j ACCEPT
-iptables -t filter -A INPUT -m ah --ahlen ! 32 -j DROP
+iptables -t filter -A INPUT -m ah ! --ahlen 32 -j DROP

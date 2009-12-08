@@ -1,5 +1,5 @@
 iptables -t filter -A INPUT -p icmp -j ACCEPT
 iptables -t filter -A INPUT -p icmp --icmp-type destination-unreachable -j ACCEPT
-iptables -t filter -A INPUT -p icmp --icmp-type ! redirect -j ACCEPT
+iptables -t filter -A INPUT -p icmp ! --icmp-type redirect -j ACCEPT
 iptables -t filter -A INPUT -p icmp --icmp-type router-advertisement -j ACCEPT
 iptables -t filter -A INPUT -p icmp --icmp-type ttl-zero-during-reassembly -j ACCEPT

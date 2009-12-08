@@ -1,4 +1,4 @@
 iptables -t filter -A INPUT -m realm --realm 5 -j ACCEPT
-iptables -t filter -A INPUT -m realm --realm ! 2 -j DROP
+iptables -t filter -A INPUT -m realm ! --realm 2 -j DROP
 iptables -t filter -A INPUT -m realm --realm 8 -j REJECT
 iptables -t filter -A INPUT -m realm --realm 9 -j REJECT
