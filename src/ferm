@@ -233,8 +233,8 @@ add_match_def 'condition', qw(condition!);
 add_match_def 'connbytes', qw(!connbytes connbytes-dir connbytes-mode);
 add_match_def 'connlimit', qw(!connlimit-above connlimit-mask);
 add_match_def 'connmark', qw(!mark);
-add_match_def 'conntrack', qw(ctstate=c ctproto ctorigsrc! ctorigdst!),
-  qw(ctreplsrc! ctrepldst! ctstatus ctexpire=s);
+add_match_def 'conntrack', qw(!ctstate=c !ctproto ctorigsrc! ctorigdst!),
+  qw(ctreplsrc! ctrepldst! !ctstatus !ctexpire=s ctdir=s);
 add_match_def 'dscp', qw(dscp dscp-class);
 add_match_def 'ecn', qw(ecn-tcp-cwr*0 ecn-tcp-ece*0 ecn-ip-ect);
 add_match_def 'esp', qw(espspi!);
