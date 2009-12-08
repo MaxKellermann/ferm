@@ -5,7 +5,7 @@
 @def $B = (`echo http https` ftp);
 
 # multiline output with comments
-@def $C = `echo ah; echo -e '\x23a comment'; echo -e 'esp\x23another comment'`;
+@def $C = `echo ah; echo '# comment'; echo 'esp#another comment'`;
 
 chain INPUT {
         proto tcp dport $A ACCEPT;
