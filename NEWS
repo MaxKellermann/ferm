@@ -14,6 +14,7 @@ v2.0.7 - not yet released
     * addrtype: support negation and --limit-iface-{in,out}
     * conntrack: support negation and --ctdir
     * owner: support negation and --socket-exists
+    * policy: support negation
 
 
 v2.0.6 - 18 Jul 2009
