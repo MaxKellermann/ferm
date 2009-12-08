@@ -225,7 +225,8 @@ add_match_def '',
   # --fragment
   qw(!fragment*0);
 add_match_def 'account', qw(aaddr=s aname=s ashort*0);
-add_match_def 'addrtype', qw(src-type dst-type);
+add_match_def 'addrtype', qw(!src-type !dst-type),
+  qw(limit-iface-in*0 limit-iface-out*0);
 add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
 add_match_def 'comment', qw(comment=s);
 add_match_def 'condition', qw(condition!);

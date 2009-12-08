@@ -11,6 +11,7 @@ v2.0.7 - not yet released
   - fix post and flush hooks with --lines
   - always prefix the negation operator
   - updated netfilter modules:
+    * addrtype: support negation and --limit-iface-{in,out}
     * owner: support negation
 
 
