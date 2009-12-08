@@ -2,9 +2,9 @@ iptables -t filter -A INPUT -i eth0 -s 192.168.0.0/24 -j ACCEPT
 iptables -t filter -A INPUT -o ppp0 -p esp -d 195.0.0.0/8 -j DROP
 iptables -t filter -A INPUT -f -j LOG
 iptables -t filter -A INPUT -p ah ! -f -j ACCEPT
-iptables -t filter -A INPUT -p ! udp -j DROP
-iptables -t filter -A INPUT -p ! tcp -j DROP
-iptables -t filter -A INPUT -d ! 10.0.0.0/8 -j REJECT
-iptables -t filter -A INPUT -s ! 172.16.0.0/12 -j DROP
-iptables -t filter -A INPUT -i ! ppp0 -j ACCEPT
-iptables -t filter -A INPUT -o ! ppp1 -j ACCEPT
+iptables -t filter -A INPUT ! -p udp -j DROP
+iptables -t filter -A INPUT ! -p tcp -j DROP
+iptables -t filter -A INPUT ! -d 10.0.0.0/8 -j REJECT
+iptables -t filter -A INPUT ! -s 172.16.0.0/12 -j DROP
+iptables -t filter -A INPUT ! -i ppp0 -j ACCEPT
+iptables -t filter -A INPUT ! -o ppp1 -j ACCEPT

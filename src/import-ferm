@@ -408,6 +408,7 @@ sub parse_option(\%$$\@) {
             $line->{keywords}{sport} = { name => 'sport', %def };
             $line->{keywords}{dport} = { name => 'dport', %def };
         }
+        undef $pre_negated;
     } elsif ($option eq 'match') {
         die unless @$tokens;
         my $param = shift @$tokens;

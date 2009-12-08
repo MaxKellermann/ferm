@@ -1,6 +1,6 @@
 arptables -t filter -P INPUT ACCEPT
 arptables -t filter -F
 arptables -t filter -X
-arptables -t filter -A INPUT --source-ip ! 192.168.1.1 -j DROP
-arptables -t filter -A INPUT --source-mac ! 00:00:de:ad:be:ef -j ACCEPT
-arptables -t filter -A INPUT --destination-mac ! f0:00:00:00:00:00 -j DROP
+arptables -t filter -A INPUT ! --source-ip 192.168.1.1 -j DROP
+arptables -t filter -A INPUT ! --source-mac 00:00:de:ad:be:ef -j ACCEPT
+arptables -t filter -A INPUT ! --destination-mac f0:00:00:00:00:00 -j DROP
