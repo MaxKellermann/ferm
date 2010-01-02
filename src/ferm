@@ -3,7 +3,7 @@
 #
 # ferm, a firewall setup program that makes firewall rules easy!
 #
-# Copyright (C) 2001-2009 Max Kellermann, Auke Kok
+# Copyright (C) 2001-2010 Max Kellermann, Auke Kok
 #
 # Comments, questions, greetings and additions to this program
 # may be sent to <ferm@foo-projects.org>
@@ -47,7 +47,7 @@ use vars qw($has_strict $has_getopt);
 use vars qw($VERSION);
 
 $VERSION = '2.0.7';
-$VERSION .= '~git';
+#$VERSION .= '~git';
 
 ## interface variables
 # %option = command line and other options

@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.0.7 - not yet released
+v2.0.7 - 2 Jan 2010
   - fix post and flush hooks with --lines
   - always prefix the negation operator
   - updated netfilter modules:
