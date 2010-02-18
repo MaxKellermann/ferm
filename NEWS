@@ -8,6 +8,7 @@
 
 
 v2.0.8 - not yet released
+  - added automatic variable $DIRNAME
 
 
 v2.0.7 - 2 Jan 2010

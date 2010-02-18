@@ -513,6 +513,7 @@ if ($has_strict) {
 unshift @stack, {};
 open_script($ARGV[0]);
 $stack[0]{auto}{FILENAME} = $ARGV[0];
+$stack[0]{auto}{DIRNAME} = $ARGV[0] =~ m,^(.*)/,s ? $1 : '.';
 
 # parse all input recursively
 enter(0);
@@ -1673,6 +1674,7 @@ sub enter($$) {
                     }
 
                     $stack->{auto}{FILENAME} = $filename;
+                    $stack->{auto}{DIRNAME} = $filename =~ m,^(.*)/,s ? $1 : '.';
 
                     unshift @stack, $stack;
 
