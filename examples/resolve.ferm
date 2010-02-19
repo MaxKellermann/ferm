@@ -9,4 +9,10 @@
 
 table filter chain OUTPUT {
     daddr @resolve(www.google.com) proto tcp dport http ACCEPT;
+    daddr @resolve(yahoo.com, MX) proto tcp dport smtp ACCEPT;
+    daddr @resolve(denic.de, NS) proto udp dport domain ACCEPT;
+}
+
+domain ip6 table filter chain OUTPUT {
+    daddr @resolve(www.sixxs.net, AAAA) proto tcp dport http ACCEPT;
 }

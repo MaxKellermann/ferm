@@ -954,11 +954,23 @@ sub resolve($\@$) {
 
         foreach my $rr ($query->answer) {
             next unless $rr->type eq $type;
-            push @result, $rr->address;
+
+            if ($type eq 'NS') {
+                push @result, $rr->nsdname;
+            } elsif ($type eq 'MX') {
+                push @result, $rr->exchange;
+            } else {
+                push @result, $rr->address;
+            }
         }
     }
 
-    return \@result;
+    # NS/MX records return host names; resolve these again in the
+    # second pass (IPv4 only currently)
+    @result = resolve($resolver, \@result, 'A')
+      if $type eq 'NS' or $type eq 'MX';
+
+    return @result;
 }
 
 # returns the next parameter, which may either be a scalar or an array
@@ -1069,15 +1081,15 @@ sub getvalues {
     } elsif ($token =~ /^@/) {
         if ($token eq '@resolve') {
             my @params = get_function_params();
-            error('Usage: @resolve((hostname ...))')
-              unless @params == 1;
+            error('Usage: @resolve((hostname ...), [type])')
+              unless @params == 1 or @params == 2;
             eval { require Net::DNS; };
             error('For the @resolve() function, you need the Perl library Net::DNS')
               if $@;
-            my $type = 'A';
+            my $type = $params[1] || 'A';
             my $resolver = new Net::DNS::Resolver;
             my @params = to_array($params[0]);
-            return resolve($resolver, @params, $type);
+            return [resolve($resolver, @params, $type)];
         } else {
             error("unknown ferm built-in function");
         }
