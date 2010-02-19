@@ -1,0 +1,12 @@
+# -*- shell-script -*-
+#
+# Ferm example script
+#
+# Demo of the @resolve() function.
+#
+# Author: Max Kellermann <max@duempel.org>
+#
+
+table filter chain OUTPUT {
+    daddr @resolve(www.google.com) proto tcp dport http ACCEPT;
+}
