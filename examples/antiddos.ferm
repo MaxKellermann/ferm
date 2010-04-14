@@ -1,0 +1,65 @@
+# -*- shell-script -*-
+#
+# Ferm example script
+#
+# Firewall configuration to prevent basic tcp DoS/DDoS attacks
+#
+# Authors: Vlad Glagolev <enqlave@gmail.com>, Stepan Rogov <rogov_sa@mail.ru>
+#
+
+@def &ANTIDDOS($ports, $seconds, $hits, $time, $exceptions) = {
+	proto tcp dport $ports @subchain "ddos_check" {
+		# allow every exception as-is
+		saddr $exceptions ACCEPT;
+
+		# connection tracking
+		mod conntrack ctstate (ESTABLISHED RELATED) ACCEPT;
+
+		# check for IPs overloading $hits/$seconds rate and block them
+		mod recent name "ddos_check" rcheck seconds $seconds hitcount $hits @subchain "ddos" {
+			mod recent set name "ddos" NOP;
+
+			DROP;
+		}
+
+		# register a packet in "ddos_check" list
+		mod recent set name "ddos_check" NOP;
+
+		# check IP in "ddos" list
+		# if it exists and had been registered in the last $time seconds -- drop it
+		mod recent name "ddos" rcheck seconds $time DROP;
+
+		# remove packet from "ddos" list
+		mod recent name "ddos" remove NOP;
+
+		# allow ONLY new connections
+		mod conntrack ctstate NEW ACCEPT;
+
+		DROP;
+	}
+}
+
+table filter {
+	chain INPUT {
+		policy DROP;
+
+		# connection tracking
+		mod state state INVALID REJECT;
+		mod state state (ESTABLISHED RELATED) ACCEPT;
+
+		# allow local connections
+		interface lo ACCEPT;
+
+		# ban ip addresses for 1 day which connect more than 50 times in 3 seconds,
+		# exception is IP: 94.29.90.101
+		&ANTIDDOS((80, 443), 50, 3, 86400, 94.29.90.101);
+
+		# the rest is dropped by the above policy
+	}
+
+	# outgoing connections are not limited
+	chain OUTPUT policy ACCEPT;
+
+	# this is not a router
+	chain FORWARD policy DROP;
+}
