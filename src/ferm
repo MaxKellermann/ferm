@@ -943,6 +943,10 @@ sub negate_value($$;$) {
     return bless [ $value ], $class || 'negated';
 }
 
+sub format_bool($) {
+    return $_[0] ? 1 : 0;
+}
+
 sub resolve($\@$) {
     my ($resolver, $names, $type) = @_;
 
@@ -1090,6 +1094,18 @@ sub getvalues {
             my $resolver = new Net::DNS::Resolver;
             my @params = to_array($params[0]);
             return [resolve($resolver, @params, $type)];
+        } elsif ($token eq '@eq') {
+            my @params = get_function_params();
+            error('Usage: @eq(a, b)') unless @params == 2;
+            return format_bool($params[0] eq $params[1]);
+        } elsif ($token eq '@ne') {
+            my @params = get_function_params();
+            error('Usage: @ne(a, b)') unless @params == 2;
+            return format_bool($params[0] ne $params[1]);
+        } elsif ($token eq '@not') {
+            my @params = get_function_params();
+            error('Usage: @eq(a, b)') unless @params == 1;
+            return format_bool(not $params[0]);
         } else {
             error("unknown ferm built-in function");
         }

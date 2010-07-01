@@ -1603,6 +1603,20 @@ hooks.
 
 There are several built-in functions which you might find useful.
 
+=head2 @eq(a,b)
+
+Tests two values for equality.  Example:
+
+    @if @eq($DOMAIN, ip6) DROP;
+
+=head2 @ne(a,b)
+
+Similar to @eq, this tests for non-equality.
+
+=head2 @not(x)
+
+Negates a boolean value.
+
 =head2 @resolve((hostname1 hostname2 ...), [type])
 
 Usually, host names are resolved by iptables.  To let ferm resolve

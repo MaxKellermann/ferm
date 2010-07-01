@@ -11,6 +11,7 @@ v2.0.8 - not yet released
   - added automatic variable $DIRNAME
   - implement confirmation/rollback for --shell --interactive
   - added the "type" parameter to @resolve()
+  - new functions @eq, @ne, @not
 
 
 v2.0.7 - 2 Jan 2010
