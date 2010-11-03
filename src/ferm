@@ -404,7 +404,7 @@ unshift @stack, {};
 # Get command line stuff
 if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_noflush, $opt_lines, $opt_interactive,
-        $opt_help,
+        $opt_timeout, $opt_help,
         $opt_version, $opt_test, $opt_fast, $opt_slow, $opt_shell,
         $opt_domain);
 
@@ -429,6 +429,7 @@ if ($has_getopt) {
                'noflush' => \$opt_noflush,
                'lines|l' => \$opt_lines,
                'interactive|i' => \$opt_interactive,
+               'timeout|t=s' => \$opt_timeout,
                'help|h' => \$opt_help,
                'version|V' => \$opt_version,
                test => \$opt_test,
@@ -455,6 +456,7 @@ if ($has_getopt) {
     $option{noflush} = $opt_noflush;
     $option{lines} = $opt_lines || $opt_test || $opt_shell;
     $option{interactive} = $opt_interactive && !$opt_noexec;
+    $option{timeout} = defined $opt_timeout ? $opt_timeout : "30";
     $option{test} = $opt_test;
     $option{fast} = !$opt_slow;
     $option{shell} = $opt_shell;
@@ -463,6 +465,10 @@ if ($has_getopt) {
       if $option{interactive} and not -t STDIN;
     die("ferm interactive mode not possible: /dev/stderr is not a tty\n")
       if $option{interactive} and not -t STDERR;
+    die("ferm timeout has no sense without interactive mode")
+	if not $opt_interactive and defined $opt_timeout;
+    die("invalid timeout. must be an integer")
+	if defined $opt_timeout and not $opt_timeout =~ /^[+-]?\d+$/;
 
     $option{domain} = $opt_domain if defined $opt_domain;
 } else {
@@ -560,7 +566,7 @@ if ($option{interactive}) {
     if ($option{shell}) {
         print LINES "echo 'ferm has applied the new firewall rules.'\n";
         print LINES "echo 'Please press Ctrl-C to confirm.'\n";
-        print LINES "sleep 30\n";
+        print LINES "sleep $option{timeout}\n";
         while (my ($domain, $domain_info) = each %domains) {
             my $restore = $domain_info->{tools}{'tables-restore'};
             next unless defined $restore;
@@ -2332,7 +2338,7 @@ sub alrm_handler {
     # do nothing, just interrupt a system call
 }
 
-sub confirm_rules() {
+sub confirm_rules {
     $SIG{ALRM} = \&alrm_handler;
 
     alarm(5);
@@ -2342,7 +2348,7 @@ sub confirm_rules() {
         . "Please type 'yes' to confirm:\n";
     STDERR->flush();
 
-    alarm(30);
+    alarm($option{timeout});
 
     my $line = '';
     STDIN->sysread($line, 3);
@@ -2376,6 +2382,7 @@ B<ferm> I<options> I<inputfiles>
  -F, --flush       Flush all netfilter tables managed by ferm
  -l, --lines       Show all rules that were created
  -i, --interactive Interactive mode: revert if user does not confirm
+ -t, --timeout s   Define interactive mode timeout in seconds
  --remote          Remote mode; ignore host specific configuration.
                    This implies --noexec and --lines.
  -V, --version     Show current version number

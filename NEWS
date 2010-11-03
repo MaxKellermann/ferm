@@ -14,6 +14,7 @@ v2.0.8 - not yet released
   - new functions @eq, @ne, @not
   - updated netfilter modules:
     * ebtables/snat: support --snat-arp
+  - add parameter --timeout for rollback
 
 
 v2.0.7 - 2 Jan 2010
