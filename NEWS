@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.0.8 - not yet released
+v2.0.8 - 4 Nov 2010
   - added automatic variable $DIRNAME
   - implement confirmation/rollback for --shell --interactive
   - added the "type" parameter to @resolve()
