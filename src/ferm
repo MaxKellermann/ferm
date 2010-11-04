@@ -362,7 +362,7 @@ add_target_def_x 'eb', 'arpreply', qw(arpreply-mac arpreply-target);
 add_target_def_x 'eb', 'dnat', qw(to-destination dnat-target);
 add_target_def_x 'eb', 'MARK', qw(set-mark mark-target);
 add_target_def_x 'eb', 'redirect', qw(redirect-target);
-add_target_def_x 'eb', 'snat', qw(to-source snat-target);
+add_target_def_x 'eb', 'snat', qw(to-source snat-target snat-arp*0);
 
 # import-ferm uses the above tables
 return 1 if $0 =~ /import-ferm$/;

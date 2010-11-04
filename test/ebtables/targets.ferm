@@ -4,4 +4,5 @@ domain eb chain INPUT {
     logical-in br2 MARK set-mark 1 mark-target DROP;
     logical-in br3 redirect redirect-target DROP;
     logical-in br4 snat to-source 00:00:de:ad:be:ef snat-target DROP;
+    logical-in br4 snat to-source 00:00:de:ad:be:ef snat-target DROP snat-arp;
 }

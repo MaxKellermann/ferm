@@ -6,3 +6,4 @@ ebtables -t filter -A INPUT --logical-in br1 -j dnat --to-destination 00:00:de:a
 ebtables -t filter -A INPUT --logical-in br2 -j mark --set-mark 1 --mark-target DROP
 ebtables -t filter -A INPUT --logical-in br3 -j redirect --redirect-target DROP
 ebtables -t filter -A INPUT --logical-in br4 -j snat --to-source 00:00:de:ad:be:ef --snat-target DROP
+ebtables -t filter -A INPUT --logical-in br4 -j snat --to-source 00:00:de:ad:be:ef --snat-target DROP --snat-arp
