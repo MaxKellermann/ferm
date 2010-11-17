@@ -8,6 +8,8 @@
 
 
 v2.0.9 - not yet released
+  - updated netfilter modules:
+    * state: support negation
 
 
 v2.0.8 - 4 Nov 2010

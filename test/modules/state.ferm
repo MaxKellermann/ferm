@@ -3,6 +3,7 @@ table filter chain INPUT mod state {
     proto tcp {
         state NEW dport ssh ACCEPT;
         state (RELATED INVALID) DROP;
+        state !(INVALID UNTRACKED) ACCEPT;
         REJECT;
     }
     DROP;

@@ -1,5 +1,6 @@
 iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 iptables -t filter -A INPUT -m state -p tcp --state NEW --dport ssh -j ACCEPT
 iptables -t filter -A INPUT -m state -p tcp --state RELATED,INVALID -j DROP
+iptables -t filter -A INPUT -m state -p tcp ! --state INVALID,UNTRACKED -j ACCEPT
 iptables -t filter -A INPUT -m state -p tcp -j REJECT
 iptables -t filter -A INPUT -m state -j DROP
