@@ -10,6 +10,7 @@
 v2.0.9 - not yet released
   - updated netfilter modules:
     * state: support negation
+    * icmp: translate "icmp-type" to "icmpv6-type" in domain "ip6"
 
 
 v2.0.8 - 4 Nov 2010

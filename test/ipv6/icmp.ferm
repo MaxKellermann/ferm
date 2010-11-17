@@ -1,4 +1,5 @@
 # ferm tries to allow you to use ipv4 keywords for the ipv6 domain.
 domain ip6 chain INPUT {
     proto icmp ACCEPT;
+    proto icmp icmp-type redirect DROP;
 }

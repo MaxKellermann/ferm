@@ -209,8 +209,7 @@ sub add_target_def(@) {
 
 add_proto_def 'dccp', qw(dccp-types!=c dccp-option!);
 add_proto_def 'mh', qw(mh-type!);
-add_proto_def 'icmp', qw(icmp-type!);
-add_proto_def 'icmpv6', qw(icmpv6-type! icmp-type:=icmpv6-type);
+add_proto_def 'icmp', qw(icmp-type! icmpv6-type:=icmp-type);
 add_proto_def 'sctp', qw(chunk-types!=sc);
 add_proto_def 'tcp', qw(tcp-flags!=cc !syn*0 tcp-option! mss);
 add_proto_def 'udp', qw();
@@ -1242,8 +1241,8 @@ sub is_netfilter_builtin_chain($$) {
 
 sub netfilter_canonical_protocol($) {
     my $proto = shift;
-    return 'icmpv6'
-      if $proto eq 'ipv6-icmp';
+    return 'icmp'
+      if $proto eq 'ipv6-icmp' or $proto eq 'icmpv6';
     return 'mh'
       if $proto eq 'ipv6-mh';
     return $proto;
@@ -1319,6 +1318,7 @@ sub format_option($$$) {
     my ($domain, $name, $value) = @_;
     $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
       and $value eq 'icmp';
+    $name = 'icmpv6-type' if $domain eq 'ip6' and $name eq 'icmp-type';
     return shell_format_option($name, $value);
 }
 

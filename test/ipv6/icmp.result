@@ -1,1 +1,2 @@
 ip6tables -t filter -A INPUT -p icmpv6 -j ACCEPT
+ip6tables -t filter -A INPUT -p icmpv6 --icmpv6-type redirect -j DROP
