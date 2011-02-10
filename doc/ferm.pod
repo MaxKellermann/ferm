@@ -1637,6 +1637,16 @@ Be careful with resolved host names in firewall configuration.  DNS
 requests may block the firewall configuration for a long time, leaving
 the machine vulnerable, or they may fail.
 
+=head2 @substr(expression, offset, length)
+
+Extracts a substring out of expression and returns it.  First
+character is at offset 0. If OFFSET is negative, starts that far from
+the end of the string.  
+
+=head2 @length(expression)
+
+Returns the length in characters of the value of EXPR.
+
 =head1 RECIPES
 
 The F<./examples/> directory contains numerous ferm configuration

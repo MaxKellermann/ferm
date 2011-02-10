@@ -1111,6 +1111,14 @@ sub getvalues {
             my @params = get_function_params();
             error('Usage: @eq(a, b)') unless @params == 1;
             return format_bool(not $params[0]);
+        } elsif ($token eq '@substr') {
+            my @params = get_function_params();
+            error('Usage: @substr(string, num, num)') unless @params == 3;
+            return substr($params[0],$params[1],$params[2]);
+        } elsif ($token eq '@length') {
+            my @params = get_function_params();
+            error('Usage: @length(string)') unless @params == 1;
+            return length($params[0]);
         } else {
             error("unknown ferm built-in function");
         }
