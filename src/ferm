@@ -1973,13 +1973,18 @@ sub enter($$) {
                   unless $rule{has_rule};
 
                 my $subchain;
-                $keyword = next_token();
+                my $token = peek_token();
 
-                if ($keyword =~ /^(["'])(.*)\1$/s) {
+                if ($token =~ /^(["'])(.*)\1$/s) {
                     $subchain = $2;
+                    next_token();
                     $keyword = next_token();
-                } else {
+                } elsif ($token eq '{') {
+                    $keyword = next_token();
                     $subchain = 'ferm_auto_' . ++$auto_chain;
+                } else {
+                    $subchain = getvar();
+                    $keyword = next_token();
                 }
 
                 foreach my $domain (to_array $rule{domain}) {
