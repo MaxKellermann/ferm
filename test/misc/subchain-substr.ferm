@@ -1,0 +1,12 @@
+# test expanded subchain names, substr and length
+@def $string10 = "abcdefghij";
+@def $string20 = "abcdefghijabcdefghij";
+@def $twelve = 12;
+
+domain ip table filter chain INPUT proto udp @subchain @substr($string20,0,$twelve) {
+    dport domain ACCEPT;
+}
+
+domain ip table filter chain INPUT proto udp @subchain @substr($string20,0,@length($string10)) {
+    dport domain ACCEPT;
+}
