@@ -66,7 +66,7 @@ use vars qw($indent $table $chain @rules $domain $next_domain);
 
 sub ferm_escape($) {
     local $_ = shift;
-    return $_ unless /[^-\w.:\/]/s;
+    return $_ unless /[^-\w.:\/]/s or length == 0;
     return "\'$_\'";
 }
 
@@ -308,7 +308,7 @@ sub flush_domain() {
 sub tokenize($) {
     local $_ = shift;
     my @result;
-    while (s/^\s*"([^"]+)"//s || s/^\s*(!)// || s/^\s*(\S+)//s) {
+    while (s/^\s*"([^"]*)"//s || s/^\s*(!)// || s/^\s*(\S+)//s) {
         push @result, $1;
     }
     return @result;
