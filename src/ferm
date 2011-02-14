@@ -1109,7 +1109,7 @@ sub getvalues {
             return format_bool($params[0] ne $params[1]);
         } elsif ($token eq '@not') {
             my @params = get_function_params();
-            error('Usage: @eq(a, b)') unless @params == 1;
+            error('Usage: @not(a)') unless @params == 1;
             return format_bool(not $params[0]);
         } elsif ($token eq '@substr') {
             my @params = get_function_params();
