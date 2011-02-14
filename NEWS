@@ -11,7 +11,7 @@ v2.0.9 - not yet released
   - updated netfilter modules:
     * state: support negation
     * icmp: translate "icmp-type" to "icmpv6-type" in domain "ip6"
-  - add @substr and @length
+  - add functions @cat, @substr, @length
   - subchain names can now be expanded
   - import-ferm: support empty string parameters
 

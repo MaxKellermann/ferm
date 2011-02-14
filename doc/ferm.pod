@@ -1640,6 +1640,10 @@ Be careful with resolved host names in firewall configuration.  DNS
 requests may block the firewall configuration for a long time, leaving
 the machine vulnerable, or they may fail.
 
+=head2 @cat(a, b, ...)
+
+Concatenate all parameters into one string.
+
 =head2 @substr(expression, offset, length)
 
 Extracts a substring out of expression and returns it.  First

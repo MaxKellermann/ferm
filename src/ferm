@@ -1111,6 +1111,10 @@ sub getvalues {
             my @params = get_function_params();
             error('Usage: @not(a)') unless @params == 1;
             return format_bool(not $params[0]);
+        } elsif ($token eq '@cat') {
+            my $value = '';
+            map { $value .= $_ } get_function_params();
+            return $value;
         } elsif ($token eq '@substr') {
             my @params = get_function_params();
             error('Usage: @substr(string, num, num)') unless @params == 3;

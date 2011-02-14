@@ -1,0 +1,10 @@
+# test for @cat()
+
+@def $a = 'foo';
+
+chain INPUT {
+    mod comment comment @cat() ACCEPT;
+    mod comment comment @cat($a) DROP;
+    mod comment comment @cat($a, 'bar') ACCEPT;
+    mod comment comment @cat(@substr($a, 0, 1), 'bar') DROP;
+}

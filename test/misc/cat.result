@@ -1,0 +1,4 @@
+iptables -t filter -A INPUT -m comment --comment '' -j ACCEPT
+iptables -t filter -A INPUT -m comment --comment foo -j DROP
+iptables -t filter -A INPUT -m comment --comment foobar -j ACCEPT
+iptables -t filter -A INPUT -m comment --comment fbar -j DROP
