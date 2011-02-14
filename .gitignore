@@ -1,4 +1,7 @@
 .dotest
+*~
+\#*#
+.#*
 .stgit*
 build
 doc/ferm.1
