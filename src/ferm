@@ -519,8 +519,13 @@ if ($has_strict) {
 
 unshift @stack, {};
 open_script($ARGV[0]);
+
+my( $volume,$dirs,$file ) = File::Spec->splitpath( $ARGV[0] );
 $stack[0]{auto}{FILENAME} = $ARGV[0];
-$stack[0]{auto}{DIRNAME} = $ARGV[0] =~ m,^(.*)/,s ? $1 : '.';
+$stack[0]{auto}{FILEBNAME} = $file;
+$stack[0]{auto}{DIRNAME} = $dirs;
+
+
 
 # parse all input recursively
 enter(0);
@@ -1752,8 +1757,10 @@ sub enter($$) {
                         $stack->{auto} = { %{ $stack[0]{auto} || {} } };
                     }
 
+		    my( $volume,$dirs,$file ) = File::Spec->splitpath( $filename );
                     $stack->{auto}{FILENAME} = $filename;
-                    $stack->{auto}{DIRNAME} = $filename =~ m,^(.*)/,s ? $1 : '.';
+                    $stack->{auto}{FILEBNAME} = $file;
+                    $stack->{auto}{DIRNAME} = $dirs;
 
                     unshift @stack, $stack;
 

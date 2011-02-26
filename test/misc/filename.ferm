@@ -1,0 +1,5 @@
+# test for $FILEBNAME (we should test $FILENAME and $DIRNAME here as well)
+
+chain INPUT {
+    mod comment comment $FILEBNAME ACCEPT;
+}

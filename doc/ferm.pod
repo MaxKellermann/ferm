@@ -1458,7 +1458,12 @@ just like any other variable.
 
 =item B<$FILENAME>
 
-The name of the configuration file.
+The name of the configuration file relative to the directory ferm was
+started in.
+
+=item B<$FILEBNAME>
+
+The base name of the configuration file.
 
 =item B<$DIRNAME>
 
