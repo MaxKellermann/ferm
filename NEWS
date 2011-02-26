@@ -8,6 +8,7 @@
 
 
 v2.0.10 - not yet released
+  - new functions @basename, @dirname
 
 
 v2.0.9 - 26 Feb 2011

@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -m comment --comment foo -j ACCEPT
+iptables -t filter -A INPUT -m comment --comment /tmp/bla/ -j DROP

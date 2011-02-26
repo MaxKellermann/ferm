@@ -27,6 +27,8 @@
 
 # $Id$
 
+use File::Spec;
+
 BEGIN {
     eval { require strict; import strict; };
     $has_strict = not $@;
@@ -1123,6 +1125,16 @@ sub getvalues {
             my @params = get_function_params();
             error('Usage: @length(string)') unless @params == 1;
             return length($params[0]);
+        } elsif ($token eq '@basename') {
+            my @params = get_function_params();
+            error('Usage: @basename(path)') unless @params == 1;
+	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
+            return $file;
+        } elsif ($token eq '@dirname') {
+            my @params = get_function_params();
+            error('Usage: @dirname(path)') unless @params == 1;
+	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
+            return $path;
         } else {
             error("unknown ferm built-in function");
         }

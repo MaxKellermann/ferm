@@ -1654,6 +1654,16 @@ the end of the string.
 
 Returns the length in characters of the value of EXPR.
 
+=head2 @basename(path)
+
+Return the base name of the file for a given path
+(File::Spec::splitpath).
+
+=head2 @dirname(path)
+
+Return the name of the last directory for a given path, assuming the
+last component is a file name (File::Spec::splitpath).
+
 =head1 RECIPES
 
 The F<./examples/> directory contains numerous ferm configuration

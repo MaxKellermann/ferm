@@ -1,0 +1,8 @@
+# test for @basename()
+
+@def $a = '/tmp/bla/foo';
+
+chain INPUT {
+    mod comment comment @basename($a) ACCEPT;
+    mod comment comment @dirname($a) DROP;
+}
