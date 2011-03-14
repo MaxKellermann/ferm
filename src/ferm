@@ -901,6 +901,10 @@ sub require_next_token {
 sub variable_value($) {
     my $name = shift;
 
+    if ($name eq "LINE") {
+        return $script->{line};
+    }
+
     foreach (@stack) {
         return $_->{vars}{$name}
           if exists $_->{vars}{$name};

@@ -1481,6 +1481,18 @@ The current netfilter table.
 
 The current netfilter chain.
 
+=item B<$LINE>
+
+The line of the current script.  It can be used like this:
+
+    @def &log($msg) = {
+	     LOG log-prefix "rule=$msg:$LINE ";
+    }
+    .
+    .
+    .
+    &log("log message");
+
 =back
 
 =head2 Functions
