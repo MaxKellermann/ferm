@@ -1,3 +1,4 @@
 table filter chain INPUT mod pkttype {
     pkt-type unicast ACCEPT;
+    pkt-type ! unicast ACCEPT;
 }
