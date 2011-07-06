@@ -762,6 +762,14 @@ sub tokenize_string($) {
     return \@ret;
 }
 
+# generate a "line" special token, that marks the line number; these
+# special tokens are inserted after each line break, so ferm keeps
+# track of line numbers
+sub make_line_token($) {
+    my $line = shift;
+    return bless(\$line, 'line');
+}
+
 # read some more tokens from the input file into a buffer
 sub prepare_tokens() {
     my $tokens = $script->{tokens};
@@ -770,13 +778,33 @@ sub prepare_tokens() {
         my $line = <$handle>;
         return unless defined $line;
 
-        $script->{line} ++;
+        push @$tokens, make_line_token($script->{line} + 1);
 
         # the next parser stage eats this
         push @$tokens, @{tokenize_string($line)};
     }
 
     return 1;
+}
+
+sub handle_special_tokens() {
+    my $tokens = $script->{tokens};
+    while (@$tokens > 0 and ref $tokens->[0]) {
+        my $token = shift @$tokens;
+        if (ref $token eq 'line') {
+            $script->{line} = $$token;
+        }
+    }
+}
+
+# wrapper for prepare_tokens() which handles "special" tokens
+sub prepare_normal_tokens() {
+    my $tokens = $script->{tokens};
+    while (1) {
+        handle_special_tokens();
+        return 1 if @$tokens > 0;
+        return unless prepare_tokens();
+    }
 }
 
 # open a ferm sub script
@@ -873,13 +901,19 @@ sub collect_filenames(@) {
 
 # peek a token from the queue, but don't remove it
 sub peek_token() {
-    return unless prepare_tokens();
+    return unless prepare_normal_tokens();
     return $script->{tokens}[0];
+}
+
+# get a token from the queue, including "special" tokens
+sub next_raw_token() {
+    return unless prepare_tokens();
+    return shift @{$script->{tokens}};
 }
 
 # get a token from the queue
 sub next_token() {
-    return unless prepare_tokens();
+    return unless prepare_normal_tokens();
     my $token = shift @{$script->{tokens}};
 
     # update $script->{past_tokens}
@@ -1226,8 +1260,12 @@ sub collect_tokens() {
     my @level;
     my @tokens;
 
+    # re-insert a "line" token, because the starting token of the
+    # current line has been consumed already
+    push @tokens, make_line_token($script->{line});
+
     while (1) {
-        my $keyword = next_token();
+        my $keyword = next_raw_token();
         error('unexpected end of file within function/variable declaration')
           unless defined $keyword;
 
