@@ -1,0 +1,28 @@
+def $both = (ip ip6);
+
+domain ip chain INPUT DROP;
+
+domain (ip6 ip) chain OUTPUT policy DROP;
+
+domain (ip6 ip) chain INPUT {
+    proto tcp dport ssh ACCEPT;
+    LOG log-prefix $DOMAIN;
+}
+
+domain $both chain INPUT @if (@eq($DOMAIN,ip)) LOG log-prefix "four";
+domain $both chain INPUT @if (@eq($DOMAIN,ip6)) LOG log-prefix "six";
+
+domain $both chain INPUT @if (@eq($DOMAIN,ip))
+    LOG log-prefix "four2";
+@else
+    LOG log-prefix "six2";
+
+domain $both chain INPUT {
+    @if (@eq($DOMAIN,ip6)) {
+        LOG log-prefix "six3";
+    } @else {
+        LOG log-prefix "four3";
+    }
+}
+
+chain INPUT REJECT;

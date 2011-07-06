@@ -1,6 +1,6 @@
 iptables -t filter -N ferm_auto_1
 iptables -t filter -A INPUT -p udp -j ferm_auto_1
 iptables -t filter -A ferm_auto_1 -p udp --dport domain -j ACCEPT
-ip6tables -t filter -N ferm_auto_1
-ip6tables -t filter -A INPUT -p udp -j ferm_auto_1
-ip6tables -t filter -A ferm_auto_1 -p udp --dport domain -j ACCEPT
+ip6tables -t filter -N ferm_auto_2
+ip6tables -t filter -A INPUT -p udp -j ferm_auto_2
+ip6tables -t filter -A ferm_auto_2 -p udp --dport domain -j ACCEPT

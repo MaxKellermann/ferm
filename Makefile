@@ -51,7 +51,7 @@ FERM_SCRIPTS += $(wildcard test/protocols/*.ferm) $(wildcard test/misc/*.ferm)
 FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
 FERM_SCRIPTS += $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
-EXCLUDE_IMPORT = test/misc/subchain-domains.ferm
+EXCLUDE_IMPORT = test/misc/subchain-domains.ferm test/ipv6/mixed.ferm
 IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT) test/arptables/% test/ebtables/%,$(FERM_SCRIPTS))
 
 # just a hack

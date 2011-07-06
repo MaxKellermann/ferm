@@ -729,23 +729,19 @@ sub initialize_domain {
     $domain_info->{initialized} = 1;
 }
 
-sub filter_domains($) {
-    my $domains = shift;
+sub check_domain($) {
+    my $domain = shift;
     my @result;
 
-    foreach my $domain (to_array($domains)) {
-        next if exists $option{domain}
-          and $domain ne $option{domain};
+    return if exists $option{domain}
+      and $domain ne $option{domain};
 
-        eval {
-            initialize_domain($domain);
-        };
-        error($@) if $@;
+    eval {
+        initialize_domain($domain);
+    };
+    error($@) if $@;
 
-        push @result, $domain;
-    }
-
-    return @result == 1 ? @result[0] : \@result;
+    return 1;
 }
 
 # split the input string into words and delete comments
@@ -775,6 +771,7 @@ sub prepare_tokens() {
     my $tokens = $script->{tokens};
     while (@$tokens == 0) {
         my $handle = $script->{handle};
+        return unless defined $handle;
         my $line = <$handle>;
         return unless defined $line;
 
@@ -787,13 +784,20 @@ sub prepare_tokens() {
     return 1;
 }
 
+sub handle_special_token($) {
+    my $token = shift;
+    die unless ref $token;
+    if (ref $token eq 'line') {
+        $script->{line} = $$token;
+    } else {
+        die;
+    }
+}
+
 sub handle_special_tokens() {
     my $tokens = $script->{tokens};
     while (@$tokens > 0 and ref $tokens->[0]) {
-        my $token = shift @$tokens;
-        if (ref $token eq 'line') {
-            $script->{line} = $$token;
-        }
+        handle_special_token(shift @$tokens);
     }
 }
 
@@ -1256,7 +1260,9 @@ sub get_function_params(%) {
 
 # collect all tokens in a flat array reference until the end of the
 # command is reached
-sub collect_tokens() {
+sub collect_tokens {
+    my %options = @_;
+
     my @level;
     my @tokens;
 
@@ -1269,7 +1275,9 @@ sub collect_tokens() {
         error('unexpected end of file within function/variable declaration')
           unless defined $keyword;
 
-        if ($keyword =~ /^[\{\(]$/) {
+        if (ref $keyword) {
+            handle_special_token($keyword);
+        } elsif ($keyword =~ /^[\{\(]$/) {
             push @level, $keyword;
         } elsif ($keyword =~ /^[\}\)]$/) {
             my $expected = $keyword;
@@ -1278,6 +1286,14 @@ sub collect_tokens() {
             error("unmatched '$keyword'")
               unless defined $opener and $opener eq $expected;
         } elsif ($keyword eq ';' and @level == 0) {
+            push @tokens, $keyword
+              if $options{include_semicolon};
+
+            if ($options{include_else}) {
+                my $token = peek_token;
+                next if $token eq '@else';
+            }
+
             last;
         }
 
@@ -1466,18 +1482,17 @@ sub mkrules2($$$) {
 sub mkrules($) {
     my $rule = shift;
 
-    foreach my $domain (to_array $rule->{domain}) {
-        my $domain_info = $domains{$domain};
-        $domain_info->{enabled} = 1;
+    my $domain = $rule->{domain};
+    my $domain_info = $domains{$domain};
+    $domain_info->{enabled} = 1;
 
-        foreach my $table (to_array $rule->{table}) {
-            my $table_info = $domain_info->{tables}{$table} ||= {};
+    foreach my $table (to_array $rule->{table}) {
+        my $table_info = $domain_info->{tables}{$table} ||= {};
 
-            foreach my $chain (to_array $rule->{chain}) {
-                my $chain_rules = $table_info->{chains}{$chain}{rules} ||= [];
-                mkrules2($domain, $chain_rules, $rule)
-                  if $rule->{has_rule} and not $option{flush};
-            }
+        foreach my $chain (to_array $rule->{chain}) {
+            my $chain_rules = $table_info->{chains}{$chain}{rules} ||= [];
+            mkrules2($domain, $chain_rules, $rule)
+              if $rule->{has_rule} and not $option{flush};
         }
     }
 }
@@ -1612,7 +1627,8 @@ sub merge_keywords(\%$) {
 sub set_domain(\%$) {
     my ($rule, $domain) = @_;
 
-    my $filtered_domain = filter_domains($domain);
+    return unless check_domain($domain);
+
     my $domain_family;
     unless (ref $domain) {
         $domain_family = $domain eq 'ip6' ? 'ip' : $domain;
@@ -1628,7 +1644,7 @@ sub set_domain(\%$) {
     $rule->{keywords} = $match_defs{$domain_family}{''}{keywords};
     $rule->{cow}{keywords} = 1;
 
-    $rule->{domain} = $stack[0]{auto}{DOMAIN} = $filtered_domain;
+    $rule->{domain} = $stack[0]{auto}{DOMAIN} = $domain;
 }
 
 sub set_target(\%$$) {
@@ -1991,7 +2007,37 @@ sub enter($$) {
                 error('Domain is already specified')
                   if exists $rule{domain};
 
-                set_domain(%rule, getvalues());
+                my $domains = getvalues();
+                if (ref $domains) {
+                    my $tokens = collect_tokens(include_semicolon => 1,
+                                                include_else => 1);
+
+                    my $old_line = $script->{line};
+                    my $old_handle = $script->{handle};
+                    my $old_tokens = $script->{tokens};
+                    unshift @$old_tokens, make_line_token($script->{line});
+                    delete $script->{handle};
+
+                    for my $domain (@$domains) {
+                        my %inner;
+                        new_level(%inner, \%rule);
+                        set_domain(%inner, $domain) or next;
+                        $script->{tokens} = [ @$tokens ];
+                        enter($lev, \%inner);
+                    }
+
+                    $script->{tokens} = $old_tokens;
+                    $script->{handle} = $old_handle;
+                    $script->{line} = $old_line;
+
+                    new_level(%rule, $prev);
+                } else {
+                    unless (set_domain(%rule, $domains)) {
+                        collect_tokens();
+                        new_level(%rule, $prev);
+                    }
+                }
+
                 next;
             }
 
@@ -2024,11 +2070,10 @@ sub enter($$) {
                 $rule{table} = 'filter'
                   unless exists $rule{table};
 
-                foreach my $domain (to_array $rule{domain}) {
-                    foreach my $table (to_array $rule{table}) {
-                        foreach my $c (to_array $chain) {
-                            $domains{$domain}{tables}{$table}{chains}{$c} ||= {};
-                        }
+                my $domain = $rule{domain};
+                foreach my $table (to_array $rule{table}) {
+                    foreach my $c (to_array $chain) {
+                        $domains{$domain}{tables}{$table}{chains}{$c} ||= {};
                     }
                 }
 
@@ -2049,14 +2094,13 @@ sub enter($$) {
 
                 expect_token(';');
 
-                foreach my $domain (to_array $rule{domain}) {
-                    my $domain_info = $domains{$domain};
-                    $domain_info->{enabled} = 1;
+                my $domain = $rule{domain};
+                my $domain_info = $domains{$domain};
+                $domain_info->{enabled} = 1;
 
-                    foreach my $table (to_array $rule{table}) {
-                        foreach my $chain (to_array $rule{chain}) {
-                            $domain_info->{tables}{$table}{chains}{$chain}{policy} = $policy;
-                        }
+                foreach my $table (to_array $rule{table}) {
+                    foreach my $chain (to_array $rule{chain}) {
+                        $domain_info->{tables}{$table}{chains}{$chain}{policy} = $policy;
                     }
                 }
 
@@ -2087,10 +2131,9 @@ sub enter($$) {
                     $keyword = next_token();
                 }
 
-                foreach my $domain (to_array $rule{domain}) {
-                    foreach my $table (to_array $rule{table}) {
-                        $domains{$domain}{tables}{$table}{chains}{$subchain} ||= {};
-                    }
+                my $domain = $rule{domain};
+                foreach my $table (to_array $rule{table}) {
+                    $domains{$domain}{tables}{$table}{chains}{$subchain} ||= {};
                 }
 
                 set_target(%rule, 'jump', $subchain);
