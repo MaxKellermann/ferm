@@ -366,6 +366,8 @@ add_match_def_x 'eb', '',
   qw(source! saddr:=source destination! daddr:=destination),
   # 802.3
   qw(802_3-sap! 802_3-type!),
+  # among
+  qw(!among-dst=c !among-src=c !among-dst-file !among-src-file),
   # mark_m
   qw(mark!),
   # pkttype

@@ -1,4 +1,5 @@
 domain eb chain INPUT {
+    among-src ! (00:11:22:33:44:55 00:11:22:33:44:66) ACCEPT;
     proto !ARP ACCEPT;
     proto ARP !arp-gratuitous ACCEPT;
     interface !eth0 logical-in !br0 outerface !eth1 logical-out !br1 ACCEPT;
