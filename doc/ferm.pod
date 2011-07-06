@@ -352,7 +352,7 @@ Many keywords take parameters. These can be specified as literals,
 variable references or lists (arrays):
 
     proto udp
-    saddr %TRUSTED_HOSTS;
+    saddr $TRUSTED_HOSTS;
     proto tcp dport (http https ssh);
     LOG log-prefix "funky wardriver alert: ";
 
