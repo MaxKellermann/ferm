@@ -19,6 +19,7 @@ v2.0.10 - not yet released
     * add support for matching IPv6
     * add support for "among" match
     * add support for the "limit" match
+  - honor --noflush in fast mode
 
 
 v2.0.9 - 26 Feb 2011
