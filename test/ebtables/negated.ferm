@@ -1,5 +1,6 @@
 domain eb chain INPUT {
     proto !ARP ACCEPT;
+    proto ARP !arp-gratuitous ACCEPT;
     interface !eth0 logical-in !br0 outerface !eth1 logical-out !br1 ACCEPT;
     saddr !Multicast daddr !Broadcast DROP;
 }

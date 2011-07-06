@@ -332,10 +332,12 @@ add_proto_def_x 'eb', 'IPv4',
   qw(ip-source! ip-destination! ip-tos! ip-protocol! ip-sport! ip-dport!);
 
 add_proto_def_x 'eb', 'ARP',
+  qw(!arp-gratuitous*0),
   qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
   qw(arp-ip-src! arp-ip-dst! arp-mac-src! arp-mac-dst!);
 
 add_proto_def_x 'eb', 'RARP',
+  qw(!arp-gratuitous*0),
   qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
   qw(arp-ip-src! arp-ip-dst! arp-mac-src! arp-mac-dst!);
 

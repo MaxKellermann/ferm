@@ -4,6 +4,7 @@ ebtables -t filter -X
 ebtables -t filter -A INPUT --source 00:11:22:33:44:55 -j DROP
 ebtables -t filter -A INPUT --protocol IPv4 --ip-source 192.168.1.1 -j DROP
 ebtables -t filter -A INPUT --protocol ARP --arp-mac-src 00:11:22:33:44:55 -j ACCEPT
+ebtables -t filter -A INPUT --protocol ARP --arp-gratuitous -j ACCEPT
 ebtables -t filter -A INPUT --protocol 0x8137 -j DROP
 ebtables -t filter -A INPUT --in-interface eth0 --logical-in br0 --out-interface eth1 --logical-out br1 -j ACCEPT
 ebtables -t filter -A INPUT --source Multicast --destination Broadcast -j DROP
