@@ -329,7 +329,11 @@ add_match_def_x 'arp', '',
   qw(mangle-ip-s=s mangle-ip-d=s mangle-mac-s=s mangle-mac-d=s mangle-target=s);
 
 add_proto_def_x 'eb', 'IPv4',
-  qw(ip-source! ip-destination! ip-tos! ip-protocol! ip-sport! ip-dport!);
+  qw(ip-source! ip-destination! ip-src:=ip-source ip-dst:=ip-destination),
+  qw(ip-tos!),
+  qw(ip-protocol! ip-proto:=ip-protocol),
+  qw(ip-source-port! ip-sport:=ip-source-port),
+  qw(ip-destination-port! ip-dport:=ip-destination-port);
 
 add_proto_def_x 'eb', 'ARP',
   qw(!arp-gratuitous*0),
