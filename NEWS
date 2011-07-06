@@ -12,6 +12,13 @@ v2.0.10 - not yet released
   - add automatic variables $FILENAME, $LINE
   - updated netfilter modules:
     * pkg-type: support negation
+  - updated ebtables support:
+    * use per-protocol options
+    * add support for -p ARP --arp-gratuitous
+    * support abbreviations in arguments
+    * add support for matching IPv6
+    * add support for "among" match
+    * add support for the "limit" match
 
 
 v2.0.9 - 26 Feb 2011
