@@ -15,7 +15,7 @@ all: doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1
 
 clean:
 	rm -rf build
-	rm -f doc/ferm.txt doc/ferm.html doc/{import-,}ferm.1 *.tmp
+	rm -f doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1 *.tmp
 
 #
 # documentation
