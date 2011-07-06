@@ -328,9 +328,21 @@ add_match_def_x 'arp', '',
   qw(h-length=s opcode=s h-type=s proto-type=s),
   qw(mangle-ip-s=s mangle-ip-d=s mangle-mac-s=s mangle-mac-d=s mangle-target=s);
 
+add_proto_def_x 'eb', 'IPv4',
+  qw(ip-source! ip-destination! ip-tos! ip-protocol! ip-sport! ip-dport!);
+
+add_proto_def_x 'eb', 'ARP',
+  qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
+  qw(arp-ip-src! arp-ip-dst! arp-mac-src! arp-mac-dst!);
+
+add_proto_def_x 'eb', 'RARP',
+  qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
+  qw(arp-ip-src! arp-ip-dst! arp-mac-src! arp-mac-dst!);
+
+add_proto_def_x 'eb', '802_1Q',
+  qw(vlan-id! vlan-prio! vlan-encap!),
+
 add_match_def_x 'eb', '',
-  # protocol
-  qw(protocol! proto:=protocol),
   # --in-interface
   qw(in-interface! interface:=in-interface if:=in-interface),
   # --out-interface
@@ -341,11 +353,6 @@ add_match_def_x 'eb', '',
   qw(source! saddr:=source destination! daddr:=destination),
   # 802.3
   qw(802_3-sap! 802_3-type!),
-  # arp
-  qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
-  qw(arp-ip-src! arp-ip-dst! arp-mac-src! arp-mac-dst!),
-  # ip
-  qw(ip-source! ip-destination! ip-tos! ip-protocol! ip-sport! ip-dport!),
   # mark_m
   qw(mark!),
   # pkttype
@@ -354,8 +361,6 @@ add_match_def_x 'eb', '',
   qw(stp-type! stp-flags! stp-root-prio! stp-root-addr! stp-root-cost!),
   qw(stp-sender-prio! stp-sender-addr! stp-port! stp-msg-age! stp-max-age!),
   qw(stp-hello-time! stp-forward-delay!),
-  # vlan
-  qw(vlan-id! vlan-prio! vlan-encap!),
   # log
   qw(log*0 log-level=s log-prefix=s log-ip*0 log-arp*0);
 
