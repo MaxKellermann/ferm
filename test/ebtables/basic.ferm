@@ -2,6 +2,7 @@ domain eb chain INPUT {
     saddr 00:11:22:33:44:55 DROP;
     proto IPv4 ip-source 192.168.1.1 DROP;
     proto IPv4 ip-proto tcp ip-dport 22 ACCEPT;
+    proto IPv6 ip6-source 2001:db8:ffff:ffff:211:22ff:fe33:4455 DROP;
     proto ARP arp-mac-src 00:11:22:33:44:55 ACCEPT;
     proto ARP arp-gratuitous ACCEPT;
     proto 0x8137 DROP;

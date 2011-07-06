@@ -335,6 +335,13 @@ add_proto_def_x 'eb', 'IPv4',
   qw(ip-source-port! ip-sport:=ip-source-port),
   qw(ip-destination-port! ip-dport:=ip-destination-port);
 
+add_proto_def_x 'eb', 'IPv6',
+  qw(ip6-source! ip6-destination! ip6-src:=ip6-source ip6-dst:=ip6-destination),
+  qw(ip6-tclass!),
+  qw(ip6-protocol! ip6-proto:=ip6-protocol),
+  qw(ip6-source-port! ip6-sport:=ip6-source-port),
+  qw(ip6-destination-port! ip6-dport:=ip6-destination-port);
+
 add_proto_def_x 'eb', 'ARP',
   qw(!arp-gratuitous*0),
   qw(arp-opcode! arp-htype!=ss arp-ptype!=ss),
