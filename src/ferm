@@ -368,6 +368,8 @@ add_match_def_x 'eb', '',
   qw(802_3-sap! 802_3-type!),
   # among
   qw(!among-dst=c !among-src=c !among-dst-file !among-src-file),
+  # limit
+  qw(limit=s limit-burst=s),
   # mark_m
   qw(mark!),
   # pkttype

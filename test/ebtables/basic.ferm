@@ -7,6 +7,7 @@ domain eb chain INPUT {
     proto ARP arp-mac-src 00:11:22:33:44:55 ACCEPT;
     proto ARP arp-gratuitous ACCEPT;
     proto 0x8137 DROP;
+    limit 30/hour DROP;
     interface eth0 logical-in br0 outerface eth1 logical-out br1 ACCEPT;
     saddr Multicast daddr Broadcast DROP;
 }
