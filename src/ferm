@@ -2329,6 +2329,7 @@ sub restore_domain($$) {
     my ($domain_info, $save) = @_;
 
     my $path = $domain_info->{tools}{'tables-restore'};
+    $path .= " --noflush" if $option{noflush};
 
     local *RESTORE;
     open RESTORE, "|$path"
@@ -2346,7 +2347,9 @@ sub execute_fast($) {
     my $save = rules_to_save($domain_info);
 
     if ($option{lines}) {
-        print LINES "$domain_info->{tools}{'tables-restore'} <<EOT\n"
+        my $path = $domain_info->{tools}{'tables-restore'};
+        $path .= " --noflush" if $option{noflush};
+        print LINES "$path <<EOT\n"
           if $option{shell};
         print LINES $save;
         print LINES "EOT\n"
