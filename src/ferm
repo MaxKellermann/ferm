@@ -788,9 +788,18 @@ sub open_script($) {
           if $s->{filename} eq $filename;
     }
 
-    local *FILE;
-    open FILE, "$filename" or die("Failed to open $filename: $!\n");
-    my $handle = *FILE;
+    my $handle;
+    if ($filename eq '-') {
+        # Note that this only allowed in the command-line argument and not
+        # @includes, since those are filtered by collect_filenames()
+        $handle = *STDIN;
+        # also set a filename label so that error messages are more helpful
+        $filename = "<stdin>";
+    } else {
+        local *FILE;
+        open FILE, "$filename" or die("Failed to open $filename: $!\n");
+        $handle = *FILE;
+    }
 
     $script = { filename => $filename,
                 handle => $handle,
