@@ -10,3 +10,8 @@ domain ip table filter chain INPUT proto udp @subchain @substr($string20,0,$twel
 domain ip table filter chain INPUT proto udp @subchain @substr($string20,0,@length($string10)) {
     dport domain ACCEPT;
 }
+
+@def $iface = "tap0";
+domain ip table filter chain INPUT proto udp @subchain @cat("interface_", $iface) {
+    dport domain ACCEPT;
+}

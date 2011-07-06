@@ -1,6 +1,9 @@
 iptables -t filter -N abcdefghijab
+iptables -t filter -N interface_tap0
 iptables -t filter -N abcdefghij
 iptables -t filter -A abcdefghijab -p udp --dport domain -j ACCEPT
 iptables -t filter -A INPUT -p udp -j abcdefghijab
 iptables -t filter -A INPUT -p udp -j abcdefghij
+iptables -t filter -A INPUT -p udp -j interface_tap0
+iptables -t filter -A interface_tap0 -p udp --dport domain -j ACCEPT
 iptables -t filter -A abcdefghij -p udp --dport domain -j ACCEPT

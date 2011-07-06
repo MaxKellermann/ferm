@@ -443,7 +443,7 @@ Optionally, you may define the name of the sub chain:
  }
 
 The name can either be a quoted string literal, or an expanded ferm
-expression such as @substr($var,0,20).
+expression such as @cat("interface_", $iface) or @substr($var,0,20).
 
 You can achieve the same by explicitly declaring a custom chain, but
 you may feel that using B<@subchain> requires less typing.
