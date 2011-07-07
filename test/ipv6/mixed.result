@@ -1,0 +1,14 @@
+iptables -t filter -P OUTPUT DROP
+iptables -t filter -A INPUT -j DROP
+iptables -t filter -A INPUT -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -j LOG --log-prefix ip
+iptables -t filter -A INPUT -j LOG --log-prefix four
+iptables -t filter -A INPUT -j LOG --log-prefix four2
+iptables -t filter -A INPUT -j LOG --log-prefix four3
+iptables -t filter -A INPUT -j REJECT
+ip6tables -t filter -P OUTPUT DROP
+ip6tables -t filter -A INPUT -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -j LOG --log-prefix ip6
+ip6tables -t filter -A INPUT -j LOG --log-prefix six
+ip6tables -t filter -A INPUT -j LOG --log-prefix six2
+ip6tables -t filter -A INPUT -j LOG --log-prefix six3
