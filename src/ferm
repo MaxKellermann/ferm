@@ -1962,7 +1962,7 @@ sub enter($$) {
                   if exists $rule{table};
                 $rule{table} = $stack[0]{auto}{TABLE} = getvalues();
 
-                set_domain(%rule, 'ip')
+                set_domain(%rule, $option{domain} || 'ip')
                   unless exists $rule{domain};
 
                 next;
@@ -1980,7 +1980,7 @@ sub enter($$) {
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
 
-                set_domain(%rule, 'ip')
+                set_domain(%rule, $option{domain} || 'ip')
                   unless exists $rule{domain};
 
                 $rule{table} = 'filter'

@@ -21,6 +21,7 @@ v2.0.10 - not yet released
     * add support for the "limit" match
   - honor --noflush in fast mode
   - discard previous specifications when @if fails
+  - use the --domain argument as the default domain
 
 
 v2.0.9 - 26 Feb 2011
