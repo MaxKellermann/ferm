@@ -1213,6 +1213,21 @@ sub getvalues {
             error('Usage: @dirname(path)') unless @params == 1;
 	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
             return $path;
+        } elsif ($token eq '@ipfilter') {
+            my @params = get_function_params();
+            error('Usage: @ipfilter((ip1 ip2 ...))') unless @params == 1;
+            my $domain = $stack[0]{auto}{DOMAIN};
+            error('No domain specified') unless defined $domain;
+            my @ips = to_array($params[0]);
+
+            # very crude IPv4/IPv6 address detection
+            if ($domain eq 'ip') {
+                @ips = grep { !/:[0-9a-f]*:/ } @ips;
+            } elsif ($domain eq 'ip6') {
+                @ips = grep { !m,^[0-9./]+$,s } @ips;
+            }
+
+            return \@ips;
         } else {
             error("unknown ferm built-in function");
         }

@@ -1,0 +1,5 @@
+@def $TRUSTED_HOSTS = (192.168.0.40 2001:abcd:ef::40);
+
+domain (ip ip6) chain INPUT {
+    saddr @ipfilter($TRUSTED_HOSTS) proto tcp dport ssh ACCEPT;
+}

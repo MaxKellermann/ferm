@@ -1681,6 +1681,18 @@ Return the base name of the file for a given path
 Return the name of the last directory for a given path, assuming the
 last component is a file name (File::Spec::splitpath).
 
+=head2 @ipfilter(list)
+
+Filters out the IP addresses that obviously do not match the current
+domain.  That is useful to create common variables and rules for IPv4
+and IPv6:
+
+    @def $TRUSTED_HOSTS = (192.168.0.40 2001:abcd:ef::40);
+
+    domain (ip ip6) chain INPUT {
+        saddr @ipfilter($TRUSTED_HOSTS) proto tcp dport ssh ACCEPT;
+    }
+
 =head1 RECIPES
 
 The F<./examples/> directory contains numerous ferm configuration

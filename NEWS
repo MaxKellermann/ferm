@@ -8,7 +8,7 @@
 
 
 v2.0.10 - not yet released
-  - new functions @basename, @dirname
+  - new functions @basename, @dirname, @ipfilter
   - add automatic variables $FILENAME, $LINE
   - updated netfilter modules:
     * pkg-type: support negation
