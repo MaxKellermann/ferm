@@ -14,4 +14,10 @@ table filter chain INPUT {
     } @else {
         DROP;
     }
+
+    # test case for a bug in ferm <= 2.0.9
+    proto tcp @if 0 REJECT;
+    daddr 1.2.3.4 ACCEPT;
+    proto udp @if 1 REJECT;
+    daddr 2.3.4.5 ACCEPT;
 }

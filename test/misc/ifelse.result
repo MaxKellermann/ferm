@@ -8,3 +8,6 @@ iptables -t filter -A INPUT -j MARK --set-mark 13
 iptables -t filter -A INPUT -j MARK --set-mark 14
 iptables -t filter -A INPUT -j LOG
 iptables -t filter -A INPUT -j ACCEPT
+iptables -t filter -A INPUT -d 1.2.3.4 -j ACCEPT
+iptables -t filter -A INPUT -p udp -j REJECT
+iptables -t filter -A INPUT -d 2.3.4.5 -j ACCEPT

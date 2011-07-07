@@ -1691,7 +1691,11 @@ sub enter($$) {
                 unless (eval_bool(getvalues)) {
                     collect_tokens;
                     my $token = peek_token();
-                    require_next_token() if $token and $token eq '@else';
+                    if ($token and $token eq '@else') {
+                        require_next_token();
+                    } else {
+                        new_level(%rule, $prev);
+                    }
                 }
 
                 next;
