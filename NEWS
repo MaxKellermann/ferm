@@ -12,6 +12,7 @@ v2.0.10 - not yet released
   - add automatic variables $FILENAME, $LINE
   - updated netfilter modules:
     * pkg-type: support negation
+    * set: "--match set" support for newer iptables
   - updated ebtables support:
     * use per-protocol options
     * add support for -p ARP --arp-gratuitous

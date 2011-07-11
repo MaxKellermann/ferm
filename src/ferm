@@ -271,7 +271,7 @@ add_match_def 'random', qw(average);
 add_match_def 'realm', qw(realm!);
 add_match_def 'recent', qw(name=s !set*0 !remove*0 !rcheck*0 !update*0 !seconds !hitcount rttl*0 rsource*0 rdest*0);
 add_match_def 'rt', qw(rt-type! rt-segsleft! rt-len! rt-0-res*0 rt-0-addrs=c rt-0-not-strict*0);
-add_match_def 'set', qw(!set=sc);
+add_match_def 'set', qw(!match-set=sc set:=match-set);
 add_match_def 'state', qw(!state=c);
 add_match_def 'statistic', qw(mode=s probability=s every=s packet=s);
 add_match_def 'string', qw(algo=s from=s to=s string hex-string);

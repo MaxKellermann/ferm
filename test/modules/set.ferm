@@ -1,3 +1,4 @@
 table filter chain INPUT mod set {
     set foo (src src) ACCEPT;
+    match-set foo (src src) ACCEPT;
 }

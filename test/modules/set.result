@@ -1,1 +1,2 @@
-iptables -t filter -A INPUT -m set --set foo src,src -j ACCEPT
+iptables -t filter -A INPUT -m set --match-set foo src,src -j ACCEPT
+iptables -t filter -A INPUT -m set --match-set foo src,src -j ACCEPT
