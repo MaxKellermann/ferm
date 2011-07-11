@@ -1449,9 +1449,23 @@ sub shell_format_option($$) {
 
 sub format_option($$$) {
     my ($domain, $name, $value) = @_;
+
     $value = 'icmpv6' if $domain eq 'ip6' and $name eq 'protocol'
       and $value eq 'icmp';
     $name = 'icmpv6-type' if $domain eq 'ip6' and $name eq 'icmp-type';
+
+    if ($domain eq 'ip6' and $name eq 'reject-with') {
+        my %icmp_map = (
+            'icmp-net-unreachable'  => 'icmp6-no-route',
+            'icmp-host-unreachable' => 'icmp6-addr-unreachable',
+            'icmp-port-unreachable' => 'icmp6-port-unreachable',
+            'icmp-net-prohibited'   => 'icmp6-adm-prohibited',
+            'icmp-host-prohibited'  => 'icmp6-adm-prohibited',
+            'icmp-admin-prohibited' => 'icmp6-adm-prohibited',
+        );
+        $value = $icmp_map{$value} if exists $icmp_map{$value};
+    }
+
     return shell_format_option($name, $value);
 }
 

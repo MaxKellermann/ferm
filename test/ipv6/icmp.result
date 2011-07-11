@@ -1,2 +1,3 @@
 ip6tables -t filter -A INPUT -p icmpv6 -j ACCEPT
 ip6tables -t filter -A INPUT -p icmpv6 --icmpv6-type redirect -j DROP
+ip6tables -t filter -A INPUT -p tcp --dport 22 -j REJECT --reject-with icmp6-adm-prohibited

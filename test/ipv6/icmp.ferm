@@ -2,4 +2,5 @@
 domain ip6 chain INPUT {
     proto icmp ACCEPT;
     proto icmp icmp-type redirect DROP;
+    proto tcp dport 22 REJECT reject-with icmp-admin-prohibited;
 }
