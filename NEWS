@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.0.10 - not yet released
+v2.1 - 17 Jul 2011
   - new functions @basename, @dirname, @ipfilter
   - add automatic variables $FILENAME, $LINE
   - updated netfilter modules:
