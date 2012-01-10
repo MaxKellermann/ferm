@@ -8,6 +8,8 @@
 
 
 v2.1.1 - not yet released
+  - updated netfilter modules:
+    * conntrack: support ctorigsrcport, ctorigdstport
 
 
 v2.1 - 17 Jul 2011
