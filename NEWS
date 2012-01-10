@@ -7,6 +7,9 @@
     Auke Kok <sofar@foo-projects.org>
 
 
+v2.1.1 - not yet released
+
+
 v2.1 - 17 Jul 2011
   - new functions @basename, @dirname, @ipfilter
   - add automatic variables $FILENAME, $LINE
