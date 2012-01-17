@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/perl -w
 
 #
 # ferm, a firewall setup program that makes firewall rules easy!
@@ -63,6 +63,8 @@ use vars qw(%aliases);
 );
 
 use vars qw($indent $table $chain @rules $domain $next_domain);
+
+$indent = 0;
 
 sub ferm_escape($) {
     local $_ = shift;
