@@ -674,7 +674,7 @@ Check connection tracking information.
     mod conntrack ctorigsrc 192.168.0.2;
     mod conntrack ctorigdst 1.2.3.0/24;
     mod conntrack ctorigsrcport 67;
-    mod conntrack ctorigdstport ssh;
+    mod conntrack ctorigdstport 22;
     mod conntrack ctreplsrc 2.3.4.5;
     mod conntrack ctrepldst ! 3.4.5.6;
     mod conntrack ctstatus ASSURED;
