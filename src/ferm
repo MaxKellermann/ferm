@@ -133,6 +133,15 @@ use vars qw(%proto_defs %match_defs %target_defs);
 #                       to add a declaration for option "to-destination"
 #
 
+# prototype declarations
+sub open_script($);
+sub resolve($\@$);
+sub enter($$);
+sub rollback();
+sub execute_fast($);
+sub execute_slow($);
+sub join_value($$);
+
 # add a module definition
 sub add_def_x {
     my $defs = shift;
@@ -440,7 +449,7 @@ if ($has_getopt) {
           unless $value =~ /^\$?(\w+)=(.*)$/s;
         my ($name, $unparsed_value) = ($1, $2);
         my $tokens = tokenize_string($unparsed_value);
-        my $value = getvalues(sub { shift @$tokens; });
+        $value = getvalues(sub { shift @$tokens; });
         die 'Extra tokens after --def'
           if @$tokens > 0;
         $stack[0]{vars}{$name} = $value;
@@ -550,7 +559,7 @@ $stack[0]{auto}{DIRNAME} = $dirs;
 
 
 # parse all input recursively
-enter(0);
+enter(0, undef);
 die unless @stack == 2;
 
 # enable/disable hooks depending on --flush
@@ -1056,7 +1065,7 @@ sub resolve($\@$) {
 
     # NS/MX records return host names; resolve these again in the
     # second pass (IPv4 only currently)
-    @result = resolve($resolver, \@result, 'A')
+    @result = resolve($resolver, @result, 'A')
       if $type eq 'NS' or $type eq 'MX';
 
     return @result;
@@ -1177,7 +1186,7 @@ sub getvalues {
               if $@;
             my $type = $params[1] || 'A';
             my $resolver = new Net::DNS::Resolver;
-            my @params = to_array($params[0]);
+            @params = to_array($params[0]);
             return [resolve($resolver, @params, $type)];
         } elsif ($token eq '@eq') {
             my @params = get_function_params();
