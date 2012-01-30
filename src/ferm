@@ -1187,7 +1187,8 @@ sub getvalues {
             my $type = $params[1] || 'A';
             my $resolver = new Net::DNS::Resolver;
             @params = to_array($params[0]);
-            return [resolve($resolver, @params, $type)];
+            my @result = resolve($resolver, @params, $type);
+            return @result == 1 ? $result[0] : \@result;
         } elsif ($token eq '@eq') {
             my @params = get_function_params();
             error('Usage: @eq(a, b)') unless @params == 2;
