@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.1.1 - not yet released
+v2.1.1 - 29 Jul 2012
   - updated netfilter modules:
     * conntrack: support ctorigsrcport, ctorigdstport
   - new netfilter modules:
