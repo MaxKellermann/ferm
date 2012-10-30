@@ -5,4 +5,5 @@ table filter chain INPUT mod hashlimit {
     hashlimit-htable-size 1024  hashlimit-htable-max 4096
     hashlimit-htable-expire 600  hashlimit-htable-gcinterval 180
     ACCEPT;
+    hashlimit-mode (dstip srcip) DROP;
 }

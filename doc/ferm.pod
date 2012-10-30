@@ -806,7 +806,8 @@ per-port limits managed in a hash table.
     mod hashlimit  hashlimit 10/minute  hashlimit-burst 30/minute
       hashlimit-mode dstip  hashlimit-name foobar  ACCEPT;
 
-Possible values for hashlimit-mode: dstip dstport srcip srcport.
+Possible values for hashlimit-mode: dstip dstport srcip srcport (or a
+list with more than one of these).
 
 There are more possible settings, type "iptables -m hashlimit -h" for
 documentation.
