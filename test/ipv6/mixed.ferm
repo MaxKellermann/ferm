@@ -9,6 +9,13 @@ domain (ip6 ip) chain INPUT {
     LOG log-prefix $DOMAIN;
 }
 
+@def &SERVICE($proto, $port) = {
+	domain (ip ip6) chain INPUT {
+		proto $proto dport $port ACCEPT;
+	}
+}
+&SERVICE(tcp, smtp);
+
 domain $both chain INPUT @if (@eq($DOMAIN,ip)) LOG log-prefix "four";
 domain $both chain INPUT @if (@eq($DOMAIN,ip6)) LOG log-prefix "six";
 

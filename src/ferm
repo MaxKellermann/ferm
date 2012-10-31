@@ -2063,7 +2063,7 @@ sub enter($$) {
                         new_level(%inner, \%rule);
                         set_domain(%inner, $domain) or next;
                         $script->{tokens} = [ @$tokens ];
-                        enter($lev, \%inner);
+                        enter(0, \%inner);
                     }
 
                     $script->{tokens} = $old_tokens;
