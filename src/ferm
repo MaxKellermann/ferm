@@ -2141,7 +2141,7 @@ sub enter($$) {
 
                 my $policy = getvar();
                 error("Invalid policy target: $policy")
-                  unless $policy =~ /^(?:ACCEPT|DROP)$/;
+                  unless is_netfilter_core_target($policy);
 
                 expect_token(';');
 
