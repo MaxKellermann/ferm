@@ -2055,6 +2055,7 @@ sub enter($$) {
                     my $old_line = $script->{line};
                     my $old_handle = $script->{handle};
                     my $old_tokens = $script->{tokens};
+                    my $old_base_level = $script->{base_level};
                     unshift @$old_tokens, make_line_token($script->{line});
                     delete $script->{handle};
 
@@ -2062,10 +2063,12 @@ sub enter($$) {
                         my %inner;
                         new_level(%inner, \%rule);
                         set_domain(%inner, $domain) or next;
+                        $script->{base_level} = 0;
                         $script->{tokens} = [ @$tokens ];
                         enter(0, \%inner);
                     }
 
+                    $script->{base_level} = $old_base_level;
                     $script->{tokens} = $old_tokens;
                     $script->{handle} = $old_handle;
                     $script->{line} = $old_line;
