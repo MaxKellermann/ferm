@@ -8,6 +8,8 @@
 
 
 v2.1.2 - not yet released
+  - support netfilter modules:
+    * osf
   - updated netfilter modules:
     * hashlimit: allow list after hashlimit-mode
   - fix functions containing mixed domains

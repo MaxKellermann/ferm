@@ -869,6 +869,15 @@ Match every 'n'th packet.
 
 Type "iptables -m nth -h" for details.
 
+=item B<osf>
+
+Match packets depending on the operating system of the sender.
+
+    mod osf genre Linux;
+    mod osf ! genre FreeBSD ttl 1 log 1;
+
+Type "iptables -m osf -h" for details.
+
 =item B<owner>
 
 Check information about the packet creator, namely user id, group id,
