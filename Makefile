@@ -116,8 +116,8 @@ check: check-ferm check-import
 build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
 	install -d -m 755 $(DISTDIR) $(DISTDIR)/src $(DISTDIR)/doc $(DISTDIR)/examples
-	install -m 755 src/{import-,}ferm $(DISTDIR)/src
-	install -m 644 doc/ferm.pod doc/ferm.txt doc/ferm.html doc/{import-,}ferm.1 $(DISTDIR)/doc
+	install -m 755 src/ferm src/import-ferm $(DISTDIR)/src
+	install -m 644 doc/ferm.pod doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1 $(DISTDIR)/doc
 	install -m 644 config.mk Makefile AUTHORS COPYING NEWS README TODO $(DISTDIR)
 	install -m 644 $(wildcard examples/*.ferm) $(DISTDIR)/examples
 	cd build && tar czf ferm-$(VERSION).tar.gz ferm-$(VERSION)
@@ -134,17 +134,17 @@ install: all
 	install -d -m 755 $(DOCDIR)/examples $(PREFIX)/sbin
 	install -m 644 AUTHORS COPYING NEWS README TODO $(DOCDIR)
 	install -m 644 examples/*.ferm $(DOCDIR)/examples
-	install -m 755 src/{import-,}ferm $(PREFIX)/sbin/
+	install -m 755 src/ferm src/import-ferm $(PREFIX)/sbin/
 
 	install -d -m 755 $(DOCDIR) $(MANDIR)
 	install -m 644 doc/ferm.txt doc/ferm.html $(DOCDIR)
-	install -m 644 doc/{import-,}ferm.1 $(MANDIR)
-	gzip -f9 $(MANDIR)/{import-,}ferm.1
+	install -m 644 doc/ferm.1 doc/import-ferm.1 $(MANDIR)
+	gzip -f9 $(MANDIR)/ferm.1 $(MANDIR)/import-ferm.1
 
 uninstall:
 	rm -rf $(DOCDIR)
-	rm -f $(MANDIR)/{import-,}ferm.1{,.gz}
-	rm -f $(PREFIX)/sbin/{import-,}ferm
+	rm -f $(MANDIR)/ferm.1 $(MANDIR)/import-ferm.1
+	rm -f $(PREFIX)/sbin/ferm $(PREFIX)/sbin/import-ferm
 
 #
 # misc targets
