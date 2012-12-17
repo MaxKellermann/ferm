@@ -1186,6 +1186,7 @@ sub getvalues {
             error('For the @resolve() function, you need the Perl library Net::DNS')
               if $@;
             my $type = $params[1] || 'A';
+            error('String expected') if ref $type;
             my $resolver = new Net::DNS::Resolver;
             @params = to_array($params[0]);
             my @result = resolve($resolver, @params, $type);
@@ -1204,24 +1205,31 @@ sub getvalues {
             return format_bool(not $params[0]);
         } elsif ($token eq '@cat') {
             my $value = '';
-            map { $value .= $_ } get_function_params();
+            map {
+                error('String expected') if ref $_;
+                $value .= $_;
+            } get_function_params();
             return $value;
         } elsif ($token eq '@substr') {
             my @params = get_function_params();
             error('Usage: @substr(string, num, num)') unless @params == 3;
+            error('String expected') if ref $params[0] or ref $params[1] or ref $params[2];
             return substr($params[0],$params[1],$params[2]);
         } elsif ($token eq '@length') {
             my @params = get_function_params();
             error('Usage: @length(string)') unless @params == 1;
+            error('String expected') if ref $params[0];
             return length($params[0]);
         } elsif ($token eq '@basename') {
             my @params = get_function_params();
             error('Usage: @basename(path)') unless @params == 1;
+            error('String expected') if ref $params[0];
 	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
             return $file;
         } elsif ($token eq '@dirname') {
             my @params = get_function_params();
             error('Usage: @dirname(path)') unless @params == 1;
+            error('String expected') if ref $params[0];
 	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
             return $path;
         } elsif ($token eq '@ipfilter') {
