@@ -1755,8 +1755,14 @@ the error.
 
 Apply the firewall rules and ask the user for confirmation.  Reverts
 to the previous ruleset if there is no valid user response within 30
-seconds.  This is useful for remote firewall administration: you can
-test the rules without fearing to lock yourself out.
+seconds (see B<--timeout>).  This is useful for remote firewall
+administration: you can test the rules without fearing to lock
+yourself out.
+
+=item B<--timeout S>
+
+If B<--interactive> is used, then roll back if there is no valid user
+response after this number of seconds.  The default is 30.
 
 =item B<--help>
 
