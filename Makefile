@@ -25,7 +25,7 @@ doc/ferm.txt: doc/ferm.pod
 	pod2text $< > $@
 
 doc/ferm.html: doc/ferm.pod
-	pod2html $< --netscape --flush > $@
+	pod2html $< --flush > $@
 
 doc/ferm.1: doc/ferm.pod
 	pod2man --section=1 --release="ferm $(VERSION)" \
