@@ -25,7 +25,7 @@ doc/ferm.txt: doc/ferm.pod
 	pod2text $< > $@
 
 doc/ferm.html: doc/ferm.pod
-	pod2html $< --flush > $@
+	pod2html $< --title="ferm - Firewall rules made easy" --flush > $@
 
 doc/ferm.1: doc/ferm.pod
 	pod2man --section=1 --release="ferm $(VERSION)" \
