@@ -117,6 +117,7 @@ build/ferm-$(VERSION).tar.gz: all
 	rm -rf $(DISTDIR)
 	install -d -m 755 $(DISTDIR) $(DISTDIR)/src $(DISTDIR)/doc $(DISTDIR)/examples
 	install -m 755 src/ferm src/import-ferm $(DISTDIR)/src
+	install -m 644 ferm.service $(DISTDIR)
 	install -m 644 doc/ferm.pod doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1 $(DISTDIR)/doc
 	install -m 644 config.mk Makefile AUTHORS COPYING NEWS README TODO $(DISTDIR)
 	install -m 644 $(wildcard examples/*.ferm) $(DISTDIR)/examples
@@ -131,10 +132,11 @@ dist: build/ferm-$(VERSION).tar.gz
 .PHONY: install uninstall
 
 install: all
-	install -d -m 755 $(DOCDIR)/examples $(PREFIX)/sbin
+	install -d -m 755 $(DOCDIR)/examples $(PREFIX)/sbin $(SERVICEDIR)
 	install -m 644 AUTHORS COPYING NEWS README TODO $(DOCDIR)
 	install -m 644 examples/*.ferm $(DOCDIR)/examples
 	install -m 755 src/ferm src/import-ferm $(PREFIX)/sbin/
+	install -m 644 ferm.service $(SERVICEDIR)
 
 	install -d -m 755 $(DOCDIR) $(MANDIR)
 	install -m 644 doc/ferm.txt doc/ferm.html $(DOCDIR)
@@ -144,6 +146,7 @@ install: all
 uninstall:
 	rm -rf $(DOCDIR)
 	rm -f $(MANDIR)/ferm.1 $(MANDIR)/import-ferm.1
+	rm -f $(SERVICEDIR)/ferm.service
 	rm -f $(PREFIX)/sbin/ferm $(PREFIX)/sbin/import-ferm
 
 #
