@@ -1,0 +1,30 @@
+@def $VARIABLE_TEST = (192.0.2.6 2001:db8::6);
+@def $IPFILTER_TEST = (192.0.2.7 2001:db8::7);
+
+domain (ip ip6) table filter chain INPUT {
+	saddr 192.0.2.1 proto tcp dport ssh ACCEPT;
+	saddr (192.0.2.2 192.0.2.3) proto tcp dport ssh ACCEPT;
+	saddr 2001:db8::1 proto tcp dport ssh ACCEPT;
+	saddr (2001:db8::2 2001:db8::3) proto tcp dport ssh ACCEPT;
+
+	saddr (192.0.2.4 2001:db8::4) proto tcp dport ssh ACCEPT;
+
+	saddr ! 192.0.2.5 proto tcp dport ssh ACCEPT;
+	saddr ! 2001:db8::5 proto tcp dport ssh ACCEPT;
+
+	saddr $VARIABLE_TEST proto tcp dport ssh ACCEPT;
+	saddr @ipfilter($IPFILTER_TEST) proto tcp dport ssh ACCEPT;
+
+	saddr localhost proto tcp dport ssh ACCEPT;
+	saddr localhost.localdomain proto tcp dport ssh ACCEPT;
+}
+
+domain ip table filter chain INPUT {
+	saddr 192.0.2.11 proto tcp dport ssh ACCEPT;
+	saddr 2001:db8::11 proto tcp dport ssh ACCEPT;
+}
+
+domain ip6 table filter chain INPUT {
+	saddr 192.0.2.21 proto tcp dport ssh ACCEPT;
+	saddr 2001:db8::21 proto tcp dport ssh ACCEPT;
+}

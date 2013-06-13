@@ -141,6 +141,7 @@ sub rollback();
 sub execute_fast($);
 sub execute_slow($);
 sub join_value($$);
+sub ipfilter($@);
 
 # add a module definition
 sub add_def_x {
@@ -227,7 +228,8 @@ add_proto_def 'udp', qw();
 
 add_match_def '',
   # --source, --destination
-  qw(source! saddr:=source destination! daddr:=destination),
+  qw(source!&address_magic saddr:=source),
+  qw(destination!&address_magic daddr:=destination),
   # --in-interface
   qw(in-interface! interface:=in-interface if:=in-interface),
   # --out-interface
@@ -431,6 +433,47 @@ sub multiport_params {
             : \@params;
     } else {
         return join_value(',', $value);
+    }
+}
+
+sub ipfilter($@) {
+    my $domain = shift;
+    my @ips;
+    # very crude IPv4/IPv6 address detection
+    if ($domain eq 'ip') {
+        @ips = grep { !/:[0-9a-f]*:/ } @_;
+    } elsif ($domain eq 'ip6') {
+        @ips = grep { !m,^[0-9./]+$,s } @_;
+    }
+    return @ips;
+}
+
+sub address_magic {
+    my $rule = shift;
+    my $domain = $rule->{domain};
+    my $value = getvalues(undef, allow_negation => 1);
+
+    my @ips;
+    my $negated = 0;
+    if (ref $value and ref $value eq 'ARRAY') {
+        @ips = @$value;
+    } elsif (ref $value and ref $value eq 'negated') {
+        @ips = @$value;
+        $negated = 1;
+    } elsif (ref $value) {
+        die;
+    } else {
+        @ips = ($value);
+    }
+
+    # only do magic on domain (ip ip6); do not process on a single-stack rule
+    # as to let admins spot their errors instead of silently ignoring them
+    @ips = ipfilter($domain, @ips) if defined $rule->{domain_both};
+
+    if ($negated && scalar @ips) {
+        return bless \@ips, 'negated';
+    } else {
+        return \@ips;
     }
 }
 
@@ -1240,15 +1283,7 @@ sub getvalues {
             error('Usage: @ipfilter((ip1 ip2 ...))') unless @params == 1;
             my $domain = $stack[0]{auto}{DOMAIN};
             error('No domain specified') unless defined $domain;
-            my @ips = to_array($params[0]);
-
-            # very crude IPv4/IPv6 address detection
-            if ($domain eq 'ip') {
-                @ips = grep { !/:[0-9a-f]*:/ } @ips;
-            } elsif ($domain eq 'ip6') {
-                @ips = grep { !m,^[0-9./]+$,s } @ips;
-            }
-
+            my @ips = ipfilter($domain, to_array($params[0]));
             return \@ips;
         } else {
             error("unknown ferm built-in function");
@@ -1655,7 +1690,7 @@ sub new_level(\%$) {
         $rule->{keywords} = $prev->{keywords};
         $rule->{match} = { %{$prev->{match}} };
         $rule->{options} = [@{$prev->{options}}];
-        foreach my $key (qw(domain domain_family table chain protocol has_rule has_action)) {
+        foreach my $key (qw(domain domain_family domain_both table chain protocol has_rule has_action)) {
             $rule->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -2074,6 +2109,7 @@ sub enter($$) {
                         my %inner;
                         new_level(%inner, \%rule);
                         set_domain(%inner, $domain) or next;
+                        $inner{domain_both} = 1;
                         $script->{base_level} = 0;
                         $script->{tokens} = [ @$tokens ];
                         enter(0, \%inner);
@@ -2201,7 +2237,7 @@ sub enter($$) {
                               match => {},
                               options => [],
                             );
-                $inner{$_} = $rule{$_} foreach qw(domain domain_family table keywords);
+                $inner{$_} = $rule{$_} foreach qw(domain domain_family domain_both table keywords);
                 $inner{chain} = $inner{auto}{CHAIN} = $subchain;
 
                 if (exists $rule{protocol}) {

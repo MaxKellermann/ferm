@@ -1,0 +1,22 @@
+iptables -t filter -A INPUT -s 192.0.2.1 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.2 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.3 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.4 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT ! -s 192.0.2.5 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.6 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.7 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s localhost -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s localhost.localdomain -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.11 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 2001:db8::11 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::1 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::2 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::3 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::4 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT ! -s 2001:db8::5 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::6 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::7 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s localhost -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s localhost.localdomain -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 192.0.2.21 -p tcp --dport ssh -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8::21 -p tcp --dport ssh -j ACCEPT
