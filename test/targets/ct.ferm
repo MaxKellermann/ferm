@@ -1,0 +1,5 @@
+table filter chain INPUT {
+    proto udp CT notrack helper foo zone 42 timeout 60;
+    proto tcp CT ctevents new expevents new;
+    proto udp CT ctevents (assured mark);
+}

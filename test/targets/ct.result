@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -p udp -j CT --notrack --helper foo --zone 42 --timeout 60
+iptables -t filter -A INPUT -p tcp -j CT --ctevents new --expevents new
+iptables -t filter -A INPUT -p udp -j CT --ctevents assured,mark
