@@ -156,5 +156,5 @@ uninstall:
 .PHONY: upload
 
 upload: doc/ferm.html
-	scp NEWS doc/ferm.html foo-projects.org:/var/www/ferm.foo-projects.org/download/2.1/
+	scp NEWS doc/ferm.html foo-projects.org:/var/www/ferm.foo-projects.org/download/2.2/
 	scp examples/*.ferm foo-projects.org:/var/www/ferm.foo-projects.org/download/examples/
