@@ -1,0 +1,6 @@
+table mangle {
+    chain POSTROUTING {
+        # fix checksum for dhcp on virtual interfaces; see http://lists.centos.org/pipermail/centos/2013-February/132080.html
+        protocol udp dport bootpc CHECKSUM checksum-fill;
+    }
+}
