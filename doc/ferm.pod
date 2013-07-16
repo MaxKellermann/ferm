@@ -1101,6 +1101,12 @@ you enabled them in your kernel:
 
 =over 8
 
+=item B<CHECKSUM>
+
+Compute packet checksum.
+
+    CHECKSUM checksum-fill;
+
 =item B<CLASSIFY>
 
 Set the CBQ class.

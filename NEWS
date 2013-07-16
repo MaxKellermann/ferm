@@ -8,6 +8,8 @@
 
 
 v2.2.1 - not yet released
+  - support netfilter modules:
+    * CHECKSUM
 
 
 v2.2 - 1 Jul 2013
