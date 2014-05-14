@@ -838,6 +838,18 @@ list with more than one of these).
 There are more possible settings, type "iptables -m hashlimit -h" for
 documentation.
 
+=item B<ipvs>
+
+Match IPVS connection properties.
+
+    mod ipvs ipvs ACCEPT; # packet belongs to an IPVS connection
+    mod ipvs vproto tcp ACCEPT; # VIP protocol to match; by number or name, e.g. "tcp
+    mod ipvs vaddr 1.2.3.4/24 ACCEPT; # VIP address to match
+    mod ipvs vport http ACCEPT; # VIP port to match
+    mod ipvs vdir ORIGINAL ACCEPT; # flow direction of packet
+    mod ipvs vmethod GATE ACCEPT; # IPVS forwarding method used
+    mod ipvs vportctl 80; # VIP port of the controlling connection to match
+
 =item B<length>
 
 Check the package length.

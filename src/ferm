@@ -265,6 +265,7 @@ add_match_def 'hashlimit', qw(hashlimit=s hashlimit-burst=s hashlimit-mode=c has
 add_match_def 'iprange', qw(!src-range !dst-range);
 add_match_def 'ipv4options', qw(ssrr*0 lsrr*0 no-srr*0 !rr*0 !ts*0 !ra*0 !any-opt*0);
 add_match_def 'ipv6header', qw(header!=c soft*0);
+add_match_def 'ipvs', qw(!ipvs*0 !vproto !vaddr !vport vdir !vportctl);
 add_match_def 'length', qw(length!);
 add_match_def 'limit', qw(limit=s limit-burst=s);
 add_match_def 'mac', qw(mac-source!);
