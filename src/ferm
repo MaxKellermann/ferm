@@ -1238,6 +1238,15 @@ sub getvalues {
             @params = to_array($params[0]);
             my @result = resolve($resolver, @params, $type);
             return @result == 1 ? $result[0] : \@result;
+        } elsif ($token eq '@defined') {
+            my @params = get_function_params();
+            my $name;
+            error('Usage: @defined(variable)')
+              unless @params == 1;
+            $name = $params[0];
+            error('@defined expects a variable name without the $ prefix')
+              unless $name =~ /^\w+$/;
+            return defined variable_value($name);
         } elsif ($token eq '@eq') {
             my @params = get_function_params();
             error('Usage: @eq(a, b)') unless @params == 2;
