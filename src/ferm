@@ -1456,7 +1456,7 @@ sub is_netfilter_builtin_chain($$) {
     my ($table, $chain) = @_;
 
     return grep { $_ eq $chain }
-      qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING);
+      qw(PREROUTING INPUT FORWARD OUTPUT POSTROUTING BROUTING);
 }
 
 sub netfilter_canonical_protocol($) {

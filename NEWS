@@ -12,6 +12,7 @@ v2.2.1 - not yet released
   - support netfilter modules:
     * CHECKSUM
     * NFQUEUE: support queue-balance, queue-bypass, queue-cpu-fanout
+  - recognize BROUTING as built-in chain (for ebtables)
   - check exit status of included shell commands
   - documentation
     * fixed wrongly used quotation marks in piped @include example
