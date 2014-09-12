@@ -1947,6 +1947,9 @@ sub enter($$) {
                     # parse the script
                     enter($lev + 1, \%rule);
 
+                    #check for exit status
+                    error("'$script->{filename}': exit status is not 0") if not close $script->{handle};
+
                     # pop stack
                     shift @stack;
                     die unless @stack == $old_stack_depth;

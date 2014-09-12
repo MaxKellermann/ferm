@@ -1579,6 +1579,8 @@ parses its output:
 
     @include '/root/generate_ferm_rules.sh $HOSTNAME|'
 
+B<ferm> aborts, if return code is not 0.
+
 =head2 Conditionals
 
 The keyword B<@if> introduces a conditional expression:

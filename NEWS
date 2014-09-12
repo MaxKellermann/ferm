@@ -10,6 +10,7 @@
 v2.2.1 - not yet released
   - support netfilter modules:
     * CHECKSUM
+  - check exit of codes included shell commands WARNING may break your current setup!
 
 
 v2.2 - 1 Jul 2013
