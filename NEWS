@@ -11,7 +11,8 @@ v2.2.1 - not yet released
   - support netfilter modules:
     * CHECKSUM
   - check exit of codes included shell commands WARNING may break your current setup!
-
+  - documentation
+    * fixed wrongly used quotation marks in piped @include example
 
 v2.2 - 1 Jul 2013
   - support netfilter modules:

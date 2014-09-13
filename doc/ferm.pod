@@ -1577,7 +1577,7 @@ directory are included, sorted alphabetically:
 With a trailing pipe symbol, B<ferm> executes a shell command and
 parses its output:
 
-    @include '/root/generate_ferm_rules.sh $HOSTNAME|'
+    @include "/root/generate_ferm_rules.sh $HOSTNAME|"
 
 B<ferm> aborts, if return code is not 0.
 
