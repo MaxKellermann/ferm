@@ -313,7 +313,7 @@ add_target_def 'MASQUERADE', qw(to-ports random*0);
 add_target_def 'MIRROR';
 add_target_def 'NETMAP', qw(to);
 add_target_def 'NFLOG', qw(nflog-group nflog-prefix nflog-range nflog-threshold);
-add_target_def 'NFQUEUE', qw(queue-num);
+add_target_def 'NFQUEUE', qw(queue-num queue-balance queue-bypass*0 queue-cpu-fanout*0);
 add_target_def 'NOTRACK';
 add_target_def 'REDIRECT', qw(to-ports random*0);
 add_target_def 'REJECT', qw(reject-with);
