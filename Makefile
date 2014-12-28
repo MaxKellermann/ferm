@@ -75,23 +75,26 @@ $(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
 	$(PERL) src/ferm --test --slow $< |sed $(EB_ARP_RESULT_SED) >$@
 
-$(STAMPDIR)/%.result: %.ferm src/ferm
+$(STAMPDIR)/%.result: %.ferm src/ferm test/sort.pl
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test --slow --noflush $< |sed $(RESULT_SED) >$@
+	$(PERL) src/ferm --test --slow --noflush $< |$(PERL) test/sort.pl |sed $(RESULT_SED) >$@
 
-$(STAMPDIR)/%.SAVE: %.ferm src/ferm
+$(STAMPDIR)/%.SAVE: %.ferm src/ferm test/sort.pl
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test $< >$@.tmp
-	grep -v '^#' <$@.tmp >$@
+	$(PERL) src/ferm --test $< |$(PERL) test/sort.pl >$@
 
 $(STAMPDIR)/test/ipv6/%.IMPORT: export FERM_DOMAIN=ip6
 $(STAMPDIR)/%.IMPORT: $(STAMPDIR)/%.SAVE src/import-ferm
 	$(PERL) src/import-ferm $< >$@
 
-$(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT src/ferm
-	$(PERL) src/ferm --test --fast $< |grep -v '^#' >$@
+$(STAMPDIR)/%.SAVE2: $(STAMPDIR)/%.IMPORT src/ferm test/sort.pl
+	$(PERL) src/ferm --test --fast $< |$(PERL) test/sort.pl >$@
 
-$(STAMPDIR)/%.check: %.result $(STAMPDIR)/%.result
+$(STAMPDIR)/%.sort: %.result test/sort.pl
+	@mkdir -p $(dir $@)
+	$(PERL) test/sort.pl <$< >$@
+
+$(STAMPDIR)/%.check: $(STAMPDIR)/%.sort $(STAMPDIR)/%.result
 	diff -u $^
 	@touch $@
 
