@@ -1643,14 +1643,13 @@ hooks.
 
 There are several built-in functions which you might find useful.
 
-=head2 @defined(a)
+=head2 @defined($name)
 
-Expects a variable name without the $ prefix and tests if the variable
-is defined.
+Tests if the variable is defined.
 
     @def $a = 'foo';
-    @if @defined(a) good;
-    @if @not(@defined(a)) bad;
+    @if @defined($a) good;
+    @if @not(@defined($a)) bad;
 
 =head2 @eq(a,b)
 

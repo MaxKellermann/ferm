@@ -1239,13 +1239,12 @@ sub getvalues {
             my @result = resolve($resolver, @params, $type);
             return @result == 1 ? $result[0] : \@result;
         } elsif ($token eq '@defined') {
-            my @params = get_function_params();
-            my $name;
-            error('Usage: @defined(variable)')
-              unless @params == 1;
-            $name = $params[0];
-            error('@defined expects a variable name without the $ prefix')
+            expect_token('(', 'function name must be followed by "()"');
+            expect_token('$');
+            my $name = require_next_token();
+            error('variable name expected')
               unless $name =~ /^\w+$/;
+            expect_token(')');
             return defined variable_value($name);
         } elsif ($token eq '@eq') {
             my @params = get_function_params();
