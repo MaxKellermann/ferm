@@ -1,0 +1,31 @@
+@def $a = 'AAA';
+chain INPUT {
+    @if @defined($a) LOG log-prefix "a is defined: $a";
+    @if @defined($b) LOG log-prefix "b is not defined: $b";
+    @if @defined($c) LOG log-prefix "c is not yet defined: $c";
+
+    @def $c = 'CCC';
+    @if @defined($c) LOG log-prefix "c is now defined: $c";
+
+    proto tcp {
+        @def $c = 'CCC2';
+        @def $d = 'DDD';
+        @if @defined($a) LOG log-prefix "a is defined: $a";
+        @if @defined($b) LOG log-prefix "b is not defined: $b";
+        @if @defined($c) LOG log-prefix "c has new value: $c";
+        @if @defined($d) LOG log-prefix "d is defined: $d";
+
+        @def &func($e) = LOG log-prefix $e;
+        @if @defined(&func) LOG log-prefix "func is defined";
+
+        dport http {
+        @if @defined($c) LOG log-prefix "c still has new value: $c";
+            @if @defined($d) LOG log-prefix "d is still defined: $d";
+            @if @defined(&func) LOG log-prefix "func is still defined";
+        }
+    }
+
+    @if @defined($c) LOG log-prefix "c is still defined: $c";
+    @if @defined($d) LOG log-prefix "d is gone: $d";
+    @if @defined(&func) LOG log-prefix "func is gone";
+}
