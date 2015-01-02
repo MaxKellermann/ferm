@@ -1119,6 +1119,17 @@ sub resolve($\@$) {
     return @result;
 }
 
+sub lookup_function($) {
+    my $name = shift;
+
+    foreach (@stack) {
+        return $_->{functions}{$name}
+          if exists $_->{functions}{$name};
+    }
+
+    return;
+}
+
 # returns the next parameter, which may either be a scalar or an array
 sub getvalues {
     my $code = shift;
@@ -1240,12 +1251,22 @@ sub getvalues {
             return @result == 1 ? $result[0] : \@result;
         } elsif ($token eq '@defined') {
             expect_token('(', 'function name must be followed by "()"');
-            expect_token('$');
-            my $name = require_next_token();
-            error('variable name expected')
-              unless $name =~ /^\w+$/;
-            expect_token(')');
-            return defined variable_value($name);
+            my $type = require_next_token();
+            if ($type eq '$') {
+                my $name = require_next_token();
+                error('variable name expected')
+                  unless $name =~ /^\w+$/;
+                expect_token(')');
+                return defined variable_value($name);
+            } elsif ($type eq '&') {
+                my $name = require_next_token();
+                error('function name expected')
+                  unless $name =~ /^\w+$/;
+                expect_token(')');
+                return defined lookup_function($name);
+            } else {
+                error("'\$' or '&' expected")
+            }
         } elsif ($token eq '@eq') {
             my @params = get_function_params();
             error('Usage: @eq(a, b)') unless @params == 2;
@@ -2052,11 +2073,7 @@ sub enter($$) {
                 error('function name expected')
                   unless $name =~ /^\w+$/;
 
-                my $function;
-                foreach (@stack) {
-                    $function = $_->{functions}{$name};
-                    last if defined $function;
-                }
+                my $function = lookup_function($name);
                 error("no such function: \&$name")
                   unless defined $function;
 
