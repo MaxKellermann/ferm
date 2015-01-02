@@ -11,7 +11,7 @@ v2.2.1 - not yet released
   - support netfilter modules:
     * CHECKSUM
     * NFQUEUE: support queue-balance, queue-bypass, queue-cpu-fanout
-  - check exit of codes included shell commands WARNING may break your current setup!
+  - check exit status of included shell commands
   - documentation
     * fixed wrongly used quotation marks in piped @include example
 
