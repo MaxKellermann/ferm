@@ -1159,7 +1159,7 @@ sub getvalues {
             } elsif (ref $token eq 'ARRAY') {
                 push @wordlist, @$token;
             } else {
-                error('unknown toke type');
+                error('unknown token type');
             }
         }
 
