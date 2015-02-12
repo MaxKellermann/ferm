@@ -1,0 +1,4 @@
+iptables -t raw -A PREROUTING -m rpfilter -s 10.0.0.0/8 --validmark -j RETURN
+iptables -t raw -A PREROUTING -m rpfilter -i tun0 --accept-local -j RETURN
+iptables -t raw -A PREROUTING -m rpfilter -i ppp0 --loose -j RETURN
+iptables -t raw -A PREROUTING -m rpfilter --invert -j DROP

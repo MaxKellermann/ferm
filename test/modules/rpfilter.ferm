@@ -1,0 +1,6 @@
+table raw chain PREROUTING mod rpfilter {
+    saddr 10.0.0.0/8 validmark RETURN;
+    interface tun0 accept-local RETURN;
+    interface ppp0 loose RETURN;
+    invert DROP;
+}

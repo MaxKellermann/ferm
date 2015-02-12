@@ -10,6 +10,8 @@
 v2.2.1 - not yet released
   - new function @defined
   - support netfilter modules:
+    * rpfilter
+  - support netfilter targets:
     * CHECKSUM
     * NFQUEUE: support queue-balance, queue-bypass, queue-cpu-fanout
   - recognize BROUTING as built-in chain (for ebtables)

@@ -967,6 +967,19 @@ keyword.
 
 L<http://snowman.net/projects/ipt_recent/>
 
+=item B<rpfilter>
+
+Checks a reply to the packet would be sent via the same interface it arrived on.
+Packets from the loopback interface are always permitted.
+
+    mod rpfilter proto tcp loose RETURN;
+    mod rpfilter validmark accept-local RETURN;
+    mod rpfilter invert DROP;
+
+This netfilter module is the preferred way to perform reverse path filtering for
+IPv6, and a powerful alternative to checks controlled by sysctl
+I<net.ipv4.conf.*.rp_filter>.
+
 =item B<rt>
 
 Match the IPv6 routing header (ip6 only).
