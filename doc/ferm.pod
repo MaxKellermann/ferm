@@ -1195,6 +1195,12 @@ Change the destination address of the packet.
     DNAT to 10.0.0.4:1024-2048;
     DNAT to 10.0.1.1-10.0.1.20;
 
+=item B<DNPT>
+
+Provides stateless destination IPv6-to-IPv6 Network Prefix Translation.
+
+    DNPT src-pfx 2001:42::/16 dst-pfx 2002:42::/16;
+
 =item B<ECN>
 
 This target allows to selectively work around known ECN blackholes.
@@ -1210,12 +1216,37 @@ Modify the IPv6 Hop Limit field (ip6/mangle only).
     HL hl-dec 2;
     HL hl-inc 1;
 
+=item B<HMARK>
+
+Like MARK, i.e.  set the fwmark, but the mark is calculated from
+hashing packet selector at choice.
+
+    HMARK hmark-tuple "src" hmark-mod "1" hmark-offset "1"
+      hmark-src-prefix 192.168.1.0/24 hmark-dst-prefix 192.168.2.0/24
+      hmark-sport-mask 0x1234 hmark-dport-mask 0x2345
+      hmark-spi-mask 0xdeadbeef hmark-proto-mask 0x42 hmark-rnd 0xcoffee;
+
+=item B<IDLETIMER>
+
+This target can be used to identify when interfaces have been idle for
+a certain period of time.
+
+    IDLETIMER timeout 60 label "foo";
+
 =item B<IPV4OPTSSTRIP>
 
 Strip all the IP options from a packet.  This module does not take any
 options.
 
     IPV4OPTSSTRIP;
+
+=item B<LED>
+
+This creates an LED-trigger that can then be attached to system
+indicator lights, to blink or illuminate them when certain packets
+pass through the system.
+
+    LED led-trigger-id "foo" led-delay 100 led-always-blink;
 
 =item B<LOG>
 
@@ -1265,6 +1296,12 @@ Map a whole network onto another network in the B<nat> table.
 =item B<NOTRACK>
 
 Disable connection tracking for all packets matching that rule.
+
+    proto tcp dport (135:139 445) NOTRACK;
+
+=item B<RATEEST>
+
+    RATEEST rateest-name "foo" rateest-interval 60s rateest-ewmalog 100;
 
     proto tcp dport (135:139 445) NOTRACK;
 
@@ -1329,12 +1366,24 @@ Change the source address of the packet.
     SNAT to 1.2.3.4:20000-30000;
     SNAT to 1.2.3.4 random;
 
+=item B<SNPT>
+
+Provides stateless source IPv6-to-IPv6 Network Prefix Translation.
+
+    SNPT src-pfx 2001:42::/16 dst-pfx 2002:42::/16;
+
 =item B<TCPMSS>
 
 Alter the MSS value of TCP SYN packets.
 
     TCPMSS set-mss 1400;
     TCPMSS clamp-mss-to-pmtu;
+
+=item B<TCPOPTSTRIP>
+
+This target will strip TCP options off a TCP packet.
+
+    TCPOPTSTRIP strip-options (option1 option2 ...);
 
 =item B<TOS set-tos [value]>
 

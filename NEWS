@@ -18,8 +18,15 @@ v2.2.1 - not yet released
   - support netfilter targets:
     * CHECKSUM
     * CONNMARK: support set-xmark, nfmask, and-mark, or-mark, xor-mark
+    * DNPT
+    * HMARK
+    * IDLETIMER
+    * LED
     * NFQUEUE: support queue-balance, queue-bypass, queue-cpu-fanout
+    * RATEEST
     * SET: support timeout, exist
+    * SNPT
+    * TCPOPTSTRIP
   - recognize BROUTING as built-in chain (for ebtables)
   - check exit status of included shell commands
   - documentation
