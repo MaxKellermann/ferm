@@ -9,7 +9,11 @@
 
 v2.2.1 - not yet released
   - new function @defined
-  - support netfilter modules:
+  - support netfilter match modules:
+    * bpf
+    * connlabel
+    * cpu
+    * dst
     * rpfilter
   - support netfilter targets:
     * CHECKSUM
