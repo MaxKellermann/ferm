@@ -1319,6 +1319,7 @@ the mangle table.
 Add the IP to the specified set. See L<http://ipset.netfilter.org/>
 
     proto icmp icmp-type echo-request SET add-set badguys src;
+    SET add-set "foo" timeout 60 exist;
 
 =item B<SNAT to [ip-address|ip-range|ip-port-range]>
 

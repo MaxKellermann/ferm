@@ -327,7 +327,7 @@ add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
 add_target_def 'SAME', qw(to nodst*0 random*0);
 add_target_def 'SECMARK', qw(selctx);
-add_target_def 'SET', qw(add-set=sc del-set=sc);
+add_target_def 'SET', qw(add-set=sc del-set=sc timeout exist*0);
 add_target_def 'SNAT', qw(to-source=m to:=to-source persistent*0 random*0);
 add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
