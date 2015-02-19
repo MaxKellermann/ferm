@@ -620,6 +620,12 @@ Additional arguments for IPv6:
     mod ah ahlen !32 ACCEPT;
     mod ah ahres ACCEPT;
 
+=item B<bpf>
+
+Match using Linux Socket Filter.
+
+    mod bpf bytecode "4,48 0 0 9,21 0 1 6,6 0 0 1,6 0 0 0";
+
 =item B<comment>
 
 Adds a comment of up to 256 characters to a rule, without an effect.
@@ -647,6 +653,13 @@ average bytes per packet.
 
 Valid values for I<connbytes-dir>: I<original>, I<reply>, I<both>; for
 I<connbytes-mode>: I<packets>, I<bytes>, I<avgpkt>.
+
+=item B<connlabel>
+
+Module matches or adds connlabels to a connection.
+
+    mod connlabel label "name";
+    mod connlabel label "name" set;
 
 =item B<connlimit>
 
@@ -683,6 +696,12 @@ Check connection tracking information.
 
 Type "iptables -m conntrack -h" for details.
 
+=item B<cpu>
+
+Match cpu handling this packet.
+
+    mod cpu cpu 0;
+
 =item B<dccp>
 
 Check DCCP (Datagram Congestion Control Protocol) specific attributes.
@@ -699,6 +718,13 @@ Match the 6 bit DSCP field within the TOS field.
 
     mod dscp dscp 11;
     mod dscp dscp-class AF41;
+
+=item B<dst>
+
+Match the parameters in Destination Options header (IPv6).
+
+    mod dst dst-len 10;
+    mod dst dst-opts (type1 type2 ...);
 
 =item B<ecn>
 
@@ -1138,11 +1164,17 @@ address.  Connections are statically distributed between the nodes.
 
 Sets the netfilter mark value associated with a connection.
 
+    CONNMARK set-xmark 42/0xff;
     CONNMARK set-mark 42;
     CONNMARK save-mark;
     CONNMARK restore-mark;
+    CONNMARK save-mark nfmask 0xff ctmask 0xff;
     CONNMARK save-mark mask 0x7fff;
     CONNMARK restore-mark mask 0x8000;
+    CONNMARK and-mark 0x7;
+    CONNMARK or-mark 0x4;
+    CONNMARK xor-mark 0x7;
+    CONNMARK and-mark 0x7;
 
 =item B<CONNSECMARK>
 
