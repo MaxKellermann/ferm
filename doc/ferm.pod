@@ -1384,6 +1384,14 @@ Provides stateless source IPv6-to-IPv6 Network Prefix Translation.
 
     SNPT src-pfx 2001:42::/16 dst-pfx 2002:42::/16;
 
+=item B<SYNPROXY>
+
+TCP 3-way handshake proxy: let the firewall handle the TCP 3-way handshake and
+only establish connection with the server socket once the client handshake has
+finished.
+
+    SYNPROXY wscale 7 mss 1460 timestamp sack-perm
+
 =item B<TCPMSS>
 
 Alter the MSS value of TCP SYN packets.

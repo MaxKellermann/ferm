@@ -340,6 +340,7 @@ add_target_def 'SECMARK', qw(selctx);
 add_target_def 'SET', qw(add-set=sc del-set=sc timeout exist*0);
 add_target_def 'SNAT', qw(to-source=m to:=to-source persistent*0 random*0);
 add_target_def 'SNPT', qw(src-pfx dst-pfx);
+add_target_def 'SYNPROXY', qw(sack-perm*0 timestamp*0 ecn*0 wscale=s mss=s);
 add_target_def 'TARPIT';
 add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TCPOPTSTRIP', qw(strip-options=c);
