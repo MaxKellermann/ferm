@@ -1,3 +1,5 @@
 iptables -t filter -A INPUT -m hashlimit --hashlimit 10/minute --hashlimit-burst 30/minute --hashlimit-mode dstip --hashlimit-name foobar -j DROP
 iptables -t filter -A INPUT -m hashlimit --hashlimit-htable-size 1024 --hashlimit-htable-max 4096 --hashlimit-htable-expire 600 --hashlimit-htable-gcinterval 180 -j ACCEPT
 iptables -t filter -A INPUT -m hashlimit --hashlimit-mode dstip,srcip -j DROP
+iptables -t filter -A INPUT -m hashlimit --hashlimit-upto 10/minute --hashlimit-mode dstip --hashlimit-dstmask 24 -j ACCEPT
+iptables -t filter -A INPUT -m hashlimit --hashlimit-above 10/minute --hashlimit-mode srcip --hashlimit-srcmask 24 -j ACCEPT
