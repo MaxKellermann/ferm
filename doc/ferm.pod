@@ -448,6 +448,11 @@ expression such as @cat("interface_", $iface) or @substr($var,0,20).
 You can achieve the same by explicitly declaring a custom chain, but
 you may feel that using B<@subchain> requires less typing.
 
+=item B<@gotosubchain ["CHAIN-NAME"] { ... }>
+
+Works like B<@subchain> except that instead of using B<jump> target it
+uses B<goto> target. See discussion below for the difference between
+these two targets.
 
 =back
 

@@ -2268,11 +2268,15 @@ sub enter($$) {
             }
 
             # create a subchain
-            if ($keyword eq '@subchain' or $keyword eq 'subchain') {
+            if ($keyword eq '@subchain' or $keyword eq 'subchain' or $keyword eq '@gotosubchain') {
                 error('Chain must be specified')
                   unless exists $rule{chain};
 
-                error('No rule specified before "@subchain"')
+                my $jumptype = ($keyword =~ /^\@go/) ? 'goto' : 'jump';
+                my $jumpkey = $keyword;
+                $jumpkey =~ s/^sub/\@sub/;
+
+                error('No rule specified before $jumpkey')
                   unless $rule{has_rule};
 
                 my $subchain;
@@ -2295,9 +2299,9 @@ sub enter($$) {
                     $domains{$domain}{tables}{$table}{chains}{$subchain} ||= {};
                 }
 
-                set_target(%rule, 'jump', $subchain);
+                set_target(%rule, $jumptype, $subchain);
 
-                error('"{" or chain name expected after "@subchain"')
+                error('"{" or chain name expected after $jumpkey')
                   unless $keyword eq '{';
 
                 # create a deep copy of %rule, only containing values

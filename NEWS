@@ -9,6 +9,7 @@
 
 v2.2.1 - not yet released
   - rename "realgoto" to "goto"
+  - new keyword @gotosubchain
   - new functions @defined, @glob
   - support netfilter match modules:
     * bpf
