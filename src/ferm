@@ -80,7 +80,7 @@ use vars qw(%deprecated_keywords);
 
 # keywords from ferm 1.1 which are deprecated, and the new one; these
 # are automatically replaced, and a warning is printed
-%deprecated_keywords = ( goto => 'jump',
+%deprecated_keywords = ( realgoto => 'goto',
                        );
 
 # these hashes provide the Netfilter module definitions
@@ -2383,7 +2383,7 @@ sub enter($$) {
             };
 
             # goto action
-            if ($keyword eq 'realgoto') {
+            if ($keyword eq 'goto') {
                 set_target(%rule, 'goto', getvar());
                 next;
             };

@@ -4,9 +4,9 @@ table filter {
     }
     chain INPUT {
         # jump to previously declared chain
-        proto tcp goto FOO;
+        proto tcp jump FOO;
         # jump to chain which is not yet declared
-        proto udp goto BAR;
+        proto udp jump BAR;
     }
     chain BAR {
         DROP;

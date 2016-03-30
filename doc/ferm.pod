@@ -538,14 +538,11 @@ keywords. We'll get to that later.
 Jumps to a custom chain. If no rule in the custom chain matched,
 netfilter returns to the next rule in the previous chain.
 
-=item B<realgoto [custom-chain-name]>
+=item B<goto [custom-chain-name]>
 
 Go to a custom chain.  Unlike the B<jump> option, B<RETURN> will not
 continue processing in this chain but instead in the chain that called
 us via B<jump>.
-
-The keyword B<realgoto> was chosen during the transition period,
-because B<goto> (already deprecated) used to be an alias for B<jump>.
 
 =item B<ACCEPT>
 

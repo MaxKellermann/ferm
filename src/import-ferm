@@ -272,7 +272,7 @@ sub flush {
                 flush_option(\@line, 'jump', $rule->{jump});
             }
         } elsif (exists $rule->{goto}) {
-            flush_option(\@line, 'realgoto', $rule->{goto});
+            flush_option(\@line, 'goto', $rule->{goto});
         } elsif (not exists $rule->{block}) {
             push @line, 'NOP';
         }
