@@ -1689,6 +1689,10 @@ directory are included, sorted alphabetically:
 
     @include 'ferm.d/';
 
+The function @glob can be used to expand wild cards:
+
+    @include @glob('*.include');
+
 With a trailing pipe symbol, B<ferm> executes a shell command and
 parses its output:
 
@@ -1824,6 +1828,12 @@ Return the base name of the file for a given path
 
 Return the name of the last directory for a given path, assuming the
 last component is a file name (File::Spec::splitpath).
+
+=head2 @glob(path)
+
+Expand shell wildcards in the given paths (assumed to be relative to
+the current script).  Returns a list of matching files.  This function
+is useful as parameter of @include.
 
 =head2 @ipfilter(list)
 

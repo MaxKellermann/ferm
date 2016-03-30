@@ -1328,6 +1328,22 @@ sub getvalues {
             error('String expected') if ref $params[0];
 	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
             return $path;
+        } elsif ($token eq '@glob') {
+            my @params = get_function_params();
+            error('Usage: @glob(string)') unless @params == 1;
+
+            # determine the current script's parent directory for relative
+            # file names
+            die unless defined $script;
+            my $parent_dir = $script->{filename} =~ m,^(.*/),
+              ? $1 : './';
+
+            my @result = map {
+                my $path = $_;
+                $path = $parent_dir . $path unless $path =~ m,^/,;
+                glob($path);
+            } to_array($params[0]);
+            return @result == 1 ? $result[0] : \@result;
         } elsif ($token eq '@ipfilter') {
             my @params = get_function_params();
             error('Usage: @ipfilter((ip1 ip2 ...))') unless @params == 1;
@@ -1963,7 +1979,11 @@ sub enter($$) {
 
             # include another file
             if ($keyword eq '@include' or $keyword eq 'include') {
-                my @files = collect_filenames to_array getvalues;
+                # don't call collect_filenames() if the file names
+                # have been expanded already by @glob()
+                my @files = peek_token() eq '@glob'
+                  ? to_array(getvalues)
+                  : collect_filenames(to_array(getvalues));
                 $keyword = next_token;
                 error('Missing ";" - "include FILENAME" must be the last command in a rule')
                   unless defined $keyword and $keyword eq ';';

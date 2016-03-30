@@ -1,0 +1,6 @@
+chain INPUT {
+    saddr @glob('*.foo') ACCEPT;
+    daddr @glob('doesnt_exist.*') ACCEPT;
+}
+
+@include @glob('*.include');

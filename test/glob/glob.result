@@ -1,0 +1,4 @@
+iptables -t filter -A INPUT -s test/glob/abc.foo -j ACCEPT
+iptables -t filter -A INPUT -s test/glob/def.foo -j ACCEPT
+iptables -t filter -A FORWARD -p udp -j ACCEPT
+iptables -t filter -A FORWARD -p tcp -j REJECT

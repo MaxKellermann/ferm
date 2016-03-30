@@ -8,7 +8,7 @@
 
 
 v2.2.1 - not yet released
-  - new function @defined
+  - new functions @defined, @glob
   - support netfilter match modules:
     * bpf
     * connlabel
