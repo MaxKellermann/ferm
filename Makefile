@@ -110,6 +110,7 @@ check-ferm: $(patsubst %.ferm,$(STAMPDIR)/%.check,$(FERM_SCRIPTS))
 check-import: $(patsubst %.ferm,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
 
 check: check-ferm check-import
+	@echo "All ferm unit tests finished successfully."
 
 #
 # distribution
