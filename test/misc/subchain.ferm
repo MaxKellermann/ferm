@@ -19,4 +19,7 @@ table nat chain POSTROUTING {
     outerface ppp0 @subchain {
         saddr 192.168.1.0/24 MASQUERADE;
     }
+    outerface wlan0 @gotosubchain {
+        saddr 192.168.2.0/24 MASQUERADE;
+    }
 }

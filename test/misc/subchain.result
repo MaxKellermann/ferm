@@ -1,6 +1,9 @@
 iptables -t nat -N ferm_auto_4
 iptables -t nat -A ferm_auto_4 -s 192.168.1.0/24 -j MASQUERADE
 iptables -t nat -A POSTROUTING -o ppp0 -j ferm_auto_4
+iptables -t nat -N ferm_auto_5
+iptables -t nat -A ferm_auto_5 -s 192.168.2.0/24 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o wlan0 -g ferm_auto_5
 iptables -t filter -N ferm_auto_3
 iptables -t filter -N my-udp_subchain
 iptables -t filter -N ferm_auto_2
