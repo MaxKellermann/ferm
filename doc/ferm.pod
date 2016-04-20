@@ -521,7 +521,7 @@ And some examples of valid ports/ranges:
 
 Specify that the SYN flag in a tcp package should be matched,
 which are used to build new tcp connections. You can identify
-incoming connections with this, and decide wether you want
+incoming connections with this, and decide whether you want
 to allow it or not. Packets that do not have this flag are
 probably from an already established connection, so it's
 considered reasonably safe to let these through.
