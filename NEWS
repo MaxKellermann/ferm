@@ -7,6 +7,9 @@
     Auke Kok <sofar@foo-projects.org>
 
 
+v2.2.1 - not yet released
+
+
 v2.3 - 30 Mar 2016
   - rename "realgoto" to "goto"
   - new keyword @gotosubchain
