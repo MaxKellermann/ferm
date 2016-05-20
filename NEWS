@@ -8,6 +8,8 @@
 
 
 v2.2.1 - not yet released
+  - updated netfilter modules:
+    * connlimit: add connlimit-upto, connlimit-saddr, connlimit-daddr
 
 
 v2.3 - 30 Mar 2016
