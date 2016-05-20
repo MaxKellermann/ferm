@@ -671,6 +671,8 @@ server per client IP address (or address block).
     mod connlimit connlimit-above 4 REJECT;
     mod connlimit connlimit-above !4 ACCEPT;
     mod connlimit connlimit-above 4 connlimit-mask 24 REJECT;
+    mod connlimit connlimit-upto 4 connlimit-saddr REJECT;
+    mod connlimit connlimit-above 4 connlimit-daddr REJECT;
 
 =item B<connmark>
 
