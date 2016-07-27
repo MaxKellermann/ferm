@@ -8,6 +8,8 @@
 
 
 v2.3.1 - not yet released
+  - support netfilter match modules:
+    * geoip
   - updated netfilter modules:
     * connlimit: add connlimit-upto, connlimit-saddr, connlimit-daddr
   - @resolve returns IP addresses as-is

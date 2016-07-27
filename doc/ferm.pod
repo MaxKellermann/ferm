@@ -764,6 +764,14 @@ PREROUTING, INPUT and FORWARD chains."
 
     mod fuzzy lower-limit 10 upper-limit 20 ACCEPT;
 
+=item B<geoip>
+
+Matches packets based on their geological location. (Needs an installed
+GeoDB.)
+
+    mod geoip src-cc "CN,VN,KR,BH,BR,AR,TR,IN,HK" REJECT;
+    mod geoip dst-cc "DE,FR,CH,AT" ACCEPT;
+
 =item B<hbh>
 
 Matches the Hop-by-Hop Options header (ip6).
