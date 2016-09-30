@@ -346,7 +346,7 @@ add_target_def 'TCPMSS', qw(set-mss clamp-mss-to-pmtu*0);
 add_target_def 'TCPOPTSTRIP', qw(strip-options=c);
 add_target_def 'TEE', qw(gateway);
 add_target_def 'TOS', qw(set-tos and-tos or-tos xor-tos);
-add_target_def 'TPROXY', qw(tproxy-mark on-port);
+add_target_def 'TPROXY', qw(tproxy-mark on-ip on-port);
 add_target_def 'TRACE';
 add_target_def 'TTL', qw(ttl-set ttl-dec ttl-inc);
 add_target_def 'ULOG', qw(ulog-nlgroup ulog-prefix ulog-cprange ulog-qthreshold);
