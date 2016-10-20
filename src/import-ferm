@@ -43,6 +43,9 @@ BEGIN {
         $ferm = 'ferm';
     }
 
+    # Perl 5.24 requires this prefix or else it will only look in @INC
+    $ferm = "./$ferm" unless $ferm =~ /^\//;
+
     # import its module tables
     require $ferm;
 
