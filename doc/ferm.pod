@@ -7,8 +7,8 @@
 #
 # Copyright (C) 2001-2012 Max Kellermann, Auke Kok
 #
-# Comments, questions, greetings and additions to this program
-# may be sent to <ferm@foo-projects.org>
+# Bug reports and patches for this program may be sent to the GitHub
+# repository: L<https://github.com/MaxKellermann/ferm>
 #
 
 #
@@ -1992,7 +1992,8 @@ iptables and perl 5.6
 
 Bugs? What bugs?
 
-If you find a bug, please tell us: ferm@foo-projects.org
+If you find a bug, please report it on GitHub:
+L<https://github.com/MaxKellermann/ferm/issues>
 
 =head1 COPYRIGHT
 

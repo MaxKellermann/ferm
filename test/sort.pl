@@ -5,8 +5,8 @@
 #
 # Copyright (C) 2001-2014 Max Kellermann
 #
-# Comments, questions, greetings and additions to this program
-# may be sent to <ferm@foo-projects.org>
+# Bug reports and patches for this program may be sent to the GitHub
+# repository: L<https://github.com/MaxKellermann/ferm>
 #
 
 # This script is sorts the tables and chains in the ferm output so the

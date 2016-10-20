@@ -5,8 +5,8 @@
 #
 # Copyright (C) 2001-2012 Max Kellermann, Auke Kok
 #
-# Comments, questions, greetings and additions to this program
-# may be sent to <ferm@foo-projects.org>
+# Bug reports and patches for this program may be sent to the GitHub
+# repository: L<https://github.com/MaxKellermann/ferm>
 #
 
 # This tool allows you to import an existing firewall configuration
