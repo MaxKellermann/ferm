@@ -5,7 +5,7 @@
 #
 # ferm, a firewall setup program that makes firewall rules easy!
 #
-# Copyright (C) 2001-2012 Max Kellermann, Auke Kok
+# Copyright (C) 2001-2016 Max Kellermann, Auke Kok
 #
 # Bug reports and patches for this program may be sent to the GitHub
 # repository: L<https://github.com/MaxKellermann/ferm>
@@ -1997,8 +1997,8 @@ L<https://github.com/MaxKellermann/ferm/issues>
 
 =head1 COPYRIGHT
 
-Copyright (C) 2001-2012 Max Kellermann <max.kellermann@gmail.com>,
-Auke Kok <sofar@foo-projects.org>
+Copyright (C) 2001-2016 Max Kellermann <max.kellermann@gmail.com>,
+Auke Kok <sofar@foo-projects.org> and various other contributors.
 
 This program is free software; you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
