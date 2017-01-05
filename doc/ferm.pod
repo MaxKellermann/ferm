@@ -486,7 +486,7 @@ targeted at the address (daddr).
 
 Examples:
 
-    saddr 192.168/8 ACCEPT; # (identical to the next one:)
+    saddr 192.168.0.0/24 ACCEPT; # (identical to the next one:)
     saddr 192.168.0.0/255.255.255.0 ACCEPT;
     daddr my.domain.com ACCEPT;
 
