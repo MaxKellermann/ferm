@@ -1011,6 +1011,7 @@ Temporarily mark source IP addresses.
     mod recent set rdest;
     mod recent rcheck rsource name "badguy" seconds 60;
     mod recent update seconds 120 hitcount 3 rttl;
+    mod recent mask 255.255.255.0;
 
 This netfilter module has a design flaw: although it is implemented as
 a match module, it has target-like behaviour when using the "set"
