@@ -49,8 +49,8 @@ use vars qw($has_strict $has_getopt);
 
 use vars qw($VERSION);
 
-$VERSION = '2.3.1';
-#$VERSION .= '~git';
+$VERSION = '2.3.2';
+$VERSION .= '~git';
 
 ## interface variables
 # %option = command line and other options
