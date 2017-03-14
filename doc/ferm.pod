@@ -633,15 +633,17 @@ Match using Linux Socket Filter.
 
 Match using cgroupsv2 hierarchy or legacy net_cls cgroup.
 
-    mod cgroup !path example/path ACCEPT;
+    mod cgroup path ! example/path ACCEPT;
 
-I<path> is relative to the root of the hiearchy, and is compared against the
-initial portion of a process' path in the hierarchy.
+The path is relative to the root of the cgroupsv2 hiearchy, and is compared
+against the initial portion of a process' path in the hierarchy.
 
-    mod cgroup cgroup classid DROP;
+    mod cgroup cgroup 10:10 DROP;
+    mod cgroup cgroup 1048592 DROP;
 
-I<classid> is a decimal unsigned 32-bit value compared against the value of
-C<net_cls.classid> set in the process' net_cls cgroup.
+Matches against the value of C<net_cls.classid> set on the process' legacy
+net_cls cgroup. The class may be specified as a hexadecimal major:minor pair
+(see L<tc(8)>), or as a decimal, so those two rules are equivalent.
 
 =item B<comment>
 

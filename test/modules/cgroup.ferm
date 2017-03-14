@@ -1,7 +1,9 @@
 table filter chain INPUT mod cgroup {
     cgroup 65537 ACCEPT;
+    cgroup a1b2:c3d4 ACCEPT;
     cgroup ! 32769 REJECT;
-    cgroup (1000 2000 3000) DROP;
+    cgroup ! 0:65 REJECT;
+    cgroup (1010 10:10) DROP;
     path foo/bar ACCEPT;
     path ! foo/bar REJECT;
     path (foo/bar baz/qux) ACCEPT;

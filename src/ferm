@@ -242,7 +242,7 @@ add_match_def 'addrtype', qw(!src-type !dst-type),
   qw(limit-iface-in*0 limit-iface-out*0);
 add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
 add_match_def 'bpf', qw(bytecode);
-add_match_def 'cgroup', qw(!path !cgroup);
+add_match_def 'cgroup', qw(path! cgroup&cgroup_classid);
 add_match_def 'comment', qw(comment=s);
 add_match_def 'condition', qw(condition!);
 add_match_def 'connbytes', qw(!connbytes connbytes-dir connbytes-mode);
@@ -500,6 +500,40 @@ sub address_magic {
         return bless \@ips, 'negated';
     } else {
         return \@ips;
+    }
+}
+
+sub cgroup_classid {
+    my $rule = shift;
+    my $value = getvalues(undef, allow_negation => 1);
+
+    my @classids;
+    my $negated = 0;
+    if (ref $value and ref $value eq 'ARRAY') {
+	@classids = @$value;
+    } elsif (ref $value and ref $value eq 'negated') {
+	@classids = @$value;
+	$negated = 1;
+    } elsif (ref $value) {
+	die;
+    } else {
+	@classids = ($value);
+    }
+
+    foreach (@classids) {
+	if ($_ =~ /^([0-9A-Fa-f]{1,4}):([0-9A-Fa-f]{1,4})$/) {
+	    $_ = (hex($1) << 16) + hex($2);
+	} elsif ($_ !~ /^-?\d+$/) {
+	    error('classid must be hex:hex or decimal');
+	}
+	error('classid must be non-negative') if $_ < 0;
+	error('classid is too large') if $_ > 0xffffffff;
+    }
+
+    if ($negated && scalar @classids) {
+	return bless \@classids, 'negated';
+    } else {
+	return \@classids;
     }
 }
 
