@@ -1,0 +1,9 @@
+iptables -t filter -A INPUT -m cgroup --cgroup 65537 -j ACCEPT
+iptables -t filter -A INPUT -m cgroup ! --cgroup 32769 -j REJECT
+iptables -t filter -A INPUT -m cgroup --cgroup 1000 -j DROP
+iptables -t filter -A INPUT -m cgroup --cgroup 2000 -j DROP
+iptables -t filter -A INPUT -m cgroup --cgroup 3000 -j DROP
+iptables -t filter -A INPUT -m cgroup --path foo/bar -j ACCEPT
+iptables -t filter -A INPUT -m cgroup ! --path foo/bar -j REJECT
+iptables -t filter -A INPUT -m cgroup --path foo/bar -j ACCEPT
+iptables -t filter -A INPUT -m cgroup --path baz/qux -j ACCEPT

@@ -629,6 +629,20 @@ Match using Linux Socket Filter.
 
     mod bpf bytecode "4,48 0 0 9,21 0 1 6,6 0 0 1,6 0 0 0";
 
+=item B<cgroup>
+
+Match using cgroupsv2 hierarchy or legacy net_cls cgroup.
+
+    mod cgroup !path example/path ACCEPT;
+
+I<path> is relative to the root of the hiearchy, and is compared against the
+initial portion of a process' path in the hierarchy.
+
+    mod cgroup cgroup classid DROP;
+
+I<classid> is a decimal unsigned 32-bit value compared against the value of
+C<net_cls.classid> set in the process' net_cls cgroup.
+
 =item B<comment>
 
 Adds a comment of up to 256 characters to a rule, without an effect.

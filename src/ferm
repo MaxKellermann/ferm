@@ -242,6 +242,7 @@ add_match_def 'addrtype', qw(!src-type !dst-type),
   qw(limit-iface-in*0 limit-iface-out*0);
 add_match_def 'ah', qw(ahspi! ahlen! ahres*0);
 add_match_def 'bpf', qw(bytecode);
+add_match_def 'cgroup', qw(!path !cgroup);
 add_match_def 'comment', qw(comment=s);
 add_match_def 'condition', qw(condition!);
 add_match_def 'connbytes', qw(!connbytes connbytes-dir connbytes-mode);
