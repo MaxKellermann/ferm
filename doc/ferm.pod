@@ -455,6 +455,19 @@ Works like B<@subchain> except that instead of using B<jump> target it
 uses B<goto> target. See discussion below for the difference between
 these two targets.
 
+=item B<@preserve>
+
+Preserve existing rules of the current chain:
+
+ chain (foo bar) @preserve;
+
+With this option, B<ferm> loads the previous rule set using
+B<iptables-save>, extracts all "preserved" chains and inserts their
+data into the output.
+
+"Preserved" chains must not be modified with B<ferm>: no rules and no
+policies.
+
 =back
 
 

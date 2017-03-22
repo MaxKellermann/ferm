@@ -13,6 +13,7 @@ v2.3.2 - not yet released
   - updated netfilter modules:
     * recent: add mask, reap
   - sort domains and tables in --fast output
+  - "@preserve" preserves existing chains
 
 
 v2.3.1 - 5 Jan 2017
