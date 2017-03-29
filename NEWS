@@ -14,6 +14,7 @@ v2.3.2 - not yet released
     * recent: add mask, reap
   - sort domains and tables in --fast output
   - "@preserve" preserves existing chains
+  - import-ferm: translate "-f" to "fragment"
 
 
 v2.3.1 - 5 Jan 2017

@@ -58,6 +58,7 @@ use vars qw(%aliases);
 %aliases = (
     i => 'interface',
     o => 'outerface',
+    f => 'fragment',
     p => 'protocol',
     d => 'daddr',
     s => 'saddr',
