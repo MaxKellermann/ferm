@@ -8,6 +8,8 @@
 
 
 v2.4.1 - not yet released
+  - updated netfilter modules:
+    * SYNPROXY: rename "timestamps" back to "timestamp"
 
 
 v2.4 - 2 Apr 2017
