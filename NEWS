@@ -7,6 +7,9 @@
     Auke Kok <sofar@foo-projects.org>
 
 
+v2.4.1 - not yet released
+
+
 v2.4 - 2 Apr 2017
   - support netfilter match modules:
     * cgroup
