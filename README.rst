@@ -1,14 +1,11 @@
 ferm README
 ===========
 
-        Max Kellermann <max@foo-projects.org>
-        Auke Kok <sofar@foo-projects.org>
-
 
 Description
 -----------
 
-ferm is a frontend for iptables. It reads the rules from a structured
+ferm is a frontend for ``iptables``. It reads the rules from a structured
 configuration file and calls iptables(8) to insert them into the
 running kernel.
 
@@ -31,8 +28,8 @@ Installing ferm
   make install
 
 The package does not need to be compiled, just make sure you have perl
-(which is present in any base linux system) and iptables (including
-iptables-save and iptables-restore), and the a kernel supporting
+(which is present in any base linux system) and ``iptables`` (including
+``iptables-save`` and ``iptables-restore``), and the a kernel supporting
 netfilter.
 
 Run the make install install script as root to install the package in
@@ -60,7 +57,7 @@ syntax.  To get started, try one of the example files, and modify it
 for your needs.
 
 If your machine is already firewalled and you wish to switch to ferm,
-the "import-ferm" script comes handy.  It converts the current
+the ``import-ferm`` script comes handy.  It converts the current
 firewall rules to a ferm configuration file:
 
   import-ferm >/etc/ferm/ferm.conf
@@ -70,4 +67,4 @@ After that, let ferm install the new ruleset:
   ferm /etc/ferm/ferm.conf
 
 Be careful, don't lock youself out of remote machines!  Use the
-interactive mode (--interactive, -i) often!
+interactive mode (``--interactive``, ``-i``) often!

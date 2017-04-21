@@ -36,7 +36,7 @@ rm -rf $RPM_BUILD_ROOT
 /CHANGES
 /AUTHORS
 /COPYING
-/README
+/README.rst
 /TODO
 /ferm.txt
 /ferm.html
