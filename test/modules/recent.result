@@ -1,3 +1,4 @@
 iptables -t filter -A INPUT -m recent --rcheck --seconds 60 -j DROP
 iptables -t filter -A INPUT -m recent -i eth0 -d 127.0.0.0/8 --set -j DROP
 iptables -t filter -A INPUT -m recent --rsource --rdest -j ACCEPT
+iptables -t filter -A INPUT -m recent --name foo --mask 255.255.255.0 -j ACCEPT
