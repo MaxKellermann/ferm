@@ -1,11 +1,1 @@
-iptables -t filter -A INPUT -m ipv4options --ssrr -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options --lsrr -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options --no-srr -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options --rr -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options ! --rr -j DROP
-iptables -t filter -A INPUT -m ipv4options --ts -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options ! --ts -j DROP
-iptables -t filter -A INPUT -m ipv4options --ra -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options ! --ra -j DROP
-iptables -t filter -A INPUT -m ipv4options --any-opt -j ACCEPT
-iptables -t filter -A INPUT -m ipv4options ! --any-opt -j DROP
+iptables -t filter -A INPUT -m ipv4options --flags ssrr,lsrr,timestamp,record-route --any -j DROP
