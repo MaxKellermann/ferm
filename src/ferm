@@ -1863,7 +1863,7 @@ sub set_module_target(\%$$) {
         error('No protocol specified before TCPMSS')
           unless defined $protos;
         foreach my $proto (to_array $protos) {
-            error('TCPMSS not available for protocol "$proto"')
+            error(qq{TCPMSS not available for protocol "$proto"})
               unless $proto eq 'tcp';
         }
     }
@@ -2355,7 +2355,7 @@ sub enter($$) {
                 my $jumpkey = $keyword;
                 $jumpkey =~ s/^sub/\@sub/;
 
-                error('No rule specified before $jumpkey')
+                error(qq{No rule specified before '$jumpkey'})
                   unless $rule{has_rule};
 
                 my $subchain;
@@ -2380,7 +2380,7 @@ sub enter($$) {
 
                 set_target(%rule, $jumptype, $subchain);
 
-                error('"{" or chain name expected after $jumpkey')
+                error(qq["{" or chain name expected after $jumpkey])
                   unless $keyword eq '{';
 
                 # create a deep copy of %rule, only containing values
