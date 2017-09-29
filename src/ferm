@@ -2311,6 +2311,7 @@ sub enter($$) {
                 my $domain = $rule{domain};
                 foreach my $table (to_array $rule{table}) {
                     foreach my $c (to_array $chain) {
+                        warning("Chain name too long, must be 29 charactersi or less: $c") if length($c) > 29;
                         $domains{$domain}{tables}{$table}{chains}{$c} ||= {};
                     }
                 }
@@ -2372,6 +2373,8 @@ sub enter($$) {
                     $subchain = getvar();
                     $keyword = next_token();
                 }
+
+                error("Chain name too long, must be 29 characters or less: $subchain") if length($subchain) > 29;
 
                 my $domain = $rule{domain};
                 foreach my $table (to_array $rule{table}) {
@@ -2461,13 +2464,17 @@ sub enter($$) {
 
             # jump action
             if ($keyword eq 'jump') {
-                set_target(%rule, 'jump', getvar());
+                my $jump_target = getvar();
+                error("Chain name too long, must be 29 characters or less: $jump_target") if length($jump_target) > 29;
+                set_target(%rule, 'jump', $jump_target);
                 next;
             };
 
             # goto action
             if ($keyword eq 'goto') {
-                set_target(%rule, 'goto', getvar());
+                my $goto_target = getvar();
+                error("Chain name too long, must be 29 characters or less: $goto_target") if length($goto_target) > 29;
+                set_target(%rule, 'goto', $goto_target);
                 next;
             };
 
