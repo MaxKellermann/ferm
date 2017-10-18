@@ -10,8 +10,8 @@ table filter chain INPUT mod time {
         REJECT;
     }
     datestop 2004/12/31 DROP;
-    datestop 2004/12/31 timestart 09:00 utc DROP;
-    datestop 2004/12/31 timestart 18:00 localtz DROP;
+    datestop 2004/12/31 timestart 09:00 DROP;
+    datestop 2004/12/31 timestart 18:00 kerneltz DROP;
     monthday (1 2 3) ACCEPT;
     weekdays (Mon Tue Wed) ACCEPT;
 }
