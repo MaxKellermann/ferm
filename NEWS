@@ -10,7 +10,7 @@
 v2.4.2 - not yet released
   - updated netfilter modules:
     * ipv4options
-    * time: suport "--utc"
+    * time: suport "--kerneltz", remove "--localtz"
   - make chain name length validation an error not a warning
 
 
