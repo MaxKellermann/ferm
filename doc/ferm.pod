@@ -1150,8 +1150,8 @@ Check if the time a packet arrives is in given range.
     mod time datestop 2005:04:01;
     mod time monthday (30 31);
     mod time weekdays (Wed Thu);
-    mod time timestart 12:00 utc;
-    mod time timestart 12:00 localtz;
+    mod time timestart 12:00;
+    mod time timestart 12:00 kerneltz;
 
 Type "iptables -m time -h" for details.
 
