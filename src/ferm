@@ -302,7 +302,7 @@ add_match_def 'statistic', qw(mode=s probability=s every=s packet=s);
 add_match_def 'string', qw(algo=s from=s to=s string hex-string);
 add_match_def 'tcpmss', qw(!mss);
 add_match_def 'time', qw(timestart=s timestop=s days=c datestart=s datestop=s),
-  qw(!monthday=c !weekdays=c kerneltz*0, contiguous*0);
+  qw(!monthday=c !weekdays=c kerneltz*0 contiguous*0);
 add_match_def 'tos', qw(!tos);
 add_match_def 'ttl', qw(ttl-eq ttl-lt=s ttl-gt=s);
 add_match_def 'u32', qw(!u32=m);
