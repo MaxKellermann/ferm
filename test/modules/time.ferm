@@ -14,4 +14,5 @@ table filter chain INPUT mod time {
     datestop 2004/12/31 timestart 18:00 kerneltz DROP;
     monthday (1 2 3) ACCEPT;
     weekdays (Mon Tue Wed) ACCEPT;
+    timestart 22:00 timestop 07:00 contiguous DROP;
 }

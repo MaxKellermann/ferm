@@ -9,3 +9,4 @@ iptables -t filter -A INPUT -m time --datestop 2004/12/31 --timestart 09:00 -j D
 iptables -t filter -A INPUT -m time --datestop 2004/12/31 --timestart 18:00 --kerneltz -j DROP
 iptables -t filter -A INPUT -m time --monthday 1,2,3 -j ACCEPT
 iptables -t filter -A INPUT -m time --weekdays Mon,Tue,Wed -j ACCEPT
+iptables -t filter -A INPUT -m time --timestart 22:00 --timestop 07:00 --contiguous -j DROP
