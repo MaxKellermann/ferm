@@ -1144,6 +1144,7 @@ Check if the time a packet arrives is in given range.
 
     mod time timestart 12:00;
     mod time timestop 13:30;
+    mod time timestart 22:00 timestop 07:00 contiguous;
     mod time days (Mon Wed Fri);
     mod time datestart 2005:01:01;
     mod time datestart 2005:01:01:23:59:59;
