@@ -1164,7 +1164,8 @@ sub resolve($\@$) {
 
         my $query = $resolver->search($hostname, $type);
         error("DNS query for '$hostname' failed: " . $resolver->errorstring)
-          unless $query;
+	    unless $resolver->errorstring eq 'NOERROR';
+	next unless $query;
 
         foreach my $rr ($query->answer) {
             next unless $rr->type eq $type;
