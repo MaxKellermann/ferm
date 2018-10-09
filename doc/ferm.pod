@@ -1843,7 +1843,7 @@ creating a ferm list, and the outer pair as function parameter
 delimiters.
 
 The second parameter is optional, and specifies the DNS record type.
-The default is "A".
+The default is "A" for domain ip and "AAAA" for domain ip6.
 
 Be careful with resolved host names in firewall configuration.  DNS
 requests may block the firewall configuration for a long time, leaving

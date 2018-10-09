@@ -1311,7 +1311,9 @@ sub getvalues {
             eval { require Net::DNS; };
             error('For the @resolve() function, you need the Perl library Net::DNS')
               if $@;
-            my $type = $params[1] || 'A';
+            my $domain = $stack[0]{auto}{DOMAIN};
+            error('No domain specified') unless defined $domain;
+            my $type = $params[1] || ($domain eq 'ip6' ? 'AAAA' : 'A');
             error('String expected') if ref $type;
             my $resolver = new Net::DNS::Resolver;
             @params = to_array($params[0]);
