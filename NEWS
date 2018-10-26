@@ -12,6 +12,7 @@ v2.4.2 - not yet released
     * ipv4options
     * time: suport "--kerneltz", remove "--localtz"
   - make chain name length validation an error not a warning
+  - support empty NOERROR responses in @resolve
 
 
 v2.4.1 - 1 Aug 2017
