@@ -492,6 +492,8 @@ for a packet, as in iptables(8).
 Currently supported by the kernel are tcp, udp and icmp, or
 their respective numbers.
 
+Instead of B<protocol>, you can also use the shortcut B<proto>.
+
 =item B<saddr|daddr [address-spec]>
 
 Matches on packets originating from the specified address (saddr) or
