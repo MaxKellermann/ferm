@@ -136,7 +136,7 @@ use vars qw(%proto_defs %match_defs %target_defs);
 
 # prototype declarations
 sub open_script($);
-sub resolve(\@$);
+sub resolve($@);
 sub enter($$);
 sub rollback();
 sub execute_fast($);
@@ -486,6 +486,10 @@ sub address_magic {
     } elsif (ref $value and ref $value eq 'negated') {
         @ips = @$value;
         $negated = 1;
+    } elsif (ref $value and ref $value eq 'deferred') {
+        my @args = @$value;
+        my $function = shift @args;
+        @ips = &$function($domain, @args);
     } elsif (ref $value) {
         die;
     } else {
@@ -907,6 +911,9 @@ sub handle_special_token($) {
     die unless ref $token;
     if (ref $token eq 'line') {
         $script->{line} = $$token;
+        return undef;
+    } elsif (ref $token and ref $token eq 'deferred') {
+        return $token;
     } else {
         die;
     }
@@ -915,7 +922,11 @@ sub handle_special_token($) {
 sub handle_special_tokens() {
     my $tokens = $script->{tokens};
     while (@$tokens > 0 and ref $tokens->[0]) {
-        handle_special_token(shift @$tokens);
+        unless (handle_special_token($tokens->[0])) {
+            shift @$tokens;
+        } else {
+            last;
+        }
     }
 }
 
@@ -1170,12 +1181,17 @@ sub pick_resolver() {
     return $resolver;
 }
 
-sub resolve(\@$) {
-    my ($names, $type) = @_;
+sub resolve($@) {
+    my ($domain, $names, $type) = @_;
+    my @names = to_array($names);
+    error('String expected') if ref $type;
+
     my $resolver = pick_resolver();
+    $type = ($domain eq 'ip6') ? 'AAAA' : 'A'
+        unless $type;
 
     my @result;
-    foreach my $hostname (@$names) {
+    foreach my $hostname (@names) {
         if (($type eq 'A' and $hostname =~ /^\d+\.\d+\.\d+\.\d+$/) or
               (($type eq 'AAAA' and
                 $hostname =~ /^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/))) {
@@ -1204,7 +1220,7 @@ sub resolve(\@$) {
 
     # NS/MX records return host names; resolve these again in the
     # second pass (IPv4 only currently)
-    @result = resolve(@result, 'A')
+    @result = resolve($domain, \@result, 'A')
       if $type eq 'NS' or $type eq 'MX';
 
     return @result;
@@ -1248,6 +1264,8 @@ sub getvalues {
                 push @wordlist, $token;
             } elsif (ref $token eq 'ARRAY') {
                 push @wordlist, @$token;
+            } elsif (ref $token eq 'deferred') {
+                push @wordlist, $token;
             } else {
                 error('unknown token type');
             }
@@ -1327,16 +1345,7 @@ sub getvalues {
     } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
         error('Syntax error');
     } elsif ($token =~ /^@/) {
-        if ($token eq '@resolve') {
-            my @params = get_function_params();
-            error('Usage: @resolve((hostname ...), [type])')
-              unless @params == 1 or @params == 2;
-            my $type = $params[1] || 'A';
-            error('String expected') if ref $type;
-            @params = to_array($params[0]);
-            my @result = resolve(@params, $type);
-            return @result == 1 ? $result[0] : \@result;
-        } elsif ($token eq '@defined') {
+        if ($token eq '@defined') {
             expect_token('(', 'function name must be followed by "()"');
             my $type = require_next_token();
             if ($type eq '$') {
@@ -1411,6 +1420,12 @@ sub getvalues {
                 glob($path);
             } to_array($params[0]);
             return @result == 1 ? $result[0] : \@result;
+        } elsif ($token eq '@resolve') {
+            my @params = get_function_params();
+            error('Usage: @resolve((hostname ...), [type])')
+              unless @params == 1 or @params == 2;
+            unshift @params, \&resolve;
+            return bless \@params, 'deferred';
         } elsif ($token eq '@ipfilter') {
             my @params = get_function_params();
             error('Usage: @ipfilter((ip1 ip2 ...))') unless @params == 1;
@@ -1517,7 +1532,7 @@ sub to_array($) {
     my $value = shift;
     die unless wantarray;
     die if @_;
-    unless (ref $value) {
+    if (!ref $value || ref $value eq 'deferred') {
         return $value;
     } elsif (ref $value eq 'ARRAY') {
         return @$value;
