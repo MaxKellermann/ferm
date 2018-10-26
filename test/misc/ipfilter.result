@@ -1,2 +1,4 @@
 iptables -t filter -A INPUT -s 192.168.0.40 -p tcp --dport ssh -j ACCEPT
 ip6tables -t filter -A INPUT -s 2001:abcd:ef::40 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A INPUT -s 192.168.0.40 -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:abcd:ef::40 -j ACCEPT

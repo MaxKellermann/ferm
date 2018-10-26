@@ -464,12 +464,12 @@ sub multiport_params {
 
 sub ipfilter($@) {
     my $domain = shift;
-    my @ips;
+    my @ips = to_array(shift);
     # very crude IPv4/IPv6 address detection
     if ($domain eq 'ip') {
-        @ips = grep { !/:[0-9a-f]*:/ } @_;
+        @ips = grep { !/:[0-9a-f]*:/ } @ips;
     } elsif ($domain eq 'ip6') {
-        @ips = grep { !m,^[0-9./]+$,s } @_;
+        @ips = grep { !m,^[0-9./]+$,s } @ips;
     }
     return @ips;
 }
@@ -498,7 +498,7 @@ sub address_magic {
 
     # only do magic on domain (ip ip6); do not process on a single-stack rule
     # as to let admins spot their errors instead of silently ignoring them
-    @ips = ipfilter($domain, @ips) if defined $rule->{domain_both};
+    @ips = ipfilter($domain, \@ips) if defined $rule->{domain_both};
 
     if ($negated && scalar @ips) {
         return bless \@ips, 'negated';
@@ -1187,6 +1187,7 @@ sub resolve($@) {
     error('String expected') if ref $type;
 
     my $resolver = pick_resolver();
+
     $type = ($domain eq 'ip6') ? 'AAAA' : 'A'
         unless $type;
 
@@ -1434,10 +1435,8 @@ sub getvalues {
         } elsif ($token eq '@ipfilter') {
             my @params = get_function_params();
             error('Usage: @ipfilter((ip1 ip2 ...))') unless @params == 1;
-            my $domain = $stack[0]{auto}{DOMAIN};
-            error('No domain specified') unless defined $domain;
-            my @ips = ipfilter($domain, to_array($params[0]));
-            return \@ips;
+            unshift @params, \&ipfilter;
+            return bless \@params, 'deferred';
         } else {
             error("unknown ferm built-in function");
         }
