@@ -2649,7 +2649,7 @@ sub table_to_save($$) {
 
 sub extract_table_from_save($$) {
     my ($save, $table) = @_;
-    return $save =~ /^\*${table}\s*$\s*(.*?)^COMMIT\s*$/ms
+    return $save =~ /^\*${table}\s*${\}s*(.*?)^COMMIT\s*$/ms
       ? $1
       : '';
 }
