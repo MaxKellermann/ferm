@@ -510,30 +510,30 @@ sub cgroup_classid {
     my @classids;
     my $negated = 0;
     if (ref $value and ref $value eq 'ARRAY') {
-	@classids = @$value;
+        @classids = @$value;
     } elsif (ref $value and ref $value eq 'negated') {
-	@classids = @$value;
-	$negated = 1;
+        @classids = @$value;
+        $negated = 1;
     } elsif (ref $value) {
-	die;
+        die;
     } else {
-	@classids = ($value);
+        @classids = ($value);
     }
 
     foreach (@classids) {
-	if ($_ =~ /^([0-9A-Fa-f]{1,4}):([0-9A-Fa-f]{1,4})$/) {
-	    $_ = (hex($1) << 16) + hex($2);
-	} elsif ($_ !~ /^-?\d+$/) {
-	    error('classid must be hex:hex or decimal');
-	}
-	error('classid must be non-negative') if $_ < 0;
-	error('classid is too large') if $_ > 0xffffffff;
+        if ($_ =~ /^([0-9A-Fa-f]{1,4}):([0-9A-Fa-f]{1,4})$/) {
+            $_ = (hex($1) << 16) + hex($2);
+        } elsif ($_ !~ /^-?\d+$/) {
+            error('classid must be hex:hex or decimal');
+        }
+        error('classid must be non-negative') if $_ < 0;
+        error('classid is too large') if $_ > 0xffffffff;
     }
 
     if ($negated && scalar @classids) {
-	return bless \@classids, 'negated';
+        return bless \@classids, 'negated';
     } else {
-	return \@classids;
+        return \@classids;
     }
 }
 
@@ -605,9 +605,9 @@ if ($has_getopt) {
     die("ferm interactive mode not possible: /dev/stderr is not a tty\n")
       if $option{interactive} and not -t STDERR;
     die("ferm timeout has no sense without interactive mode")
-	if not $opt_interactive and defined $opt_timeout;
+        if not $opt_interactive and defined $opt_timeout;
     die("invalid timeout. must be an integer")
-	if defined $opt_timeout and not $opt_timeout =~ /^[+-]?\d+$/;
+        if defined $opt_timeout and not $opt_timeout =~ /^[+-]?\d+$/;
 
     $option{domain} = $opt_domain if defined $opt_domain;
 } else {
@@ -1369,13 +1369,13 @@ sub getvalues {
             my @params = get_function_params();
             error('Usage: @basename(path)') unless @params == 1;
             error('String expected') if ref $params[0];
-	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
+            my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
             return $file;
         } elsif ($token eq '@dirname') {
             my @params = get_function_params();
             error('Usage: @dirname(path)') unless @params == 1;
             error('String expected') if ref $params[0];
-	    my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
+            my($volume,$path,$file) = File::Spec->splitpath( $params[0] );
             return $path;
         } elsif ($token eq '@glob') {
             my @params = get_function_params();
@@ -2055,7 +2055,7 @@ sub enter($$) {
                         $stack->{auto} = { %{ $stack[0]{auto} || {} } };
                     }
 
-		    my( $volume,$dirs,$file ) = File::Spec->splitpath( $filename );
+                    my( $volume,$dirs,$file ) = File::Spec->splitpath( $filename );
                     $stack->{auto}{FILENAME} = $filename;
                     $stack->{auto}{FILEBNAME} = $file;
                     $stack->{auto}{DIRNAME} = $dirs;
