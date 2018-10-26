@@ -547,6 +547,8 @@ considered reasonably safe to let these through.
 Load an iptables module. Most modules provide more match
 keywords. We'll get to that later.
 
+Instead of B<module>, you can also use the shortcut B<mod>.
+
 =back
 
 
