@@ -1,0 +1,1 @@
+iptables -t filter -A INPUT -s 192.0.2.2 -j ACCEPT

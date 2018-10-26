@@ -1,0 +1,3 @@
+domain ip  chain INPUT saddr @resolve(ds-rr.example.com)         ACCEPT;
+domain ip  chain INPUT saddr @resolve(ds-rr.example.com, 'A')    ACCEPT;
+domain ip6 chain INPUT saddr @resolve(ds-rr.example.com, 'AAAA') ACCEPT;

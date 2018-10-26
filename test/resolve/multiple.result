@@ -1,0 +1,6 @@
+iptables -t filter -A INPUT -s 192.0.2.3 -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.4 -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.3 -j ACCEPT
+iptables -t filter -A INPUT -s 192.0.2.4 -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8:0:0:0:0:0:3 -j ACCEPT
+ip6tables -t filter -A INPUT -s 2001:db8:0:0:0:0:0:4 -j ACCEPT

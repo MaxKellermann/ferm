@@ -9,6 +9,8 @@ perl:
   - "5.18"
   - "5.14"
 
+install:
+  - cpanm --notest Net::DNS::Resolver::Mock
+
 sudo: false
-install: true
 script: make check

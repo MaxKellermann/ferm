@@ -136,7 +136,7 @@ use vars qw(%proto_defs %match_defs %target_defs);
 
 # prototype declarations
 sub open_script($);
-sub resolve($\@$);
+sub resolve(\@$);
 sub enter($$);
 sub rollback();
 sub execute_fast($);
@@ -1150,8 +1150,29 @@ sub format_bool($) {
     return $_[0] ? 1 : 0;
 }
 
-sub resolve($\@$) {
-    my ($resolver, $names, $type) = @_;
+sub pick_resolver() {
+    my $resolver;
+    unless ($option{test}) {
+        eval { require Net::DNS; };
+        error('You need the Perl library Net::DNS to resolve')
+          if $@;
+        $resolver = new Net::DNS::Resolver;
+    } else {
+        eval { require Net::DNS::Resolver::Mock; };
+        error('You need the Perl library Net::DNS::Resolver::Mock to test')
+          if $@;
+        $resolver = new Net::DNS::Resolver::Mock;
+        my $parent_dir = $script->{filename} =~ m,^(.*/),
+          ? $1 : './';
+        $resolver->zonefile_read($parent_dir . 'zonefile');
+    }
+
+    return $resolver;
+}
+
+sub resolve(\@$) {
+    my ($names, $type) = @_;
+    my $resolver = pick_resolver();
 
     my @result;
     foreach my $hostname (@$names) {
@@ -1164,7 +1185,8 @@ sub resolve($\@$) {
 
         my $query = $resolver->search($hostname, $type);
         error("DNS query for '$hostname' failed: " . $resolver->errorstring)
-            unless $resolver->errorstring eq 'NOERROR';
+            if ($resolver->errorstring &&
+		$resolver->errorstring ne 'NOERROR');
         next unless $query;
 
         foreach my $rr ($query->answer) {
@@ -1182,7 +1204,7 @@ sub resolve($\@$) {
 
     # NS/MX records return host names; resolve these again in the
     # second pass (IPv4 only currently)
-    @result = resolve($resolver, @result, 'A')
+    @result = resolve(@result, 'A')
       if $type eq 'NS' or $type eq 'MX';
 
     return @result;
@@ -1309,14 +1331,10 @@ sub getvalues {
             my @params = get_function_params();
             error('Usage: @resolve((hostname ...), [type])')
               unless @params == 1 or @params == 2;
-            eval { require Net::DNS; };
-            error('For the @resolve() function, you need the Perl library Net::DNS')
-              if $@;
             my $type = $params[1] || 'A';
             error('String expected') if ref $type;
-            my $resolver = new Net::DNS::Resolver;
             @params = to_array($params[0]);
-            my @result = resolve($resolver, @params, $type);
+            my @result = resolve(@params, $type);
             return @result == 1 ? $result[0] : \@result;
         } elsif ($token eq '@defined') {
             expect_token('(', 'function name must be followed by "()"');

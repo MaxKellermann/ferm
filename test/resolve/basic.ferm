@@ -1,0 +1,7 @@
+domain ip  chain INPUT proto tcp dport 40  saddr @resolve(v4.example.com)         ACCEPT;
+domain ip  chain INPUT proto tcp dport 41  saddr @resolve(v4.example.com, 'A')    ACCEPT;
+domain ip6 chain INPUT proto tcp dport 60  saddr @resolve(v6.example.com, 'AAAA') ACCEPT;
+
+domain ip  chain INPUT proto tcp dport 460 saddr @resolve(ds.example.com)         ACCEPT;
+domain ip  chain INPUT proto tcp dport 461 saddr @resolve(ds.example.com, 'A')    ACCEPT;
+domain ip6 chain INPUT proto tcp dport 640 saddr @resolve(ds.example.com, 'AAAA') ACCEPT;

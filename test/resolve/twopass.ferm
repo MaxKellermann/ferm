@@ -1,0 +1,2 @@
+domain ip chain  INPUT saddr @resolve(ns.example.com, 'NS') ACCEPT;
+domain ip chain  INPUT saddr @resolve(mx.example.com, 'MX') ACCEPT;

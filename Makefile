@@ -50,6 +50,7 @@ FERM_SCRIPTS += $(wildcard test/modules/*.ferm) $(wildcard test/targets/*.ferm)
 FERM_SCRIPTS += $(wildcard test/protocols/*.ferm) $(wildcard test/misc/*.ferm)
 FERM_SCRIPTS += $(wildcard test/glob/*.ferm)
 FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
+FERM_SCRIPTS += $(wildcard test/resolve/*.ferm)
 FERM_SCRIPTS += $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
 EXCLUDE_IMPORT =
