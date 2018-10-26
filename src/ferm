@@ -1200,10 +1200,16 @@ sub resolve($@) {
         }
 
         my $query = $resolver->search($hostname, $type);
-        error("DNS query for '$hostname' failed: " . $resolver->errorstring)
-            if ($resolver->errorstring &&
-		$resolver->errorstring ne 'NOERROR');
-        next unless $query;
+        unless ($query) {
+            if (!$resolver->errorstring ||
+		$resolver->errorstring eq 'NOERROR' ||
+		$resolver->errorstring eq 'NXDOMAIN') {
+                # skip NOERROR/NXDOMAINs, i.e. don't error out but return nothing
+                next;
+            } else {
+                error("DNS query for '$hostname' failed: " . $resolver->errorstring);
+            }
+        }
 
         foreach my $rr ($query->answer) {
             next unless $rr->type eq $type;
