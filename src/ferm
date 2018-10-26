@@ -1218,9 +1218,8 @@ sub resolve($@) {
         }
     }
 
-    # NS/MX records return host names; resolve these again in the
-    # second pass (IPv4 only currently)
-    @result = resolve($domain, \@result, 'A')
+    # NS/MX records return host names; resolve these again in the second pass
+    @result = resolve($domain, \@result, undef)
       if $type eq 'NS' or $type eq 'MX';
 
     return @result;

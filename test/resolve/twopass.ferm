@@ -1,2 +1,2 @@
-domain ip chain  INPUT saddr @resolve(ns.example.com, 'NS') ACCEPT;
-domain ip chain  INPUT saddr @resolve(mx.example.com, 'MX') ACCEPT;
+domain (ip ip6) chain INPUT proto tcp dport 21 saddr @resolve(ns.example.com, 'NS') ACCEPT;
+domain (ip ip6) chain INPUT proto tcp dport 22 saddr @resolve(mx.example.com, 'MX') ACCEPT;
