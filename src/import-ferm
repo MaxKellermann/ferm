@@ -35,6 +35,9 @@ use strict;
 
 use Data::Dumper;
 
+# Perl 5.18 introduced hash randomization and we want to compare
+$Data::Dumper::Sortkeys = 1;
+
 BEGIN {
     # find the main "ferm" program
     my $ferm;
