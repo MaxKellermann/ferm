@@ -1,4 +1,4 @@
-PERL = /usr/bin/perl
+PERL = perl
 
 PREFIX = /usr
 SERVICEDIR = $(PREFIX)/lib/systemd/system
