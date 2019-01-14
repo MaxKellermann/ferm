@@ -48,7 +48,7 @@ enabling the firewall administrator to spend more time on developing
 good rules than the proper implementation of the rule.
 
 To achieve this, B<ferm> uses a simple but powerful configuration
-language, which allows variables, functions, arrays, blocks. It also
+language, which allows variables, functions, arrays, and blocks. It also
 allows you to include other files, allowing you to create libraries of
 commonly used structures and functions.
 
@@ -57,7 +57,7 @@ B<ferm>, pronounced "firm", stands for "For Easy Rule Making".
 
 =head1 CAUTION
 
-This manual page does I<not> indend to teach you how firewalling works
+This manual page does I<not> intend to teach you how firewalling works
 and how to write good rules.  There is already enough documentation on
 this topic.
 
@@ -71,14 +71,14 @@ Let's start with a simple example:
     }
 
 This will add a rule to the predefined input chain, matching and
-accepting all tcp packets.  Ok, let's make it more complicated:
+accepting all TCP packets.  Ok, let's make it more complicated:
 
     chain (INPUT OUTPUT) {
 	proto (udp tcp) ACCEPT;
     }
 
 This will insert 4 rules, namely 2 in chain input, and 2 in chain
-output, matching and accepting both udp and tcp packets.  Normally you
+output, matching and accepting both UDP and TCP packets.  Normally you
 would type this:
 
    iptables -A INPUT -p tcp -j ACCEPT
@@ -115,7 +115,7 @@ You will be thankful for it later!
     chain INPUT {
         policy ACCEPT;
         interface (eth0 ppp0) {
-            # deny access to notorius hackers, return here if no match
+            # deny access to notorious hackers, return here if no match
             # was found to resume normal firewalling
             jump badguys;
 
@@ -132,8 +132,8 @@ specify is correct, you would not want to do this:
         proto tcp dport ftp ACCEPT;
     }
 
-because the second rule will never match. Best way is to specify
-first everyting that is allowed, and then deny everything else.
+because the second rule will never match. The best way is to first
+specify everything that is allowed, and then deny everything else.
 Look at the examples for more good snapshots. Most people do
 something like this:
 
@@ -147,9 +147,9 @@ something like this:
 
 =head1 STRUCTURE OF A FIREWALL FILE
 
-The structure of a proper firewall file looks like  simplified
+The structure of a proper firewall file looks like simplified
 C-code. Only a few syntactic characters are used in ferm-
-configuration files. Besides these special caracters, ferm
+configuration files. Besides these special characters, ferm
 uses 'keys' and 'values', think of them as options and
 parameters, or as variables and values, whatever.
 
@@ -160,7 +160,7 @@ with that traffic.
 
 You may specify conditions that are valid for the kernel
 interface program you are using, probably iptables(8). For
-instance, in iptables, when you are trying to match tcp
+instance, in iptables, when you are trying to match TCP
 packets, you would say:
 
     iptables --protocol tcp
@@ -206,7 +206,7 @@ The curly brackets contain any number of nested rules. All matches
 before the block are carried forward to these.
 
 The closing curly bracket finalizes the rule set. You should not write
-a ';' after that, because that would be an empty rule.
+a ';' after that because that would be an empty rule.
 
 Example:
 
@@ -216,7 +216,7 @@ Example:
     }
 
 This block shows two rules inside a block, which will both be merged
-with anything in front of it, so you will get two rules:
+with anything in front of it so you will get two rules:
 
     iptables -A INPUT -p icmp --icmp-type echo-request -j ACCEPT
     iptables -A INPUT -p icmp -j DROP
@@ -280,7 +280,7 @@ left-associative only.
 =item C< # >
 
 The comment symbol. Anything that follows this symbol up to
-the end of line is ignored.
+the end of the line is ignored.
 
 =item C<`command`>
 
@@ -378,12 +378,12 @@ Read iptables(8) to see where the B<!> can be used.
 
 =item B<domain [ip|ip6]>
 
-Set the domain. "ip" is default and means "IPv4" (iptables). "ip6" is
+Set the domain. "ip" is the default and means "IPv4" (iptables). "ip6" is
 for IPv6 support, using "ip6tables".
 
 =item B<table [filter|nat|mangle]>
 
-Specifies which netfilter table this rule will be inserted to:
+Specifies which netfilter table this rule will be inserted into:
 "filter" (default), "nat" or "mangle".
 
 =item B<chain [chain-name]>
@@ -489,7 +489,7 @@ for a packet, as in iptables(8).
 
 =item B<protocol [protocol-name|protocol-number]>
 
-Currently supported by the kernel are tcp, udp and icmp, or
+Currently supported by the kernel are TCP, UDP and ICMP, or
 their respective numbers.
 
 Instead of B<protocol>, you can also use the shortcut B<proto>.
@@ -508,13 +508,13 @@ Examples:
 =item B<fragment>
 
 Specify that only fragmented IP packets should be matched.
-When packets are larger that the maximum packet size your
+When packets are larger than the maximum packet size your
 system can handle (called Maximum Transmission Unit or MTU)
 they will be chopped into bits and sent one by one as single
 packets. See ifconfig(8) if you want to find the MTU for
 your system (the default is usually 1500 bytes).
 
-Fragments are frequently used in DOS attacks, because there
+Fragments are frequently used in DOS attacks because there
 is no way of finding out the origin of a fragment packet.
 
 =item B<sport|dport [port-spec]>
@@ -523,7 +523,7 @@ Matches on packets on the specified TCP or UDP port. "sport" matches
 the source port, and dport matches the destination port.
 
 This match can be used only after you specified "protocol tcp" or
-"protocol udp", because only these two protocols actually have ports.
+"protocol udp" because only these two protocols actually have ports.
 
 And some examples of valid ports/ranges:
 
@@ -535,8 +535,8 @@ And some examples of valid ports/ranges:
 
 =item B<syn>
 
-Specify that the SYN flag in a tcp package should be matched,
-which are used to build new tcp connections. You can identify
+Specify that the SYN flag in a TCP package should be matched,
+which are used to build new TCP connections. You can identify
 incoming connections with this, and decide whether you want
 to allow it or not. Packets that do not have this flag are
 probably from an already established connection, so it's
@@ -652,7 +652,7 @@ Match using cgroupsv2 hierarchy or legacy net_cls cgroup.
 
     mod cgroup path ! example/path ACCEPT;
 
-The path is relative to the root of the cgroupsv2 hiearchy, and is compared
+The path is relative to the root of the cgroupsv2 hierarchy and is compared
 against the initial portion of a process' path in the hierarchy.
 
     mod cgroup cgroup 10:10 DROP;
@@ -681,7 +681,7 @@ Matches if a value in /proc/net/ipt_condition/NAME is 1 (path is
 =item B<connbytes>
 
 Match by how many bytes or packets a connection (or one of the two
-flows constituting the connection) have tranferred so far, or by
+flows constituting the connection) have transferred so far, or by
 average bytes per packet.
 
     mod connbytes connbytes 65536: connbytes-dir both connbytes-mode bytes ACCEPT;
@@ -736,7 +736,7 @@ Type "iptables -m conntrack -h" for details.
 
 =item B<cpu>
 
-Match cpu handling this packet.
+Match CPU handling this packet.
 
     mod cpu cpu 0;
 
@@ -752,7 +752,7 @@ This module is automatically loaded when you use "protocol dccp".
 
 =item B<dscp>
 
-Match the 6 bit DSCP field within the TOS field.
+Match the 6-bit DSCP field within the TOS field.
 
     mod dscp dscp 11;
     mod dscp dscp-class AF41;
@@ -785,7 +785,7 @@ Checks the SPI header in an ESP packet.
 
 "This module matches the EUI-64 part of a stateless autoconfigured
 IPv6 address.  It compares the EUI-64 derived from the source MAC
-address in Ehternet frame with the lower 64 bits of the IPv6 source
+address in Ethernet frame with the lower 64 bits of the IPv6 source
 address.  But "Universal/Local" bit is not compared.  This module
 doesn't match other link layer frame, and is only valid in the
 PREROUTING, INPUT and FORWARD chains."
@@ -997,7 +997,7 @@ Check the link-layer packet type.
 
 =item B<policy>
 
-Matches IPsec policy being applied to this packet.
+Matches the IPsec policy being applied to this packet.
 
     mod policy dir out pol ipsec ACCEPT;
     mod policy strict reqid 23 spi 0x10 proto ah ACCEPT;
@@ -1144,7 +1144,7 @@ Check the TCP MSS field of a SYN or SYN/ACK packet.
 
 =item B<time>
 
-Check if the time a packet arrives is in given range.
+Check if the time a packet arrives is in the given range.
 
     mod time timestart 12:00;
     mod time timestop 13:30;
@@ -1171,7 +1171,7 @@ Type "iptables -m tos -h" for details.
 
 =item B<ttl>
 
-Matches the ttl (time to live) field in the IP header.
+Matches the TTL (time to live) field in the IP header.
 
     mod ttl ttl-eq 12; # ttl equals
     mod ttl ttl-gt 10; # ttl greater than
@@ -1310,7 +1310,7 @@ pass through the system.
 
 =item B<LOG>
 
-Log all packets that match this rule in the kernel log. Be carefull
+Log all packets that match this rule in the kernel log. Be careful
 with log flooding. Note that this is a "non-terminating target",
 i.e. rule traversal continues at the next rule.
 
@@ -1320,7 +1320,7 @@ i.e. rule traversal continues at the next rule.
 
 =item B<MARK>
 
-Sets the netfilter mark field for the packet (a 32 bit integer between
+Sets the netfilter mark field for the packet (a 32-bit integer between
 0 and 4294967295):
 
     MARK set-mark 42;
@@ -1435,7 +1435,7 @@ Provides stateless source IPv6-to-IPv6 Network Prefix Translation.
 =item B<SYNPROXY>
 
 TCP 3-way handshake proxy: let the firewall handle the TCP 3-way handshake and
-only establish connection with the server socket once the client handshake has
+only establish a connection with the server socket once the client handshake has
 finished.
 
     SYNPROXY wscale 7 mss 1460 timestamp sack-perm
@@ -1455,9 +1455,9 @@ This target will strip TCP options off a TCP packet.
 
 =item B<TOS set-tos [value]>
 
-Set the tcp package Type Of Service bit to this value.  This will be
+Set the TCP package Type Of Service bit to this value.  This will be
 used by whatever traffic scheduler is willing to, mostly your own
-linux-machine, but maybe more. The original tos-bits are blanked and
+Linux-machine, but maybe more. The original TOS-bits are blanked and
 overwritten by this value.
 
     TOS set-tos Maximize-Throughput;
@@ -1516,7 +1516,7 @@ Hardware length of the packet.
 
 =item B<opcode>
 
-Operation code, for details see the iptables(8).
+Operation code, for details, see iptables(8).
 
     opcode 9 ACCEPT;
 
@@ -1709,9 +1709,9 @@ With backticks, you may use the output of an external command:
     chain INPUT proto tcp saddr $DNSSERVERS ACCEPT;
 
 The command is executed with the shell (F</bin/sh>), just like
-backticks in perl.  ferm does not do any variable expansion here.
+backticks in Perl.  ferm does not do any variable expansion here.
 
-The output is then tokenized, and saved as a ferm list (array). Lines
+The output is then tokenized and saved as a ferm list (array). Lines
 beginning with '#' are ignored; the other lines may contain any number
 of values, separated by whitespace.
 
@@ -1737,7 +1737,7 @@ directory are included, sorted alphabetically:
 
     @include 'ferm.d/';
 
-The function @glob can be used to expand wild cards:
+The function @glob can be used to expand wildcards:
 
     @include @glob('*.include');
 
@@ -1779,7 +1779,7 @@ It is possible to use curly braces after either B<@if> or B<@else>:
     }
 
 Since the closing curly brace also finishes the command, there is no
-need for semicolon.
+need for a semicolon.
 
 There is no B<@elsif>, use B<@else @if> instead.
 
@@ -1835,8 +1835,8 @@ Negates a boolean value.
 
 =head2 @resolve((hostname1 hostname2 ...), [type])
 
-Usually, host names are resolved by iptables.  To let ferm resolve
-host names, use the function @resolve:
+Usually, hostnames are resolved by iptables.  To let ferm resolve
+hostnames, use the function @resolve:
 
     saddr @resolve(my.host.foo) proto tcp dport ssh ACCEPT;
     saddr @resolve((another.host.foo third.host.foo)) proto tcp dport openvpn ACCEPT;
@@ -1846,10 +1846,10 @@ Note the double parentheses in the second line: the inner pair for
 creating a ferm list, and the outer pair as function parameter
 delimiters.
 
-The second parameter is optional, and specifies the DNS record type.
+The second parameter is optional and specifies the DNS record type.
 The default is "A".
 
-Be careful with resolved host names in firewall configuration.  DNS
+Be careful with resolved hostnames in the firewall configuration.  DNS
 requests may block the firewall configuration for a long time, leaving
 the machine vulnerable, or they may fail.
 
@@ -1881,7 +1881,7 @@ last component is a file name (File::Spec::splitpath).
 
 Expand shell wildcards in the given paths (assumed to be relative to
 the current script).  Returns a list of matching files.  This function
-is useful as parameter of @include.
+is useful as a parameter of @include.
 
 =head2 @ipfilter(list)
 
@@ -1898,12 +1898,12 @@ and IPv6:
 =head1 RECIPES
 
 The F<./examples/> directory contains numerous ferm configuration
-which can be used to begin a new firewall. This sections contains more
+which can be used to begin a new firewall. This section contains more
 samples, recipes and tricks.
 
 =head2 Easy port forwarding
 
-Ferm function make routine tasks quick and easy:
+Ferm functions make routine tasks quick and easy:
 
     @def &FORWARD_TCP($proto, $port, $dest) = {
         table filter chain FORWARD interface $DEV_WORLD outerface $DEV_DMZ daddr $dest proto $proto dport $port ACCEPT;
@@ -1965,7 +1965,7 @@ response after this number of seconds.  The default is 30.
 
 =item B<--help>
 
-Show a brief list of available commandline options.
+Show a brief list of available command-line options.
 
 =item B<--version>
 
@@ -1973,8 +1973,8 @@ Shows the version number of the program.
 
 =item B<--fast>
 
-Enable fast mode: ferm generates an iptables-save(8) file, and
-installs it with iptables-restore(8). This is much faster, because
+Enable fast mode: ferm generates an iptables-save(8) file and
+installs it with iptables-restore(8). This is much faster because
 ferm calls iptables(8) once for every rule by default.
 
 Fast mode is enabled by default since B<ferm> 2.0, deprecating this
