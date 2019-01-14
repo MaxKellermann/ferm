@@ -9,7 +9,7 @@
 # repository: L<https://github.com/MaxKellermann/ferm>
 #
 
-# This script is sorts the tables and chains in the ferm output so the
+# This script sorts the tables and chains in ferm output so the
 # unit test suite can use "diff" to verify it.  It's a kludge that is
 # necessary because ferm outputs these in random order (because Perl
 # does).
