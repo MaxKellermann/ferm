@@ -60,7 +60,7 @@ If your machine is already firewalled and you wish to switch to ferm,
 the ``import-ferm`` script comes handy.  It converts the current
 firewall rules to a ferm configuration file:
 
-  import-ferm >/etc/ferm/ferm.conf
+  import-ferm > /etc/ferm/ferm.conf
 
 After that, let ferm install the new ruleset:
 
