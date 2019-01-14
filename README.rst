@@ -27,13 +27,13 @@ Installing ferm
 
   make install
 
-The package does not need to be compiled, just make sure you have perl
-(which is present in any base linux system) and ``iptables`` (including
-``iptables-save`` and ``iptables-restore``), and the a kernel supporting
-netfilter.
+The package does not need to be compiled, just make sure you have ``perl``
+(which is present in any base Linux system) and ``iptables`` (including
+``iptables-save`` and ``iptables-restore``), and a kernel supporting
+``netfilter``.
 
-Run the make install install script as root to install the package in
-it's best location, so it can be reached from the command line when
+Run the make install script as root to install the package in
+its best location so it can be reached from the command line when
 called. The manual page will also be installed.
 
 That's all!
@@ -52,7 +52,7 @@ configuration files of course!
 Getting started
 ---------------
 
-The ferm(1) manpage provides extensive documentation about the ferm
+The ferm(1) man page provides extensive documentation about the ferm
 syntax.  To get started, try one of the example files, and modify it
 for your needs.
 
@@ -66,5 +66,5 @@ After that, let ferm install the new ruleset:
 
   ferm /etc/ferm/ferm.conf
 
-Be careful, don't lock youself out of remote machines!  Use the
+Be careful, don't lock yourself out of remote machines!  Use the
 interactive mode (``--interactive``, ``-i``) often!
