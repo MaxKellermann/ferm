@@ -23,7 +23,7 @@ my $table;
 while (<>) {
     next if /^#/;
 
-    if (/^(\w+)tables -t (\w+) -([NAP]) (\S+)/ or
+    if (/^(\w+)tables(?: --atomic-file \w+)? -t (\w+) -([NAP]) (\S+)/ or
           /^(\w+)tables -t (\w+) -([FX])()$/) {
         my $key = $3 eq 'P' ? "$1 $2  $4" : "$1 $2 $4";
         $key .= ' z' if $4 eq '';
@@ -40,6 +40,10 @@ while (<>) {
         push @$array, $_;
     } elsif (/^(:)(\S+)/ or /^-(A) (\S+)/) {
         my $key = $table . $1 . $2;
+        my $array = $rules{$key} ||= [];
+        push @$array, $_;
+    } elsif (/^ebtables --atomic-file (\S+) (\N+)/) {
+        my $key = $1;
         my $array = $rules{$key} ||= [];
         push @$array, $_;
     } else {

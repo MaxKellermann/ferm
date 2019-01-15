@@ -74,7 +74,7 @@ $(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm src/ferm
 
 $(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
-	$(PERL) src/ferm --test --slow $< |sed $(EB_ARP_RESULT_SED) >$@
+	$(PERL) src/ferm --test --slow $< |$(PERL) test/ebtables_tempfile_rename.pl |sed $(EB_ARP_RESULT_SED) >$@
 
 $(STAMPDIR)/%.result: %.ferm src/ferm test/sort.pl
 	@mkdir -p $(dir $@)

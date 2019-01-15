@@ -1,8 +1,11 @@
-ebtables -t filter -P INPUT ACCEPT
-ebtables -t filter -F
-ebtables -t filter -X
-ebtables -t filter -A INPUT ! --among-src 00:11:22:33:44:55,00:11:22:33:44:66 -j ACCEPT
-ebtables -t filter -A INPUT ! --protocol ARP -j ACCEPT
-ebtables -t filter -A INPUT --protocol ARP ! --arp-gratuitous -j ACCEPT
-ebtables -t filter -A INPUT ! --in-interface eth0 ! --logical-in br0 ! --out-interface eth1 ! --logical-out br1 -j ACCEPT
-ebtables -t filter -A INPUT ! --source Multicast ! --destination Broadcast -j DROP
+ebtables --atomic-file /tmp/ferm.0 --atomic-save
+ebtables --atomic-file /tmp/ferm.1 --atomic-init
+ebtables --atomic-file /tmp/ferm.1 -t filter -P INPUT ACCEPT
+ebtables --atomic-file /tmp/ferm.1 -t filter -F
+ebtables --atomic-file /tmp/ferm.1 -t filter -X
+ebtables --atomic-file /tmp/ferm.1 -t filter -A INPUT ! --among-src 00:11:22:33:44:55,00:11:22:33:44:66 -j ACCEPT
+ebtables --atomic-file /tmp/ferm.1 -t filter -A INPUT ! --protocol ARP -j ACCEPT
+ebtables --atomic-file /tmp/ferm.1 -t filter -A INPUT --protocol ARP ! --arp-gratuitous -j ACCEPT
+ebtables --atomic-file /tmp/ferm.1 -t filter -A INPUT ! --in-interface eth0 ! --logical-in br0 ! --out-interface eth1 ! --logical-out br1 -j ACCEPT
+ebtables --atomic-file /tmp/ferm.1 -t filter -A INPUT ! --source Multicast ! --destination Broadcast -j DROP
+ebtables --atomic-file /tmp/ferm.1 --atomic-commit
