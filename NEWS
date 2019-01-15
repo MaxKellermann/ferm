@@ -449,7 +449,7 @@ v1.1 - 5 May 2003
   - Changed variable character from '$' to '%' to allow system variables
   - Split up the pod stuff from the ferm source
   - Fixed word splitter to more a serious approach
-  - Removed internal proxy variable, replaced with 'to' and 'toports' for clearity
+  - Removed internal proxy variable, replaced with 'to' and 'toports' for clarity
   - Removed the 'relaxed' option, for it wasn't used at it's potential (once)
   - Added location option for the meek
   - Have ferm prescan input to look for the kernel program and location
