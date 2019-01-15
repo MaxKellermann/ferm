@@ -1884,7 +1884,7 @@ sub enter($$) {
 
     # enter is the core of the firewall setup, it is a
     # simple parser program that recognizes keywords and
-    # retreives parameters to set up the kernel routing
+    # retrieves parameters to set up the kernel routing
     # chains
 
     my $base_level = $script->{base_level} || 0;
