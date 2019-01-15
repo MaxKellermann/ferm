@@ -403,7 +403,7 @@ v1.2beta1 - 28 Aug 2006
     * using a policy as default target for a rule
     * target MASQ, use MASQUERADE instead
     * lower-case built-in chain names and targets
-    * lists must be specified with parantheses and no commas (old syntax
+    * lists must be specified with parentheses and no commas (old syntax
       is deprecated, but still supported)
     * variables declared with 'set' and referenced with '%NAME'
     * many shortcuts like 'mac' and 'tosrc'
