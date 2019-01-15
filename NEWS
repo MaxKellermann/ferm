@@ -10,7 +10,7 @@
 v2.4.2 - not yet released
   - updated netfilter modules:
     * ipv4options
-    * time: suport "--kerneltz", remove "--localtz"
+    * time: support "--kerneltz", remove "--localtz"
   - make chain name length validation an error not a warning
   - support empty NOERROR responses in @resolve
 
@@ -243,7 +243,7 @@ v1.3.3 - 22 Jan 2008
   - updated netfilter modules:
     * recent: support --rsource, --rdest
     * time: support --monthday, --weekdays, --utc, --localtz
-    * u32: suport negated --u3
+    * u32: support negated --u3
     * DNAT: support --random
     * MARK: support --set-xmark, --and-mark, --or-mark, --xor-mark
     * MASQUERADE: support --random
