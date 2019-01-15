@@ -471,7 +471,7 @@ v1.0pl8 - 13 july 2001
   - Fixed nonexistent parameter values for log-[ip|tcp]-...
   - Made keyword pattern matching strict, better for finding typo's
   - Added NOP action (for match-counting)
-  - Added option automodule for automaticly loading correct modules
+  - Added option automodule for automatically loading correct modules
   - Fixed -m for mark in iptables mixo
   - Fixed relaxed matching tos values, still relaxed now though
   - Fixed mark missing as normal target
