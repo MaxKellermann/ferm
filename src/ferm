@@ -29,6 +29,7 @@
 # $Id$
 
 use File::Spec;
+use File::Temp;
 
 BEGIN {
     eval { require strict; import strict; };
@@ -140,7 +141,7 @@ sub resolve($\@$);
 sub enter($$);
 sub rollback();
 sub execute_fast($);
-sub execute_slow($);
+sub execute_slow($$);
 sub join_value($$);
 sub ipfilter($@);
 
@@ -691,7 +692,7 @@ foreach my $domain (sort keys %domains) {
     next unless $domain_info->{enabled};
     my $s = $option{fast} &&
       defined $domain_info->{tools}{'tables-restore'}
-      ? execute_fast($domain_info) : execute_slow($domain_info);
+      ? execute_fast($domain_info) : execute_slow($domain_info, $domain);
     $status = $s if defined $s;
 }
 
@@ -842,6 +843,14 @@ sub initialize_domain {
           exists $tools{'tables-save'}) {
         print LINES "${domain}_tmp=\$(mktemp ferm.XXXXXXXXXX)\n";
         print LINES "$tools{'tables-save'} >\$${domain}_tmp\n";
+    }
+
+    if ($domain eq 'eb') {
+        my $tempfile = File::Temp->new(TEMPLATE => 'ferm.XXXXXXXXXX', TMPDIR => 1, OPEN => 0, UNLINK => 1);
+        my $filename = $tempfile->filename;
+        my $domain_cmd = $domain_info->{tools}{tables};
+        execute_command("$domain_cmd --atomic-file $filename --atomic-save");
+        $domain_info->{ebt_previous} = $tempfile;
     }
 
     $domain_info->{initialized} = 1;
@@ -2575,10 +2584,19 @@ sub execute_command {
     return;
 }
 
-sub execute_slow($) {
+sub execute_slow($$) {
     my $domain_info = shift;
+    my $domain = shift;
 
     my $domain_cmd = $domain_info->{tools}{tables};
+
+    if ($domain eq 'eb') {
+        my $tempfile = File::Temp->new(TEMPLATE => 'ferm.XXXXXXXXXX', TMPDIR => 1, OPEN => 0, UNLINK => 1);
+        my $filename = $tempfile->filename;
+        $domain_info->{ebt_current} = $tempfile;
+        $domain_cmd .= " --atomic-file $filename";
+        execute_command("$domain_cmd --atomic-init");
+    }
 
     my $status;
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
@@ -2625,6 +2643,10 @@ sub execute_slow($) {
                 $status ||= execute_command($chain_cmd . $rule->{rule});
             }
         }
+    }
+
+    if ($domain eq 'eb') {
+        execute_command("$domain_cmd --atomic-commit");
     }
 
     return $status;
@@ -2759,6 +2781,12 @@ sub rollback() {
     my $error;
     while (my ($domain, $domain_info) = each %domains) {
         next unless $domain_info->{enabled};
+        if ($domain eq 'eb') {
+            my $previous_rules = $domain_info->{ebt_previous}->filename;
+            my $domain_cmd = $domain_info->{tools}{tables};
+            execute_command("$domain_cmd --atomic-file $previous_rules --atomic-commit");
+            next;
+        }
         unless (defined $domain_info->{tools}{'tables-restore'}) {
             print STDERR "Cannot rollback domain '$domain' because there is no ${domain}tables-restore\n";
             next;
