@@ -279,7 +279,7 @@ v1.3 - 6 Dec 2007
   - added @include/@def/@subchain as alias to include/def/subchain
   - redirect STDOUT into STDERR --shell mode; this way, iptables warnings
     are separated from the ferm shell script output
-  - microperl compatiblity:
+  - microperl compatibility:
     - don't require strict.pm / vars.pm
     - don't use IO::File
     - added simple Getopt::Long emulation
