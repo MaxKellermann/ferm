@@ -2017,7 +2017,7 @@ sub enter($$) {
                 error('Unmatched "}"')
                   if $lev <= $base_level;
 
-                # consistency check: check if they havn't forgotten
+                # consistency check: check if they haven't forgotten
                 # the ';' after the last statement
                 error('Missing semicolon before "}"')
                   if $rule{non_empty};
@@ -2544,7 +2544,7 @@ sub enter($$) {
     error('Missing "}" at end of file')
       if $lev > $base_level;
 
-    # consistency check: check if they havn't forgotten
+    # consistency check: check if they haven't forgotten
     # the ';' before the last statement
     error("Missing semicolon before end of file")
       if $rule{non_empty};
