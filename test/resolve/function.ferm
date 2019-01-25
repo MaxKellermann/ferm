@@ -1,0 +1,4 @@
+@def &accept_range($srange) = {
+	domain ip chain INPUT saddr $srange ACCEPT;
+}
+&accept_range(@resolve(ds.example.com));

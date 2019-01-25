@@ -1,0 +1,14 @@
+v4.example.com.        IN A    192.0.2.1
+v6.example.com.        IN AAAA 2001:db8::1
+txt.example.com.       IN TXT  "no A or AAAA here"
+
+ds.example.com.        IN A    192.0.2.2
+ds.example.com.        IN AAAA 2001:db8::2
+
+ds-rr.example.com.     IN A    192.0.2.3
+ds-rr.example.com.     IN A    192.0.2.4
+ds-rr.example.com.     IN AAAA 2001:db8::3
+ds-rr.example.com.     IN AAAA 2001:db8::4
+
+ns.example.com         IN NS   ds.example.com.
+mx.example.com         IN MX   10 ds.example.com.

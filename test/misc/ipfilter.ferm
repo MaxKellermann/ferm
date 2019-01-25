@@ -3,3 +3,10 @@
 domain (ip ip6) chain INPUT {
     saddr @ipfilter($TRUSTED_HOSTS) proto tcp dport ssh ACCEPT;
 }
+
+@def &accept_range($srange) = {
+    domain (ip ip6) chain INPUT {
+        saddr $srange ACCEPT;
+    }
+}
+&accept_range(@ipfilter($TRUSTED_HOSTS));

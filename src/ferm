@@ -137,7 +137,7 @@ use vars qw(%proto_defs %match_defs %target_defs);
 
 # prototype declarations
 sub open_script($);
-sub resolve($\@$);
+sub resolve($@);
 sub enter($$);
 sub rollback();
 sub execute_fast($);
@@ -465,12 +465,12 @@ sub multiport_params {
 
 sub ipfilter($@) {
     my $domain = shift;
-    my @ips;
+    my @ips = to_array(shift);
     # very crude IPv4/IPv6 address detection
     if ($domain eq 'ip') {
-        @ips = grep { !/:[0-9a-f]*:/ } @_;
+        @ips = grep { !/:[0-9a-f]*:/ } @ips;
     } elsif ($domain eq 'ip6') {
-        @ips = grep { !m,^[0-9./]+$,s } @_;
+        @ips = grep { !m,^[0-9./]+$,s } @ips;
     }
     return @ips;
 }
@@ -487,6 +487,10 @@ sub address_magic {
     } elsif (ref $value and ref $value eq 'negated') {
         @ips = @$value;
         $negated = 1;
+    } elsif (ref $value and ref $value eq 'deferred') {
+        my @args = @$value;
+        my $function = shift @args;
+        @ips = &$function($domain, @args);
     } elsif (ref $value) {
         die;
     } else {
@@ -495,7 +499,7 @@ sub address_magic {
 
     # only do magic on domain (ip ip6); do not process on a single-stack rule
     # as to let admins spot their errors instead of silently ignoring them
-    @ips = ipfilter($domain, @ips) if defined $rule->{domain_both};
+    @ips = ipfilter($domain, \@ips) if defined $rule->{domain_both};
 
     if ($negated && scalar @ips) {
         return bless \@ips, 'negated';
@@ -916,6 +920,9 @@ sub handle_special_token($) {
     die unless ref $token;
     if (ref $token eq 'line') {
         $script->{line} = $$token;
+        return undef;
+    } elsif (ref $token and ref $token eq 'deferred') {
+        return $token;
     } else {
         die;
     }
@@ -924,7 +931,11 @@ sub handle_special_token($) {
 sub handle_special_tokens() {
     my $tokens = $script->{tokens};
     while (@$tokens > 0 and ref $tokens->[0]) {
-        handle_special_token(shift @$tokens);
+        unless (handle_special_token($tokens->[0])) {
+            shift @$tokens;
+        } else {
+            last;
+        }
     }
 }
 
@@ -1159,11 +1170,38 @@ sub format_bool($) {
     return $_[0] ? 1 : 0;
 }
 
-sub resolve($\@$) {
-    my ($resolver, $names, $type) = @_;
+sub pick_resolver() {
+    my $resolver;
+    unless ($option{test}) {
+        eval { require Net::DNS; };
+        error('You need the Perl library Net::DNS to resolve')
+          if $@;
+        $resolver = new Net::DNS::Resolver;
+    } else {
+        eval { require Net::DNS::Resolver::Mock; };
+        error('You need the Perl library Net::DNS::Resolver::Mock to test')
+          if $@;
+        $resolver = new Net::DNS::Resolver::Mock;
+        my $parent_dir = $script->{filename} =~ m,^(.*/),
+          ? $1 : './';
+        $resolver->zonefile_read($parent_dir . 'zonefile');
+    }
+
+    return $resolver;
+}
+
+sub resolve($@) {
+    my ($domain, $names, $type) = @_;
+    my @names = to_array($names);
+    error('String expected') if ref $type;
+
+    my $resolver = pick_resolver();
+
+    $type = ($domain eq 'ip6') ? 'AAAA' : 'A'
+        unless $type;
 
     my @result;
-    foreach my $hostname (@$names) {
+    foreach my $hostname (@names) {
         if (($type eq 'A' and $hostname =~ /^\d+\.\d+\.\d+\.\d+$/) or
               (($type eq 'AAAA' and
                 $hostname =~ /^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/))) {
@@ -1172,9 +1210,16 @@ sub resolve($\@$) {
         }
 
         my $query = $resolver->search($hostname, $type);
-        error("DNS query for '$hostname' failed: " . $resolver->errorstring)
-            unless $resolver->errorstring eq 'NOERROR';
-        next unless $query;
+        unless ($query) {
+            if (!$resolver->errorstring ||
+		$resolver->errorstring eq 'NOERROR' ||
+		$resolver->errorstring eq 'NXDOMAIN') {
+                # skip NOERROR/NXDOMAINs, i.e. don't error out but return nothing
+                next;
+            } else {
+                error("DNS query for '$hostname' failed: " . $resolver->errorstring);
+            }
+        }
 
         foreach my $rr ($query->answer) {
             next unless $rr->type eq $type;
@@ -1189,9 +1234,8 @@ sub resolve($\@$) {
         }
     }
 
-    # NS/MX records return host names; resolve these again in the
-    # second pass (IPv4 only currently)
-    @result = resolve($resolver, @result, 'A')
+    # NS/MX records return host names; resolve these again in the second pass
+    @result = resolve($domain, \@result, undef)
       if $type eq 'NS' or $type eq 'MX';
 
     return @result;
@@ -1235,6 +1279,8 @@ sub getvalues {
                 push @wordlist, $token;
             } elsif (ref $token eq 'ARRAY') {
                 push @wordlist, @$token;
+            } elsif (ref $token eq 'deferred') {
+                push @wordlist, $token;
             } else {
                 error('unknown token type');
             }
@@ -1314,20 +1360,7 @@ sub getvalues {
     } elsif ($token eq ')' and not $options{parenthesis_allowed}) {
         error('Syntax error');
     } elsif ($token =~ /^@/) {
-        if ($token eq '@resolve') {
-            my @params = get_function_params();
-            error('Usage: @resolve((hostname ...), [type])')
-              unless @params == 1 or @params == 2;
-            eval { require Net::DNS; };
-            error('For the @resolve() function, you need the Perl library Net::DNS')
-              if $@;
-            my $type = $params[1] || 'A';
-            error('String expected') if ref $type;
-            my $resolver = new Net::DNS::Resolver;
-            @params = to_array($params[0]);
-            my @result = resolve($resolver, @params, $type);
-            return @result == 1 ? $result[0] : \@result;
-        } elsif ($token eq '@defined') {
+        if ($token eq '@defined') {
             expect_token('(', 'function name must be followed by "()"');
             my $type = require_next_token();
             if ($type eq '$') {
@@ -1402,13 +1435,17 @@ sub getvalues {
                 glob($path);
             } to_array($params[0]);
             return @result == 1 ? $result[0] : \@result;
+        } elsif ($token eq '@resolve') {
+            my @params = get_function_params();
+            error('Usage: @resolve((hostname ...), [type])')
+              unless @params == 1 or @params == 2;
+            unshift @params, \&resolve;
+            return bless \@params, 'deferred';
         } elsif ($token eq '@ipfilter') {
             my @params = get_function_params();
             error('Usage: @ipfilter((ip1 ip2 ...))') unless @params == 1;
-            my $domain = $stack[0]{auto}{DOMAIN};
-            error('No domain specified') unless defined $domain;
-            my @ips = ipfilter($domain, to_array($params[0]));
-            return \@ips;
+            unshift @params, \&ipfilter;
+            return bless \@params, 'deferred';
         } else {
             error("unknown ferm built-in function");
         }
@@ -1508,7 +1545,7 @@ sub to_array($) {
     my $value = shift;
     die unless wantarray;
     die if @_;
-    unless (ref $value) {
+    if (!ref $value || ref $value eq 'deferred') {
         return $value;
     } elsif (ref $value eq 'ARRAY') {
         return @$value;
@@ -2687,7 +2724,9 @@ sub rules_to_save($) {
     my ($domain_info) = @_;
 
     # convert this into an iptables-save text
-    my $result = "# Generated by ferm $VERSION on " . localtime() . "\n";
+    my $tool = $domain_info->{tools}{'tables-save'};
+    $tool =~ s,.*/,,;  # remove path
+    my $result = "# Generated by ferm $VERSION ($tool) on " . localtime() . "\n";
 
     foreach my $table (sort keys %{$domain_info->{tables}}) {
         my $table_info = $domain_info->{tables}{$table};

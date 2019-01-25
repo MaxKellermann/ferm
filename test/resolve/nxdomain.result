@@ -1,0 +1,2 @@
+iptables -t filter -A INPUT -p tcp --dport 21 -s 192.0.2.1 -j ACCEPT
+ip6tables -t filter -A INPUT -p tcp --dport 22 -s 2001:db8:0:0:0:0:0:1 -j ACCEPT

@@ -4,9 +4,13 @@ env:
 
 language: perl
 perl:
+  - "5.26"
   - "5.24"
+  - "5.18"
   - "5.14"
 
+install:
+  - cpanm --notest Net::DNS::Resolver::Mock
+
 sudo: false
-install: true
 script: make check

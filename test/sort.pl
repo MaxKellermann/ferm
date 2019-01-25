@@ -17,14 +17,26 @@
 use strict;
 
 my %rules;
-
 my $table;
 
-while (<>) {
-    next if /^#/;
+sub flush_output() {
+    foreach my $key (sort keys %rules) {
+        foreach my $line (@{$rules{$key}}) {
+            print $line;
+        }
+    }
+    undef %rules;
+    undef $table;
+}
 
-    if (/^(\w+)tables(?: --atomic-file \w+)? -t (\w+) -([NAP]) (\S+)/ or
-          /^(\w+)tables -t (\w+) -([FX])()$/) {
+while (<>) {
+    if (/^(# Generated .+) on .+/) {
+        flush_output;
+        print $1, "\n";
+    } elsif (/^#/) {
+        next;
+    } elsif (/^(\w+)tables -t (\w+) -([NAP]) (\S+)/ or
+          /^(\w+)tables(?: --atomic-file \w+)? -t (\w+) -([FX])()$/) {
         my $key = $3 eq 'P' ? "$1 $2  $4" : "$1 $2 $4";
         $key .= ' z' if $4 eq '';
         my $array = $rules{$key} ||= [];
@@ -50,9 +62,4 @@ while (<>) {
         die;
     }
 }
-
-foreach my $key (sort keys %rules) {
-    foreach my $line (@{$rules{$key}}) {
-        print $line;
-    }
-}
+flush_output;
