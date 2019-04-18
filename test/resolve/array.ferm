@@ -1,0 +1,4 @@
+domain (ip ip6) chain INPUT proto tcp dport 50  saddr (
+	(@resolve(v4.example.com, 'A') @resolve(v6.example.com, 'AAAA'))
+	@resolve(ds.example.com)
+) ACCEPT;

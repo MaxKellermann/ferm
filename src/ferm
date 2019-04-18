@@ -483,7 +483,16 @@ sub address_magic {
     my @ips;
     my $negated = 0;
     if (ref $value and ref $value eq 'ARRAY') {
-        @ips = @$value;
+        foreach my $inside_value (@$value) {
+            # realize deferred values even within arrays
+            if (ref $inside_value and ref $inside_value eq 'deferred') {
+                my @args = @$inside_value;
+                my $function = shift @args;
+                push @ips, &$function($domain, @args);
+            } else {
+                push @ips, $inside_value;
+            }
+        }
     } elsif (ref $value and ref $value eq 'negated') {
         @ips = @$value;
         $negated = 1;
