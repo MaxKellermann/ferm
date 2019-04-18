@@ -1212,8 +1212,8 @@ sub resolve($@) {
         my $query = $resolver->search($hostname, $type);
         unless ($query) {
             if (!$resolver->errorstring ||
-		$resolver->errorstring eq 'NOERROR' ||
-		$resolver->errorstring eq 'NXDOMAIN') {
+                $resolver->errorstring eq 'NOERROR' ||
+                $resolver->errorstring eq 'NXDOMAIN') {
                 # skip NOERROR/NXDOMAINs, i.e. don't error out but return nothing
                 next;
             } else {
