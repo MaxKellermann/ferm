@@ -341,6 +341,7 @@ add_target_def 'RATEEST', qw(rateest-name rateest-interval rateest-ewmalog);
 add_target_def 'REDIRECT', qw(to-ports random*0);
 add_target_def 'REJECT', qw(reject-with);
 add_target_def 'ROUTE', qw(oif iif gw continue*0 tee*0);
+add_target_def 'RTPENGINE', qw(id);
 add_target_def 'SAME', qw(to nodst*0 random*0);
 add_target_def 'SECMARK', qw(selctx);
 add_target_def 'SET', qw(add-set=sc del-set=sc timeout exist*0);
