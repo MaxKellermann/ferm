@@ -8,6 +8,8 @@
 
 
 v2.4.2 - not yet released
+  - support netfilter targets:
+    - RTPENGINE
   - updated netfilter modules:
     * ipv4options
     * time: support "--kerneltz", remove "--localtz"
