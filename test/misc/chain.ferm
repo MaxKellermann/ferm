@@ -11,4 +11,11 @@ table filter {
     chain BAR {
         DROP;
     }
+
+    chain (FORWARD OUTPUT) {
+        LOG;
+        @if @eq($CHAIN, FORWARD) ACCEPT;
+        @if @eq($CHAIN, OUTPUT) DROP;
+        @if @eq($CHAIN, INPUT) REJECT;
+    }
 }

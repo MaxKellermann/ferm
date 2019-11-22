@@ -2,5 +2,9 @@ iptables -t filter -N BAR
 iptables -t filter -N FOO
 iptables -t filter -A INPUT -p tcp -j FOO
 iptables -t filter -A INPUT -p udp -j BAR
+iptables -t filter -A FORWARD -j LOG
+iptables -t filter -A FORWARD -j ACCEPT
+iptables -t filter -A OUTPUT -j LOG
+iptables -t filter -A OUTPUT -j DROP
 iptables -t filter -A BAR -j DROP
 iptables -t filter -A FOO -j ACCEPT

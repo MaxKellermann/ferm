@@ -2397,10 +2397,41 @@ sub enter($$) {
             if ($keyword eq 'table') {
                 warning('Table is already specified')
                   if exists $rule{table};
-                $rule{table} = $stack[0]{auto}{TABLE} = getvalues();
+
+                my $tables = getvalues();
 
                 set_domain(%rule, $option{domain} || 'ip')
                   unless exists $rule{domain};
+
+                if (ref $tables) {
+                    my $tokens = collect_tokens(include_semicolon => 1,
+                                                include_else => 1);
+
+                    my $old_line = $script->{line};
+                    my $old_handle = $script->{handle};
+                    my $old_tokens = $script->{tokens};
+                    my $old_base_level = $script->{base_level};
+                    unshift @$old_tokens, make_line_token($script->{line});
+                    delete $script->{handle};
+
+                    for my $table (@$tables) {
+                        my %inner;
+                        new_level(%inner, \%rule);
+                        $inner{table} = $stack[0]{auto}{TABLE} = $table;
+                        $script->{base_level} = 0;
+                        $script->{tokens} = [ @$tokens ];
+                        enter(0, \%inner);
+                    }
+
+                    $script->{base_level} = $old_base_level;
+                    $script->{tokens} = $old_tokens;
+                    $script->{handle} = $old_handle;
+                    $script->{line} = $old_line;
+
+                    new_level(%rule, $prev);
+                } else {
+                    $rule{table} = $stack[0]{auto}{TABLE} = $tables;
+                }
 
                 next;
             }
@@ -2409,10 +2440,10 @@ sub enter($$) {
                 warning('Chain is already specified')
                   if exists $rule{chain};
 
-                my $chain = $rule{chain} = $stack[0]{auto}{CHAIN} = getvalues();
+                my $chains = getvalues();
 
                 # ferm 1.1 allowed lower case built-in chain names
-                foreach (to_array $chain) {
+                foreach (to_array $chains) {
                     error('Please write built-in chain names in upper case')
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
@@ -2425,10 +2456,40 @@ sub enter($$) {
 
                 my $domain = $rule{domain};
                 foreach my $table (to_array $rule{table}) {
-                    foreach my $c (to_array $chain) {
+                    foreach my $c (to_array $chains) {
                         error("Chain name too long, must be 29 characters or less: $c") if length($c) > 29;
                         $domains{$domain}{tables}{$table}{chains}{$c} ||= {};
                     }
+                }
+
+                if (ref $chains) {
+                    my $tokens = collect_tokens(include_semicolon => 1,
+                                                include_else => 1);
+
+                    my $old_line = $script->{line};
+                    my $old_handle = $script->{handle};
+                    my $old_tokens = $script->{tokens};
+                    my $old_base_level = $script->{base_level};
+                    unshift @$old_tokens, make_line_token($script->{line});
+                    delete $script->{handle};
+
+                    for my $chain (@$chains) {
+                        my %inner;
+                        new_level(%inner, \%rule);
+                        $inner{chain} = $stack[0]{auto}{CHAIN} = $chain;
+                        $script->{base_level} = 0;
+                        $script->{tokens} = [ @$tokens ];
+                        enter(0, \%inner);
+                    }
+
+                    $script->{base_level} = $old_base_level;
+                    $script->{tokens} = $old_tokens;
+                    $script->{handle} = $old_handle;
+                    $script->{line} = $old_line;
+
+                    new_level(%rule, $prev);
+                } else {
+                    $rule{chain} = $stack[0]{auto}{CHAIN} = $chains;
                 }
 
                 next;

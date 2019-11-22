@@ -1,0 +1,5 @@
+iptables -t filter -A OUTPUT -j LOG
+iptables -t filter -A OUTPUT -j ACCEPT
+iptables -t nat -A OUTPUT -j LOG
+iptables -t raw -A OUTPUT -j LOG
+iptables -t raw -A OUTPUT -j NOTRACK

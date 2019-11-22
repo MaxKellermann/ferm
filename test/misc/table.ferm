@@ -1,0 +1,7 @@
+table (filter nat raw) {
+    chain OUTPUT {
+        LOG;
+        @if @eq($TABLE, filter) ACCEPT;
+        @if @eq($TABLE, raw) NOTRACK;
+    }
+}
