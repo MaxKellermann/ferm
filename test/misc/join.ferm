@@ -1,0 +1,12 @@
+# test for @join()
+
+@def $a = 'foo';
+@def $array = (1 2 3);
+
+chain INPUT {
+    mod comment comment @join(',') ACCEPT;
+    mod comment comment @join(',', $a) DROP;
+    mod comment comment @join(',', $a, 'bar') ACCEPT;
+    mod comment comment @join(',', @substr($a, 0, 1), 'bar') DROP;
+    mod comment comment @join(',', $a, $array) DROP;
+}
