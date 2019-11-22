@@ -1274,6 +1274,16 @@ sub lookup_function($) {
     return;
 }
 
+# Implementation of the @cat() function
+sub cat(@) {
+    my $value = '';
+    map {
+        error('String expected') if ref $_;
+        $value .= $_;
+    } @_;
+    return $value;
+}
+
 # returns the next parameter, which may either be a scalar or an array
 sub getvalues {
     my $code = shift;
@@ -1413,12 +1423,7 @@ sub getvalues {
             error('Usage: @not(a)') unless @params == 1;
             return format_bool(not $params[0]);
         } elsif ($token eq '@cat') {
-            my $value = '';
-            map {
-                error('String expected') if ref $_;
-                $value .= $_;
-            } get_function_params();
-            return $value;
+            return cat(get_function_params());
         } elsif ($token eq '@substr') {
             my @params = get_function_params();
             error('Usage: @substr(string, num, num)') unless @params == 3;
