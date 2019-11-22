@@ -2412,7 +2412,7 @@ sub enter($$) {
                 my $chain = $rule{chain} = $stack[0]{auto}{CHAIN} = getvalues();
 
                 # ferm 1.1 allowed lower case built-in chain names
-                foreach (ref $rule{chain} ? @{$rule{chain}} : $rule{chain}) {
+                foreach (to_array $chain) {
                     error('Please write built-in chain names in upper case')
                       if /^(?:input|forward|output|prerouting|postrouting)$/;
                 }
