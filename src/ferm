@@ -1276,6 +1276,7 @@ sub lookup_function($) {
 
 # Flatten all arrays in the argument list and return all elements as a
 # new array.
+sub flatten(@);
 sub flatten(@) {
     return map {
         if (ref $_ and ref $_ eq 'ARRAY') {
