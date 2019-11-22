@@ -1274,13 +1274,25 @@ sub lookup_function($) {
     return;
 }
 
+# Flatten all arrays in the argument list and return all elements as a
+# new array.
+sub flatten(@) {
+    return map {
+        if (ref $_ and ref $_ eq 'ARRAY') {
+            flatten(@$_);
+        } else {
+            $_;
+        }
+    } @_;
+}
+
 # Implementation of the @cat() function
 sub cat(@) {
     my $value = '';
     map {
         error('String expected') if ref $_;
         $value .= $_;
-    } @_;
+    } flatten(@_);
     return $value;
 }
 
