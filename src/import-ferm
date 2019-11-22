@@ -154,6 +154,13 @@ sub array_matches($$) {
 sub array_match_count($\@) {
     my ($first, $rules) = @_;
     return 0 unless @{$first->{match}} > 0;
+
+    my $option = $first->{match}[0][0];
+    my $params = $first->{match_keywords}{$option}{params};
+
+    # don't merge options which allow only one string parameter
+    return 0 if defined $params and not ref $params and $params eq 's';
+
     my $count = 0;
     foreach (@$rules) {
         last unless array_matches($first, $_);
@@ -468,6 +475,7 @@ sub parse_option(\%$$\@) {
         # correctly
         $line->{cur} = $line->{target} = [];
 
+        $line->{match_keywords} = $line->{keywords};
         $line->{keywords} = {};
         merge_keywords(%$line, $target_defs{ip}{$target}{keywords})
           if exists $target_defs{ip}{$target};
