@@ -378,8 +378,9 @@ Read iptables(8) to see where the B<!> can be used.
 
 =item B<domain [ip|ip6]>
 
-Set the domain. "ip" is the default and means "IPv4" (iptables). "ip6" is
-for IPv6 support, using "ip6tables".
+Set the domain.  "ip" means "IPv4" (iptables) and "ip6" is for IPv6
+support, using "ip6tables".  The default is the one specified with
+B<--domain> or "ip" if the option was not specified.
 
 =item B<table [filter|nat|mangle]>
 
@@ -2002,7 +2003,8 @@ B<--lines>.  Can be combined with B<--shell>.
 
 =item B<--domain {ip|ip6}>
 
-Handle only the specified domain. B<ferm> output may be empty if the
+Handle only the specified domain and choose it as default domain for
+rules where none is specified.  B<ferm> output may be empty if the
 domain is not configured in the input file.
 
 =item B<--def '$name=value'>
