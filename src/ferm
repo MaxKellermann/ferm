@@ -804,13 +804,17 @@ sub find_tool($) {
     my $name = shift;
     return $name if $option{test};
     my @path = ('/usr/sbin', '/sbin', split ':', $ENV{PATH});
+
     if ($name =~ /^(.*tables)(.*)$/) {
+        # prefer the "legacy" xtables tools the new nft based tools
+        # are incompatible and sometimes break ferm
         my $legacy_name = $1 . '-legacy' . $2;
         foreach my $path (@path) {
             my $ret = "$path/$legacy_name";
             return $ret if -x $ret;
         }
     }
+
     foreach my $path (@path) {
         my $ret = "$path/$name";
         return $ret if -x $ret;
