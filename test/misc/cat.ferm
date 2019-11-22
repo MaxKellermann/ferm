@@ -1,10 +1,12 @@
 # test for @cat()
 
 @def $a = 'foo';
+@def $array = (1 2 3);
 
 chain INPUT {
     mod comment comment @cat() ACCEPT;
     mod comment comment @cat($a) DROP;
     mod comment comment @cat($a, 'bar') ACCEPT;
     mod comment comment @cat(@substr($a, 0, 1), 'bar') DROP;
+    mod comment comment @cat($a, $array) DROP;
 }
