@@ -803,7 +803,8 @@ sub warning {
 sub find_tool($) {
     my $name = shift;
     return $name if $option{test};
-    for my $path ('/sbin', split ':', $ENV{PATH}) {
+    my @path = ('/sbin', split ':', $ENV{PATH});
+    foreach my $path (@path) {
         my $ret = "$path/$name";
         return $ret if -x $ret;
     }
