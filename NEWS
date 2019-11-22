@@ -16,6 +16,7 @@ v2.4.2 - not yet released
   - make chain name length validation an error not a warning
   - support empty NOERROR responses in @resolve
   - use atomic table update with ebtables
+  - copy protocol specification to subchains only if needed
   - make @resolve dual stack
   - allow passing arrays to @cat
   - add function @join

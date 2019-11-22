@@ -433,6 +433,28 @@ add_target_def_x 'eb', 'snat', qw(to-source snat-target snat-arp*0);
 # import-ferm uses the above tables
 return 1 if $0 =~ /import-ferm$/;
 
+sub append_option(\%$$);
+
+# Realize the "auto_protocol" option which is used to copy "protocol"
+# specifications to subchains, but only if needed.  This is the magic
+# which allows something like "proto http @subchain { dport http; }".
+sub realize_protocol($) {
+    my $rule = shift;
+    my $proto = $rule->{protocol};
+
+    unless (defined $proto){
+        $proto = $rule->{auto_protocol};
+        if (defined $proto) {
+            # yes, do realize the auto_protocol now, we need it
+            $rule->{protocol} = $proto;
+            delete $rule->{auto_protocol};
+            append_option(%$rule, 'protocol', $proto);
+        }
+    }
+
+    return $proto;
+}
+
 # parameter parser for ipt_multiport
 sub multiport_params {
     my $rule = shift;
@@ -442,7 +464,7 @@ sub multiport_params {
     # into portions of 15, and handle these portions as
     # array elements
 
-    my $proto = $rule->{protocol};
+    my $proto = realize_protocol($rule);
     error('To use multiport, you have to specify "proto tcp" or "proto udp" first')
       unless defined $proto and grep { /^(?:tcp|udp|udplite)$/ } to_array($proto);
 
@@ -1897,7 +1919,7 @@ sub new_level(\%$) {
         $rule->{keywords} = $prev->{keywords};
         $rule->{match} = { %{$prev->{match}} };
         $rule->{options} = [@{$prev->{options}}];
-        foreach my $key (qw(domain domain_family domain_both table chain protocol has_rule has_action)) {
+        foreach my $key (qw(domain domain_family domain_both table chain protocol auto_protocol has_rule has_action)) {
             $rule->{$key} = $prev->{$key}
               if exists $prev->{$key};
         }
@@ -1952,7 +1974,7 @@ sub set_module_target(\%$$) {
     my ($rule, $name, $defs) = @_;
 
     if ($name eq 'TCPMSS') {
-        my $protos = $rule->{protocol};
+        my $protos = realize_protocol($rule);
         error('No protocol specified before TCPMSS')
           unless defined $protos;
         foreach my $proto (to_array $protos) {
@@ -2484,13 +2506,16 @@ sub enter($$) {
                 my %inner = ( cow => { keywords => 1, },
                               match => {},
                               options => [],
-                            );
+                             );
                 $inner{$_} = $rule{$_} foreach qw(domain domain_family domain_both table keywords);
                 $inner{chain} = $inner{auto}{CHAIN} = $subchain;
 
                 if (exists $rule{protocol}) {
-                    $inner{protocol} = $rule{protocol};
-                    append_option(%inner, 'protocol', $inner{protocol});
+                    # remember the current protocol, to be used later
+                    # by realize_protocol() if needed
+                    $inner{auto_protocol} = $rule{protocol};
+                } elsif (exists $rule{auto_protocol}) {
+                    $inner{auto_protocol} = $rule{auto_protocol};
                 }
 
                 # create a new stack frame
@@ -2597,6 +2622,7 @@ sub enter($$) {
                 my $protocol = parse_keyword(%rule,
                                              { params => 1, negation => 1 },
                                              \$negated);
+                delete $rule{auto_protocol};
                 $rule{protocol} = $protocol;
                 append_option(%rule, 'protocol', $rule{protocol});
 
@@ -2614,7 +2640,7 @@ sub enter($$) {
 
             # port switches
             if ($keyword =~ /^[sd]port$/) {
-                my $proto = $rule{protocol};
+                my $proto = realize_protocol(\%rule);
                 error('To use sport or dport, you have to specify "proto tcp" or "proto udp" first')
                   unless defined $proto and grep { /^(?:tcp|udp|udplite|dccp|sctp)$/ } to_array $proto;
 
