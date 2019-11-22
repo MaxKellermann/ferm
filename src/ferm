@@ -2554,7 +2554,11 @@ sub enter($$) {
 
                 my $domain = $rule{domain};
                 foreach my $table (to_array $rule{table}) {
-                    $domains{$domain}{tables}{$table}{chains}{$subchain} ||= {};
+                    if (exists $domains{$domain}{tables}{$table}{chains}{$subchain}) {
+                        warning("Chain $subchain already exists")
+                    } else {
+                        $domains{$domain}{tables}{$table}{chains}{$subchain} = {};
+                    }
                 }
 
                 set_target(%rule, $jumptype, $subchain);
