@@ -18,6 +18,7 @@ v2.4.2 - not yet released
   - use atomic table update with ebtables
   - make @resolve dual stack
   - allow passing arrays to @cat
+  - add function @join
   - call "legacy" xtables tools because nft based tools are incompatible
 
 

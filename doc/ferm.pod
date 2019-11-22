@@ -1857,6 +1857,11 @@ the machine vulnerable, or they may fail.
 
 Concatenate all parameters into one string.
 
+=head2 @join(separator, a, b, ...)
+
+Join all parameters into one string, separated by the given separator
+string.
+
 =head2 @substr(expression, offset, length)
 
 Extracts a substring out of expression and returns it.  First

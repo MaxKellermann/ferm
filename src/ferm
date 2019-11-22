@@ -1436,6 +1436,12 @@ sub getvalues {
             return format_bool(not $params[0]);
         } elsif ($token eq '@cat') {
             return cat(get_function_params());
+        } elsif ($token eq '@join') {
+            my @params = get_function_params();
+            return '' unless @params;
+            my $separator = shift @params;
+            @params = flatten(@params);
+            return join_value($separator, \@params);
         } elsif ($token eq '@substr') {
             my @params = get_function_params();
             error('Usage: @substr(string, num, num)') unless @params == 3;
