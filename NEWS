@@ -17,6 +17,7 @@ v2.4.2 - not yet released
   - support empty NOERROR responses in @resolve
   - use atomic table update with ebtables
   - make @resolve dual stack
+  - call "legacy" xtables tools because nft based tools are incompatible
 
 
 v2.4.1 - 1 Aug 2017
