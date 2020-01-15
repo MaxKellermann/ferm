@@ -88,6 +88,10 @@ use vars qw(%deprecated_keywords);
 # these hashes provide the Netfilter module definitions
 use vars qw(%proto_defs %match_defs %target_defs);
 
+# these are ebtables tables that we manage
+use vars qw(@eb_tables);
+@eb_tables = qw(filter nat broute);
+
 #
 # This subsubsystem allows you to support (most) new netfilter modules
 # in ferm.  Add a call to one of the "add_XY_def()" functions below.
@@ -941,11 +945,13 @@ sub initialize_domain {
     }
 
     if ($domain eq 'eb') {
-        my $tempfile = File::Temp->new(TEMPLATE => 'ferm.XXXXXXXXXX', TMPDIR => 1, OPEN => 0, UNLINK => 1);
-        my $filename = $tempfile->filename;
         my $domain_cmd = $domain_info->{tools}{tables};
-        execute_command("$domain_cmd --atomic-file $filename --atomic-save");
-        $domain_info->{ebt_previous} = $tempfile;
+        foreach my $eb_table (@eb_tables) {
+            my $tempfile = File::Temp->new(TEMPLATE => 'ferm.XXXXXXXXXX', TMPDIR => 1, OPEN => 0, UNLINK => 1);
+            my $filename = $tempfile->filename;
+            execute_command("$domain_cmd -t $eb_table --atomic-file $filename --atomic-save");
+            $domain_info->{ebt_previous}->{$eb_table} = $tempfile;
+        }
     }
 
     $domain_info->{initialized} = 1;
@@ -2835,16 +2841,23 @@ sub execute_slow($$) {
     my $domain_cmd = $domain_info->{tools}{tables};
 
     if ($domain eq 'eb') {
-        my $tempfile = File::Temp->new(TEMPLATE => 'ferm.XXXXXXXXXX', TMPDIR => 1, OPEN => 0, UNLINK => 1);
-        my $filename = $tempfile->filename;
-        $domain_info->{ebt_current} = $tempfile;
-        $domain_cmd .= " --atomic-file $filename";
-        execute_command("$domain_cmd --atomic-init");
+        foreach my $eb_table (@eb_tables) {
+            my $tempfile = File::Temp->new(TEMPLATE => 'ferm.XXXXXXXXXX', TMPDIR => 1, OPEN => 0, UNLINK => 1);
+            my $filename = $tempfile->filename;
+            $domain_info->{ebt_current}->{$eb_table} = $tempfile;
+            execute_command("$domain_cmd -t $eb_table --atomic-file $filename --atomic-init");
+            execute_command("$domain_cmd -t $eb_table --atomic-file $filename --init-table");
+        }
     }
 
     my $status;
     while (my ($table, $table_info) = each %{$domain_info->{tables}}) {
         my $table_cmd = "$domain_cmd -t $table";
+
+        if ($domain eq 'eb') {
+            my $tablefile = $domain_info->{ebt_current}->{$table}->filename;
+            $table_cmd = "$domain_cmd -t $table --atomic-file $tablefile"
+        }
 
         # reset chain policies
         while (my ($chain, $chain_info) = each %{$table_info->{chains}}) {
@@ -2890,7 +2903,10 @@ sub execute_slow($$) {
     }
 
     if ($domain eq 'eb') {
-        execute_command("$domain_cmd --atomic-commit");
+        foreach my $eb_table (@eb_tables) {
+            my $tablefile = $domain_info->{ebt_current}->{$eb_table}->filename;
+            execute_command("$domain_cmd -t $eb_table --atomic-file $tablefile --atomic-commit");
+        }
     }
 
     return $status;
@@ -3028,9 +3044,11 @@ sub rollback() {
     while (my ($domain, $domain_info) = each %domains) {
         next unless $domain_info->{enabled};
         if ($domain eq 'eb') {
-            my $previous_rules = $domain_info->{ebt_previous}->filename;
-            my $domain_cmd = $domain_info->{tools}{tables};
-            execute_command("$domain_cmd --atomic-file $previous_rules --atomic-commit");
+            foreach my $eb_table (@eb_tables) {
+                my $previous_rules = $domain_info->{ebt_previous}->{$eb_table}->filename;
+                my $domain_cmd = $domain_info->{tools}{tables};
+                execute_command("$domain_cmd -t $eb_table --atomic-file $previous_rules --atomic-commit");
+            }
             next;
         }
         unless (defined $domain_info->{tools}{'tables-restore'}) {

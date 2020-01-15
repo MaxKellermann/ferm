@@ -54,8 +54,8 @@ while (<>) {
         my $key = $table . $1 . $2;
         my $array = $rules{$key} ||= [];
         push @$array, $_;
-    } elsif (/^ebtables --atomic-file (\S+) (\N+)/) {
-        my $key = $1;
+    } elsif (/^ebtables -t (\w+) --atomic-file (\S+) (\N+)/) {
+        my $key = $2;
         my $array = $rules{$key} ||= [];
         push @$array, $_;
     } else {
