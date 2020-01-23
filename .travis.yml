@@ -14,5 +14,4 @@ perl:
 install:
   - cpanm --notest Net::DNS::Resolver::Mock
 
-sudo: false
 script: make check
