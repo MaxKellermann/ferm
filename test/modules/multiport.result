@@ -3,4 +3,6 @@ iptables -t filter -A INPUT -m multiport -p udp --destination-ports 3,5,6,7,8,9 
 iptables -t filter -A INPUT -m multiport -p tcp --ports 1024,1234 -j ACCEPT
 iptables -t filter -A INPUT -m multiport -p tcp --destination-ports 100,101,102,103,104,105,106,107,108,109,110,111,112,113,114 -j ACCEPT
 iptables -t filter -A INPUT -m multiport -p tcp --destination-ports 115 -j ACCEPT
+iptables -t filter -A INPUT -m multiport -p tcp --destination-ports 100:110,201,202,203,204,205,206,207,208,209,210,211,212,213 -j DROP
+iptables -t filter -A INPUT -m multiport -p tcp --destination-ports 214,215 -j DROP
 iptables -t filter -A INPUT -m multiport -p tcp ! --destination-ports 200,201,202 -j DROP
