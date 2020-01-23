@@ -473,10 +473,21 @@ sub multiport_params {
     if (ref $value and ref $value eq 'ARRAY') {
         my @value = @$value;
         my @params;
+        my @chunk;
+        my $size;
 
-        while (@value) {
-            push @params, join(',', splice(@value, 0, 15));
+        for my $ports (@value) {
+            my $incr = $ports =~ /:/ ? 2 : 1;
+            if ($size + $incr > 15) {
+               push @params, join(',', @chunk);
+               @chunk = ();
+               $size = 0;
+            }
+            push @chunk, $ports;
+            $size += $incr;
         }
+        push @params, join(',', @chunk)
+          if @chunk;
 
         return @params == 1
           ? $params[0]
