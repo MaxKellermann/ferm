@@ -2342,6 +2342,11 @@ sub enter($$) {
             }
 
             if ($keyword eq '&') {
+                # this "line token" will later restore the line number
+                # counter after the function call, or else we'd still
+                # see the function definition's line number
+                my $line_token = make_line_token($script->{line});
+
                 my $name = require_next_token();
                 error('function name expected')
                   unless $name =~ /^\w+$/;
@@ -2385,7 +2390,7 @@ sub enter($$) {
                     }
                 }
 
-                unshift @{$script->{tokens}}, @tokens;
+                unshift @{$script->{tokens}}, @tokens, $line_token;
 
                 next;
             }
