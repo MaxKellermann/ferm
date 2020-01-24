@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.5.1 - not yet released
+v2.5.1 - 24 Jan 2020
   - adjust multiport splicing for port ranges
   - fix lazy subchain protocol propagation for all protocols
   - default to --fast when Getopt::Long is not installed
