@@ -430,6 +430,14 @@ add_target_def_x 'eb', 'MARK', qw(set-mark mark-target);
 add_target_def_x 'eb', 'redirect', qw(redirect-target);
 add_target_def_x 'eb', 'snat', qw(to-source snat-target snat-arp*0);
 
+my %shortcuts = (
+    ip => {
+        sports => ['multiport', 'source-ports'],
+        dports => ['multiport', 'destination-ports'],
+        comment => ['comment', 'comment'],
+    },
+   );
+
 # import-ferm uses the above tables
 return 1 if $0 =~ /import-ferm$/;
 
@@ -2675,6 +2683,23 @@ sub enter($$) {
                 }
 
                 next;
+            }
+
+            # shortcuts
+
+            unless (exists $rule{keywords}{$keyword}) {
+                my $domain_family = $rule{domain_family};
+                my $shortcut = $shortcuts{$domain_family}{$keyword};
+                if (defined $shortcut) {
+                    my $module = $shortcut->[0];
+                    my $defs = $match_defs{$domain_family}{$module};
+
+                    append_option(%rule, 'match', $module);
+                    $rule{match}{$module} = 1;
+                    merge_keywords(%rule, $defs->{keywords});
+
+                    $keyword = $shortcut->[1];
+                }
             }
 
             # keywords from $rule{keywords}

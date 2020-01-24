@@ -1,0 +1,5 @@
+chain INPUT {
+    proto tcp sports (http https) ACCEPT;
+    proto udp dports (domain time) ACCEPT;
+    comment "foo" DROP;
+}

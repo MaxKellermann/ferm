@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -p tcp -m multiport --source-ports http,https -j ACCEPT
+iptables -t filter -A INPUT -p udp -m multiport --destination-ports domain,time -j ACCEPT
+iptables -t filter -A INPUT -m comment --comment foo -j DROP

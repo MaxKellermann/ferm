@@ -671,6 +671,9 @@ Note that unlike ferm comments ('#'), this one will show up in
 
     mod comment comment "This is my comment." ACCEPT;
 
+The "mod comment" can be omitted, because ferm inserts it
+automatically.
+
 =item B<condition>
 
 Matches if a value in /proc/net/ipt_condition/NAME is 1 (path is
@@ -942,6 +945,12 @@ Match a set of source or destination ports (UDP and TCP only).
 
 This rule has a big advantage over "dport" and "sport": it generates
 only one rule for up to 15 ports instead of one rule for every port.
+
+As a shortcut, you can use "sports" and "dports" (without "mod
+multiport"):
+
+    sports (https ftp);
+    dports (mysql domain);
 
 =item B<nth>
 

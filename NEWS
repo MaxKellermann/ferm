@@ -12,6 +12,7 @@ v2.5.1 - not yet released
   - fix lazy subchain protocol propagation for all protocols
   - default to --fast when Getopt::Long is not installed
   - fix $LINE after function call
+  - add shortcuts "sports", "dports", "comment"
 
 
 v2.5 - 22 Nov 2019
