@@ -8,13 +8,16 @@ iptables -t filter -N ferm_auto_3
 iptables -t filter -N my-udp_subchain
 iptables -t filter -N ferm_auto_2
 iptables -t filter -N ferm_auto_1
+iptables -t filter -N in_icmp
 iptables -t filter -A INPUT -p udp -j my-udp_subchain
 iptables -t filter -A INPUT -p tcp -j ferm_auto_1
 iptables -t filter -A INPUT -i eth1 -s 1.2.3.4 -j ferm_auto_2
 iptables -t filter -A INPUT -i eth1 -s 1.2.3.5 -j ferm_auto_2
 iptables -t filter -A INPUT -i eth1 -s 2.3.4.5 -j ferm_auto_2
+iptables -t filter -A INPUT -p icmp -j in_icmp
 iptables -t filter -A ferm_auto_3 -p tcp --dport ssh -j ACCEPT
 iptables -t filter -A ferm_auto_3 -j REJECT
+iptables -t filter -A in_icmp -p icmp --icmp-type 11 -j DROP
 iptables -t filter -A my-udp_subchain -d 192.168.1.0/24 -j ACCEPT
 iptables -t filter -A ferm_auto_2 -p tcp -j ferm_auto_3
 iptables -t filter -A ferm_auto_1 -p tcp --dport http -j ACCEPT

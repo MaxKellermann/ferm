@@ -14,6 +14,9 @@ table filter chain INPUT {
             REJECT;
         }
     }
+    proto icmp @subchain "in_icmp" {
+        icmp-type 11 DROP;
+    }
 }
 table nat chain POSTROUTING {
     outerface ppp0 @subchain {
