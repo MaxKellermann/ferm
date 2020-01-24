@@ -683,6 +683,9 @@ if ($has_getopt) {
     $option{domain} = $opt_domain if defined $opt_domain;
 } else {
     # tiny getopt emulation for microperl
+
+    $option{fast} = 1;
+
     my $filename;
     foreach (@ARGV) {
         if ($_ eq '--noexec' or $_ eq '-n') {
@@ -691,14 +694,16 @@ if ($has_getopt) {
             $option{lines} = 1;
         } elsif ($_ eq '--fast') {
             $option{fast} = 1;
+        } elsif ($_ eq '--slow') {
+            delete $option{fast};
         } elsif ($_ eq '--test') {
             $option{test} = 1;
             $option{noexec} = 1;
             $option{lines} = 1;
         } elsif ($_ eq '--shell') {
-            $option{$_} = 1 foreach qw(shell fast lines);
+            $option{$_} = 1 foreach qw(shell lines);
         } elsif (/^-/) {
-            printf STDERR "Usage: ferm [--noexec] [--lines] [--fast] [--shell] FILENAME\n";
+            printf STDERR "Usage: ferm [--noexec] [--lines] [--slow] [--shell] FILENAME\n";
             exit 1;
         } else {
             $filename = $_;
