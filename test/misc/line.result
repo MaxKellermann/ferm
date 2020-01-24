@@ -1,0 +1,3 @@
+iptables -t filter -A INPUT -p tcp --dport 4 -j ACCEPT
+iptables -t filter -A INPUT -p tcp --sport 5 -s 1 --dport 5 -j DROP
+iptables -t filter -A INPUT -p udp --dport 6 -j ACCEPT

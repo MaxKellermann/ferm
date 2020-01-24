@@ -1,0 +1,7 @@
+@def &FOO() = saddr $LINE;
+
+chain INPUT {
+    proto tcp dport $LINE ACCEPT;
+    proto tcp sport $LINE &FOO() dport $LINE DROP;
+    proto udp dport $LINE ACCEPT;
+}
