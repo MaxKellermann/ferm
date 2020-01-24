@@ -8,12 +8,8 @@ use strict;
 my $matches = 0;
 
 while (<>) {
-    if ($matches eq 0) {
-        s/--atomic-file \/tmp\/ferm.(\w+) /--atomic-file \/tmp\/ferm.0 /;
-        $matches = 1;
-    } else {
-        s/--atomic-file \/tmp\/ferm.(\w+) /--atomic-file \/tmp\/ferm.1 /;
-    }
+    s/--atomic-file \/tmp\/ferm.(\w+) /--atomic-file \/tmp\/ferm.1 /;
+    s/--atomic-file \/tmp\/ferm.(\w+) --atomic-save/--atomic-file \/tmp\/ferm.0 --atomic-save/;
     print $_;
 }
 
