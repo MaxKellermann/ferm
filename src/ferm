@@ -455,6 +455,29 @@ sub realize_protocol($) {
     return $proto;
 }
 
+# Like realize_protocol() but do it only if the given keyword belongs
+# to one of the "auto_protocols".
+sub realize_protocol_keyword(\%$) {
+    my ($rule, $keyword) = @_;
+    my $protos = $rule->{auto_protocol};
+    return unless defined $protos;
+
+    my $domain_family = $rule->{domain_family};
+    return unless defined $domain_family;
+    my $defs = $proto_defs{$domain_family};
+    return unless defined $defs;
+
+    foreach my $proto (to_array($protos)) {
+        my $def = $defs->{$proto};
+        if (defined $def and exists $def->{keywords}{$keyword}) {
+            $rule->{protocol} = $proto;
+            delete $rule->{auto_protocol};
+            append_option(%$rule, 'protocol', $proto);
+            return;
+        }
+    }
+}
+
 # parameter parser for ipt_multiport
 sub multiport_params {
     my $rule = shift;
@@ -2647,6 +2670,7 @@ sub enter($$) {
             # keywords from $rule{keywords}
 
             if (exists $rule{keywords}{$keyword}) {
+                realize_protocol_keyword(%rule, $keyword);
                 my $def = $rule{keywords}{$keyword};
                 parse_option($def, %rule, \$negated);
                 next;

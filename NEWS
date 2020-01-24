@@ -9,6 +9,7 @@
 
 v2.5.1 - not yet released
   - adjust multiport splicing for port ranges
+  - fix lazy subchain protocol propagation for all protocols
 
 
 v2.5 - 22 Nov 2019
