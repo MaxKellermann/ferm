@@ -11,11 +11,15 @@ DISTDIR = build/ferm-$(VERSION)
 
 .PHONY: all clean
 
-all: doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1
+all: doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1 ferm.service
 
 clean:
 	rm -rf build
 	rm -f doc/ferm.txt doc/ferm.html doc/ferm.1 doc/import-ferm.1 *.tmp
+	rm -f ferm.service
+
+ferm.service: ferm.service.in
+	sed 's|@prefix@|$(PREFIX)|g' $< > $@
 
 #
 # documentation
