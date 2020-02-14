@@ -1,0 +1,5 @@
+table mangle {
+    chain PREROUTING {
+        JOOL_SIIT instance test;
+    }
+}
