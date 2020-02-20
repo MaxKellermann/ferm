@@ -8,6 +8,7 @@
 
 
 v2.5.2 - not yet released
+  - apply $PREFIX to systemd service file during install
 
 
 v2.5.1 - 24 Jan 2020

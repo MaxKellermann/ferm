@@ -4,8 +4,8 @@ Description=for Easy Rule Making
 [Service]
 Type=oneshot
 RemainAfterExit=yes
-ExecStart=/usr/sbin/ferm /etc/ferm.conf
-ExecStop=/usr/sbin/ferm -F /etc/ferm.conf
+ExecStart=@prefix@/sbin/ferm /etc/ferm.conf
+ExecStop=@prefix@/sbin/ferm -F /etc/ferm.conf
 
 [Install]
 WantedBy=multi-user.target

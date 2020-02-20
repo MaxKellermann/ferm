@@ -8,4 +8,5 @@ doc/ferm.1
 doc/ferm.html
 doc/ferm.txt
 doc/import-ferm.1
+ferm.service
 *.tmp
