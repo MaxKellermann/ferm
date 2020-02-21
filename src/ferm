@@ -331,6 +331,8 @@ add_target_def 'HMARK', qw(hmark-tuple hmark-mod hmark-offset),
   qw(hmark-dport-mask hmark-spi-mask hmark-proto-mask hmark-rnd);
 add_target_def 'IDLETIMER', qw(timeout label);
 add_target_def 'IPV4OPTSSTRIP';
+add_target_def 'JOOL', qw(instance);
+add_target_def 'JOOL_SIIT', qw(instance);
 add_target_def 'LED', qw(led-trigger-id led-delay led-always-blink*0);
 add_target_def 'LOG', qw(log-level log-prefix),
   qw(log-tcp-sequence*0 log-tcp-options*0 log-ip-options*0 log-uid*0);

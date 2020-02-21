@@ -1310,6 +1310,22 @@ options.
 
     IPV4OPTSSTRIP;
 
+=item B<JOOL>
+
+Hands off packets for stateful NAT64 translation via JOOL. Target
+requires JOOL to be installed on the system and the jool kernel module
+to be loaded.
+
+    JOOL instance "foo";
+
+=item B<JOOL_SIIT>
+
+Hands off packets for Stateless IP/ICMP Translation (SIIT) via JOOL.
+Target requires JOOL to be installed on the system and the jool_siit
+kernel module to be loaded.
+
+    JOOL_SIIT instance "foo";
+
 =item B<LED>
 
 This creates an LED-trigger that can then be attached to system
