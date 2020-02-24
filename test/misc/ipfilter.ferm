@@ -10,3 +10,10 @@ domain (ip ip6) chain INPUT {
     }
 }
 &accept_range(@ipfilter($TRUSTED_HOSTS));
+
+# also try @ipfilter as an "m" target; see issue #63 for a real-world example
+@def $NATTED_NETS = (192.168.0.0/24 2001:abcd:ef::/64);
+@def $SNAT_ADDR = (10.0.0.1 2001:efff::1);
+domain (ip ip6) chain INPUT {
+    saddr @ipfilter($NATTED_NETS) outerface eth0 SNAT to-source @ipfilter($SNAT_ADDR);
+}

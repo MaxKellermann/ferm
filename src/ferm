@@ -554,23 +554,12 @@ sub address_magic {
     my @ips;
     my $negated = 0;
     if (ref $value and ref $value eq 'ARRAY') {
-        foreach my $inside_value (@$value) {
-            # realize deferred values even within arrays
-            if (ref $inside_value and ref $inside_value eq 'deferred') {
-                my @args = @$inside_value;
-                my $function = shift @args;
-                push @ips, &$function($domain, @args);
-            } else {
-                push @ips, $inside_value;
-            }
-        }
+        @ips = realize_deferred($domain, @$value);
+    } elsif (ref $value and ref $value eq 'deferred') {
+        @ips = realize_deferred($domain, $value);
     } elsif (ref $value and ref $value eq 'negated') {
         @ips = @$value;
         $negated = 1;
-    } elsif (ref $value and ref $value eq 'deferred') {
-        my @args = @$value;
-        my $function = shift @args;
-        @ips = &$function($domain, @args);
     } elsif (ref $value) {
         die;
     } else {
@@ -1691,6 +1680,22 @@ sub eval_bool($) {
     }
 }
 
+sub realize_deferred {
+    my $domain = shift;
+    my @values;
+    foreach my $inside_value (@_) {
+        # realize deferred values even within arrays
+        if (ref $inside_value and ref $inside_value eq 'deferred') {
+            my @args = @$inside_value;
+            my $function = shift @args;
+            push @values, &$function($domain, @args);
+        } else {
+            push @values, $inside_value;
+        }
+    }
+    return @values;
+}
+
 sub is_netfilter_core_target($) {
     my $target = shift;
     die unless defined $target and length $target;
@@ -1886,7 +1891,8 @@ sub parse_keyword(\%$$) {
     } elsif (ref $params && ref $params eq 'CODE') {
         $value = &$params($rule);
     } elsif ($params eq 'm') {
-        $value = bless [ to_array getvalues() ], 'multi';
+        my $domain = $stack[0]{auto}{DOMAIN};
+        $value = bless [ realize_deferred($domain, to_array getvalues()) ], 'multi';
     } elsif ($params =~ /^[a-z]/) {
         if (exists $def->{negation} and not $negated) {
             my $token = peek_token();
