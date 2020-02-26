@@ -1,4 +1,4 @@
-
+ q
     CHANGES
 
     version history for ferm
@@ -11,6 +11,7 @@ v2.5.2 - not yet released
   - apply $PREFIX to systemd service file during install
   - support netfilter targets:
     * JOOL, JOOL_SIIT (out-of-tree)
+  - fix (deferred) functions within target arguments
 
 
 v2.5.1 - 24 Jan 2020
