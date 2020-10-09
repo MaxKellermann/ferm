@@ -1525,6 +1525,11 @@ sub getvalues {
             my $separator = shift @params;
             @params = flatten(@params);
             return join_value($separator, \@params);
+        } elsif ($token eq '@split') {
+            my @params = get_function_params();
+            error('Usage: @split(regex, string)') unless @params == 2;
+            error('String expected') if ref $params[0] or ref $params[1];
+            return split( /$@params[0]/, $@params[1] );
         } elsif ($token eq '@substr') {
             my @params = get_function_params();
             error('Usage: @substr(string, num, num)') unless @params == 3;
