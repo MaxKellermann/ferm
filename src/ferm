@@ -1497,6 +1497,22 @@ sub getvalues {
             my @params = get_function_params();
             error('Usage: @ne(a, b)') unless @params == 2;
             return format_bool($params[0] ne $params[1]);
+        } elsif ($token eq '@lt') {
+            my @params = get_function_params();
+            error('Usage: @lt(a, b)') unless @params == 2;
+            return format_bool($params[0] lt $params[1]);
+        } elsif ($token eq '@le') {
+            my @params = get_function_params();
+            error('Usage: @le(a, b)') unless @params == 2;
+            return format_bool($params[0] le $params[1]);
+        } elsif ($token eq '@gt') {
+            my @params = get_function_params();
+            error('Usage: @gt(a, b)') unless @params == 2;
+            return format_bool($params[0] gt $params[1]);
+        } elsif ($token eq '@ge') {
+            my @params = get_function_params();
+            error('Usage: @ge(a, b)') unless @params == 2;
+            return format_bool($params[0] ge $params[1]);
         } elsif ($token eq '@not') {
             my @params = get_function_params();
             error('Usage: @not(a)') unless @params == 1;
