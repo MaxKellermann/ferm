@@ -1,0 +1,20 @@
+# This file is used to prepare for preserve tests.
+domain ip {
+    table filter {
+
+        chain INPUT { ACCEPT; }
+
+        chain FERM-TEST-STATIC {
+            saddr 192.0.2.1 daddr 192.0.2.2 ACCEPT;
+        }
+        chain FERM-TEST-DYNAMIC-1000 {
+            saddr (192.0.2.10 192.0.2.11) daddr 0.0.0.0 ACCEPT;
+        }
+        chain FERM-TEST-DYNAMIC-2000 {
+            saddr (192.0.2.20 192.0.2.21) daddr 0.0.0.0 ACCEPT;
+        }
+        chain FERM-TEST-DYNAMIC-3000 {
+            saddr (192.0.2.30 192.0.2.31) daddr 0.0.0.0 ACCEPT;
+        }
+    }
+}

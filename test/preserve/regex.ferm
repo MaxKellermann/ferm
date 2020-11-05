@@ -1,0 +1,16 @@
+# More complex regexes.
+domain ip {
+    table filter {
+
+        chain INPUT { ACCEPT; }
+
+        # FERM-TEST-STATIC is expected to be removed.
+        # chain FERM-TEST-STATIC @preserve;
+
+        # "Advanced" RE
+        chain "/^FERM-TEST-DYNAMIC-[13]000$/" @preserve;
+
+        # Will not match FERM-TEST-DYNAMIC-2000
+        chain "/^FERM-TEST-DYNAMIC-2$/" @preserve;
+    }
+}

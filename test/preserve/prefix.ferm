@@ -1,0 +1,10 @@
+# Test @preserve for prefix matching.
+domain ip {
+    table filter {
+
+        chain INPUT { ACCEPT; }
+
+        chain FERM-TEST-STATIC @preserve;
+        chain "/^FERM-TEST-DYNAMIC-1.*/" @preserve;
+    }
+}
