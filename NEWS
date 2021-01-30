@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.6 - not yet released
+v2.6 - 30 Jan 2021
   - apply $PREFIX to systemd service file during install
   - support netfilter targets:
     * JOOL, JOOL_SIIT (out-of-tree)
