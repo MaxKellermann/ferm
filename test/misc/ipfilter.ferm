@@ -18,6 +18,12 @@ domain (ip ip6) chain OUTPUT {
 }
 &accept_range(@ipfilter($TRUSTED_HOSTS));
 
+# negation
+
+domain (ip ip6) chain FORWARD {
+    daddr !$FILTERED_HOSTS DROP;
+}
+
 # also try @ipfilter as an "m" target; see issue #63 for a real-world example
 @def $NATTED_NETS = (192.168.0.0/24 2001:abcd:ef::/64);
 @def $SNAT_ADDR = (10.0.0.1 2001:efff::1);

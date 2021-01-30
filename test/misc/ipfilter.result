@@ -6,3 +6,5 @@ iptables -t filter -A INPUT -s 192.168.0.0/24 -o eth0 -j SNAT --to-source 10.0.0
 ip6tables -t filter -A INPUT -s 2001:abcd:ef::/64 -o eth0 -j SNAT --to-source 2001:efff::1
 iptables -t filter -A OUTPUT -d 192.168.0.40 -p tcp --dport ssh -j ACCEPT
 ip6tables -t filter -A OUTPUT -d 2001:abcd:ef::40 -p tcp --dport ssh -j ACCEPT
+iptables -t filter -A FORWARD ! -d 192.168.0.40 -j DROP
+ip6tables -t filter -A FORWARD ! -d 2001:abcd:ef::40 -j DROP
