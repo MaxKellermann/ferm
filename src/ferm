@@ -887,6 +887,28 @@ sub find_tool($) {
     die "$name not found in PATH\n";
 }
 
+sub read_previous($$) {
+    my ($fh, $domain_info) = @_;
+
+    my $save = '';
+
+    my $table_info;
+    while (<$fh>) {
+        $save .= $_;
+
+        if (/^\*(\w+)/) {
+            my $table = $1;
+            $table_info = $domain_info->{tables}{$table} ||= {};
+        } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
+                 and $2 ne '-') {
+            $table_info->{chains}{$1}{builtin} = 1;
+            $table_info->{has_builtin} = 1;
+        }
+    }
+
+    return $save;
+}
+
 sub initialize_domain {
     my $domain = shift;
     my $domain_info = $domains{$domain} ||= {};
@@ -910,24 +932,8 @@ sub initialize_domain {
     if (!$option{test} &&
         exists $tools{'tables-save'} &&
         open(SAVE, "$tools{'tables-save'}|")) {
-        my $save = '';
-
-        my $table_info;
-        while (<SAVE>) {
-            $save .= $_;
-
-            if (/^\*(\w+)/) {
-                my $table = $1;
-                $table_info = $domain_info->{tables}{$table} ||= {};
-            } elsif (defined $table_info and /^:(\w+)\s+(\S+)/
-                     and $2 ne '-') {
-                $table_info->{chains}{$1}{builtin} = 1;
-                $table_info->{has_builtin} = 1;
-            }
-        }
-
         # for rollback
-        $domain_info->{previous} = $save;
+        $domain_info->{previous} = read_previous(\*SAVE, $domain_info);
     }
 
     if ($option{shell} && $option{interactive} &&
