@@ -1322,10 +1322,11 @@ sub resolve($@) {
     foreach my $hostname (@names) {
         my $numeric_type = identify_numeric_address($hostname);
         if (defined $numeric_type) {
-            if ($numeric_type eq $type) {
-                push @result, $hostname;
-                next;
-            }
+            # It's a numeric IP address, we don't need to resolve it;
+            # only filter out IP addresses for the wrong domain (no
+            # IPv4 in ip6tables and no IPv6 in iptables).
+            push @result, $hostname if $numeric_type eq $type;
+            next;
         }
 
         my $query = $resolver->search($hostname, $type);

@@ -16,6 +16,7 @@ v2.5.2 - not yet released
   - fix (deferred) functions within target arguments
   - "@preserve" supports regular expressions
   - fix negated @ipfilter/@resolve
+  - @resolve filters out numeric IP addresses for the wrong domain
 
 
 v2.5.1 - 24 Jan 2020
