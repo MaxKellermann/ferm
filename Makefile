@@ -7,19 +7,6 @@ include $(TOPDIR)/config.mk
 
 VERSION := $(shell $(PERL) src/ferm --version | awk '{print $$2}' | head -1 | tr -d ',')
 
-# Figure out if we are able to run the preserve tests in a new network namespace.
-# If not root, try doing so via an unprivileged user namespace.
-#
-# Quirks:
-# * double unshare: https://bugzilla.netfilter.org/show_bug.cgi?id=1064#c9
-# * mount namespace: for mounting /run as tmpfs and be able to create /run/xtables.lock
-#
-UNSHARE := unshare --mount --net
-ifneq ($(shell id -u), 0)
-  UNSHARE := unshare --user --map-root-user $(UNSHARE)
-endif
-CAN_UNSHARE := $(shell $(UNSHARE) echo "yes" 2>/dev/null || echo "no")
-
 DISTDIR = build/ferm-$(VERSION)
 
 .PHONY: all clean
@@ -70,14 +57,10 @@ FERM_SCRIPTS += $(wildcard test/ipv6/*.ferm)
 FERM_SCRIPTS += $(wildcard test/resolve/*.ferm)
 FERM_SCRIPTS += $(wildcard test/arptables/*.ferm) $(wildcard test/ebtables/*.ferm)
 
-ifeq ($(CAN_UNSHARE), yes)
-  FERM_SCRIPTS += $(wildcard test/preserve/*.ferm)
-else
-  $(warning Can not unshare, Skipping test/preserve/*.ferm (tried: $(UNSHARE)))
-endif
-
 EXCLUDE_IMPORT =
 IMPORT_SCRIPTS = $(filter-out $(EXCLUDE_IMPORT) test/arptables/% test/ebtables/%,$(FERM_SCRIPTS))
+
+PRESERVE_SCRIPTS += $(wildcard test/preserve/*.ferm)
 
 # just a hack
 RESULT_SED += -e 's,--protocol,-p,g'
@@ -89,6 +72,7 @@ RESULT_SED += -e 's,--match ,-m ,g'
 RESULT_SED += -e 's,--jump,-j,g'
 RESULT_SED += -e 's,--goto,-g,g'
 RESULT_SED += -e 's,--fragment,-f,g'
+RESULT_SED += -e '/^\#/d'
 
 EB_ARP_RESULT_SED = -e 's,--jump,-j,g'
 
@@ -99,13 +83,6 @@ $(STAMPDIR)/test/arptables/%.result: test/arptables/%.ferm src/ferm
 $(STAMPDIR)/test/ebtables/%.result: test/ebtables/%.ferm src/ferm
 	@mkdir -p $(dir $@)
 	$(PERL) src/ferm --test --slow $< |$(PERL) test/ebtables_tempfile_rename.pl |sed $(EB_ARP_RESULT_SED) >$@
-
-$(STAMPDIR)/test/preserve/%.result: test/preserve/%.ferm src/ferm
-	@mkdir -p $(dir $@)
-	$(UNSHARE) bash -c " \
-		mount -t tmpfs tmpfs /run; \
-		$(PERL) src/ferm $(dir $<)/setup; \
-		$(PERL) src/ferm --lines $< |$(PERL) test/sort.pl |sed $(RESULT_SED) > $@"
 
 $(STAMPDIR)/%.result: %.ferm src/ferm test/sort.pl
 	@mkdir -p $(dir $@)
@@ -133,13 +110,27 @@ $(STAMPDIR)/%.check-import: $(STAMPDIR)/%.SAVE $(STAMPDIR)/%.SAVE2
 	diff -u $^
 	@touch $@
 
+$(STAMPDIR)/test/preserve/%.preserved: test/preserve/%.ferm src/ferm test/sort.pl $(STAMPDIR)/test/mock/preserve.SAVE2
+	@mkdir -p $(dir $@)
+	$(PERL) src/ferm --test --test-mock-previous=ip=$(STAMPDIR)/test/mock/preserve.SAVE2 $< |$(PERL) test/sort.pl |sed $(RESULT_SED) >$@
+
+$(STAMPDIR)/test/preserve/%.expected: test/preserve/%.result
+	@mkdir -p $(dir $@)
+	sed $(RESULT_SED) $< >$@
+
+$(STAMPDIR)/test/preserve/%.check-preserve: $(STAMPDIR)/test/preserve/%.preserved $(STAMPDIR)/test/preserve/%.expected
+	diff -u $^
+	@touch $@
+
 .PHONY : check-ferm check-import check
 
 check-ferm: $(patsubst %.ferm,$(STAMPDIR)/%.check,$(FERM_SCRIPTS))
 
 check-import: $(patsubst %.ferm,$(STAMPDIR)/%.check-import,$(IMPORT_SCRIPTS))
 
-check: check-ferm check-import
+check-preserve: $(patsubst %.ferm,$(STAMPDIR)/%.check-preserve,$(PRESERVE_SCRIPTS))
+
+check: check-ferm check-import check-preserve
 	@echo "All ferm unit tests finished successfully."
 
 #
