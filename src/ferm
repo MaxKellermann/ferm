@@ -559,7 +559,7 @@ sub address_magic {
     } elsif (ref $value and ref $value eq 'deferred') {
         @ips = realize_deferred($domain, $value);
     } elsif (ref $value and ref $value eq 'negated') {
-        @ips = @$value;
+        @ips = realize_deferred($domain, @$value);
         $negated = 1;
     } elsif (ref $value) {
         die;

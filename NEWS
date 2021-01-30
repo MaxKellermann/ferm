@@ -13,6 +13,7 @@ v2.5.2 - not yet released
     * JOOL, JOOL_SIIT (out-of-tree)
   - ix (deferred) functions within target arguments
   - "@preserve" supports regular expressions
+  - fix negated @ipfilter/@resolve
 
 
 v2.5.1 - 24 Jan 2020
