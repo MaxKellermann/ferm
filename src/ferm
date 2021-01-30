@@ -621,6 +621,7 @@ if ($has_getopt) {
         $opt_timeout, $opt_help,
         $opt_version, $opt_test, $opt_fast, $opt_slow, $opt_shell,
         $opt_domain);
+    my @opt_test_mock_previous;
 
     Getopt::Long::Configure('bundling', 'auto_help', 'no_ignore_case',
                             'no_auto_abbrev');
@@ -647,6 +648,10 @@ if ($has_getopt) {
                'help|h' => \$opt_help,
                'version|V' => \$opt_version,
                test => \$opt_test,
+
+               # to mock the previous ruleset (for unit tests)
+               'test-mock-previous=s' => \@opt_test_mock_previous,
+
                remote => \$opt_test,
                fast => \$opt_fast,
                slow => \$opt_slow,
@@ -674,6 +679,12 @@ if ($has_getopt) {
     $option{test} = $opt_test;
     $option{fast} = !$opt_slow;
     $option{shell} = $opt_shell;
+
+    foreach (@opt_test_mock_previous) {
+        die unless /^(\w+)=(.+)$/;
+        $option{mock_previous} ||= {};
+        $option{mock_previous}{$1} = $2;
+    }
 
     die("ferm interactive mode not possible: /dev/stdin is not a tty\n")
       if $option{interactive} and not -t STDIN;
@@ -929,9 +940,14 @@ sub initialize_domain {
     # (which tables and chains do exist?), also remember the old
     # save data which may be used later by the rollback function
     local *SAVE;
-    if (!$option{test} &&
-        exists $tools{'tables-save'} &&
-        open(SAVE, "$tools{'tables-save'}|")) {
+    if ($option{test}) {
+        if (exists $option{mock_previous} and
+            exists $option{mock_previous}{$domain}) {
+            open SAVE, $option{mock_previous}{$domain} or die $!;
+            $domain_info->{previous} = read_previous(\*SAVE, $domain_info);
+        }
+    } elsif (exists $tools{'tables-save'} &&
+             open(SAVE, "$tools{'tables-save'}|")) {
         # for rollback
         $domain_info->{previous} = read_previous(\*SAVE, $domain_info);
     }
