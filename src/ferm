@@ -1301,6 +1301,13 @@ sub pick_resolver() {
     return $resolver;
 }
 
+sub identify_numeric_address($) {
+    $_ = shift;
+    return 'A' if /^\d+\.\d+\.\d+\.\d+$/;
+    return 'AAAA' if /^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/;
+    return;
+}
+
 sub resolve($@) {
     my ($domain, $names, $type) = @_;
     my @names = to_array($names);
@@ -1313,11 +1320,12 @@ sub resolve($@) {
 
     my @result;
     foreach my $hostname (@names) {
-        if (($type eq 'A' and $hostname =~ /^\d+\.\d+\.\d+\.\d+$/) or
-              (($type eq 'AAAA' and
-                $hostname =~ /^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/))) {
-            push @result, $hostname;
-            next;
+        my $numeric_type = identify_numeric_address($hostname);
+        if (defined $numeric_type) {
+            if ($numeric_type eq $type) {
+                push @result, $hostname;
+                next;
+            }
         }
 
         my $query = $resolver->search($hostname, $type);
