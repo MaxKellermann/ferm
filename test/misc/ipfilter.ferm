@@ -4,6 +4,13 @@ domain (ip ip6) chain INPUT {
     saddr @ipfilter($TRUSTED_HOSTS) proto tcp dport ssh ACCEPT;
 }
 
+# do the @ipfilter invocation in a variable declaration
+@def $FILTERED_HOSTS = @ipfilter($TRUSTED_HOSTS);
+
+domain (ip ip6) chain OUTPUT {
+    daddr $FILTERED_HOSTS proto tcp dport ssh ACCEPT;
+}
+
 @def &accept_range($srange) = {
     domain (ip ip6) chain INPUT {
         saddr $srange ACCEPT;
