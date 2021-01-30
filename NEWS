@@ -13,7 +13,7 @@ v2.5.2 - not yet released
     * JOOL, JOOL_SIIT (out-of-tree)
   - updated netfilter modules:
     * CT: support "--zone-orig", "--zone-reply"
-  - ix (deferred) functions within target arguments
+  - fix (deferred) functions within target arguments
   - "@preserve" supports regular expressions
   - fix negated @ipfilter/@resolve
 
