@@ -1272,6 +1272,8 @@ Set connection tracking parameters.
     CT expevents new;
     CT zone 1;
     CT zone mark;
+    CT zone-orig mark;
+    CT zone-reply mark;
     CT timeout 180;
 
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
