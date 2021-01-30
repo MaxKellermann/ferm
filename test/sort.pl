@@ -3,7 +3,7 @@
 #
 # ferm, a firewall setup program that makes firewall rules easy!
 #
-# Copyright 2001-2017 Max Kellermann
+# Copyright 2001-2021 Max Kellermann
 #
 # Bug reports and patches for this program may be sent to the GitHub
 # repository: L<https://github.com/MaxKellermann/ferm>
