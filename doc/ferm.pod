@@ -1262,6 +1262,18 @@ valid in the mangle table.
     CONNSECMARK save;
     CONNSECMARK restore;
 
+=item B<CT>
+
+Set connection tracking parameters.
+
+    CT notrack;
+    CT helper ftp;
+    CT ctevents new,related;
+    CT expevents new;
+    CT zone 1;
+    CT zone mark;
+    CT timeout 180;
+
 =item B<DNAT to [ip-address|ip-range|ip-port-range]>
 
 Change the destination address of the packet.
