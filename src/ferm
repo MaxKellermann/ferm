@@ -73,6 +73,7 @@ use vars qw($script @stack $auto_chain);
 # - previous: save file of the previous ruleset, for rollback
 # - tables{$name}: ferm state information about tables
 #   - has_builtin: whether built-in chains have been determined in this table
+#   - preserve_regexes: regular expressions for dynamically preserved chains
 #   - chains{$chain}: ferm state information about the chains
 #     - builtin: whether this is a built-in chain
 use vars qw(%domains);
@@ -2344,7 +2345,14 @@ sub enter($$) {
                         error("Cannot \@preserve chain $chain because it is not empty")
                           if exists $chain_info->{rules} and @{$chain_info->{rules}};
 
-                        $chain_info->{preserve} = 1;
+                        # Does this chain look like a regex? If yes, remember
+                        # it and drop it from the chains hash.
+                        if ($chain =~ m,^/(.+)/$,) {
+                            push @{$table_info->{preserve_regexes}}, $1;
+                            delete $table_info->{chains}{$chain};
+                        } else {
+                            $chain_info->{preserve} = 1;
+                        }
                     }
                 }
 
@@ -2951,6 +2959,24 @@ sub extract_chain_from_table_save($$) {
     return $result;
 }
 
+# Find all chains in table_save matching any of table_info->{preserve_regexes}
+# and include them into table_info->{chains} with preserve=1 unless existing.
+sub resolve_dynamic_preserve($$) {
+    my ($table_info, $table_save) = @_;
+
+    while ($table_save =~ /^:([^ ]+) .*/mg) {
+        my $chain = $1;
+        next if exists $table_info->{chains}{$chain};
+
+        foreach my $re (@{$table_info->{preserve_regexes}}) {
+            next unless $chain =~ /${re}/;
+            $table_info->{chains}{$chain} = {
+                preserve => 1,
+            };
+        }
+    }
+}
+
 sub rules_to_save($) {
     my ($domain_info) = @_;
 
@@ -2961,6 +2987,11 @@ sub rules_to_save($) {
 
     foreach my $table (sort keys %{$domain_info->{tables}}) {
         my $table_info = $domain_info->{tables}{$table};
+
+        if (exists $table_info->{preserve_regexes}) {
+            my $table_save = extract_table_from_save($domain_info->{previous}, $table);
+            resolve_dynamic_preserve($table_info, $table_save)
+        }
 
         # select table
         $result .= '*' . $table . "\n";

@@ -1,0 +1,9 @@
+# Non regular expression preserve.
+domain ip {
+    table filter {
+
+        chain INPUT { ACCEPT; }
+
+        chain FERM-TEST-STATIC @preserve;
+    }
+}

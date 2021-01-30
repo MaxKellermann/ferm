@@ -469,6 +469,12 @@ data into the output.
 "Preserved" chains must not be modified with B<ferm>: no rules and no
 policies.
 
+If the chain name starts and ends with a slash, B<ferm> will interpret it
+as as Perl regular expression and preserve all matching chains. For example,
+the following preserves all chains with the prefix KUBE-SEP-:
+
+ chain "/^KUBE-SEP-.*/" @preserve;
+
 =back
 
 
