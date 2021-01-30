@@ -1303,6 +1303,7 @@ sub pick_resolver() {
 
 sub identify_numeric_address($) {
     $_ = shift;
+    s,(?:/\d+)$,,; # allow netmask prefix
     return 'A' if /^\d+\.\d+\.\d+\.\d+$/;
     return 'AAAA' if /^[0-9a-fA-F:]*:[0-9a-fA-F:]*$/;
     return;
