@@ -338,7 +338,7 @@ add_target_def 'LED', qw(led-trigger-id led-delay led-always-blink*0);
 add_target_def 'LOG', qw(log-level log-prefix),
   qw(log-tcp-sequence*0 log-tcp-options*0 log-ip-options*0 log-uid*0);
 add_target_def 'MARK', qw(set-mark set-xmark and-mark or-mark xor-mark);
-add_target_def 'MASQUERADE', qw(to-ports random*0);
+add_target_def 'MASQUERADE', qw(to-ports random*0 random-fully*0);
 add_target_def 'MIRROR';
 add_target_def 'NETMAP', qw(to);
 add_target_def 'NFLOG', qw(nflog-group nflog-prefix nflog-range nflog-threshold);

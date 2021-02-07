@@ -8,6 +8,8 @@
 
 
 v2.7 - not yet released
+  - updated netfilter modules:
+    - MASQUERADE: support "--random-fully"
 
 
 v2.6 - 30 Jan 2021

@@ -2,4 +2,5 @@ table nat chain POSTROUTING {
     outerface ppp0 MASQUERADE;
     outerface ppp0 MASQUERADE to-ports 10000:20000;
     outerface ppp0 MASQUERADE to-ports 20000:30000 random;
+    outerface ppp0 MASQUERADE to-ports 20001:30001 random-fully;
 }
