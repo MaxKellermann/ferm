@@ -958,6 +958,12 @@ multiport"):
     sports (https ftp);
     dports (mysql domain);
 
+=item B<nfacct>
+
+Add packet accounting (bytes + packets). See also the user space tool "nfacct".
+
+    mod nfacct nfacct-name my-nfacct-object;
+
 =item B<nth>
 
 Match every 'n'th packet.
