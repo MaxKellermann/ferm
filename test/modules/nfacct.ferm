@@ -1,0 +1,4 @@
+table filter chain INPUT mod nfacct {
+    nfacct-name nfacct-object-name
+    NOP;
+}
