@@ -1,1 +1,1 @@
-iptables -A INPUT --match nfacct --nfacct-name nfacct-object-name
+iptables -t filter -A INPUT -m nfacct --nfacct-name nfacct-object-name
