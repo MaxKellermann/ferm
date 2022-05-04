@@ -1,0 +1,4 @@
+@def $ip = @ipfilter(@resolve(ds.example.com));
+
+domain ip  chain INPUT proto tcp dport 460 saddr $ip ACCEPT;
+domain ip6 chain INPUT proto tcp dport 640 saddr $ip ACCEPT;
