@@ -11,6 +11,7 @@ v2.7 - not yet released
   - updated netfilter modules:
     - MASQUERADE: support "--random-fully"
     - support nfacct module
+  - fix @resolve() wrapped in @ipfilter()
 
 v2.6 - 30 Jan 2021
   - apply $PREFIX to systemd service file during install

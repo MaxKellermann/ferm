@@ -1865,7 +1865,7 @@ sub unfold_rule {
     my $option = shift;
     my @values = @{$option->[1]};
 
-    foreach my $value (@values) {
+    foreach my $value (realize_deferred($domain, @values)) {
         $option->[2] = format_option($domain, $option->[0], $value);
         unfold_rule($domain, $chain_rules, $rule, @_);
     }
