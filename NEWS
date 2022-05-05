@@ -7,7 +7,7 @@
     Auke Kok <sofar@foo-projects.org>
 
 
-v2.7 - not yet released
+v2.7 - 5 May 2022
   - updated netfilter modules:
     - MASQUERADE: support "--random-fully"
     - support nfacct module
