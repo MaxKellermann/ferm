@@ -1,0 +1,24 @@
+---
+on:
+  workflow_dispatch:
+  push:
+    paths-ignore:
+      - 'doc/**'
+      - 'examples/**'
+    branches:
+      - master
+  pull_request:
+    paths-ignore:
+      - 'doc/**'
+      - 'examples/**'
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - id: checkout
+        uses: actions/checkout@v2
+
+      - name: Runt unit tests
+        run: make -j$(nproc) check
