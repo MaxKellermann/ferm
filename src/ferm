@@ -1397,6 +1397,17 @@ sub cat(@) {
     return $value;
 }
 
+# Like cat(), but supports deferred parameters
+sub deferred_cat(@) {
+    my $domain = shift;
+    my $value = '';
+    map {
+        error('String expected') if ref $_;
+        $value .= $_;
+    } flatten(realize_deferred($domain, @_));
+    return $value;
+}
+
 # returns the next parameter, which may either be a scalar or an array
 sub getvalues {
     my $code = shift;
@@ -1536,7 +1547,12 @@ sub getvalues {
             error('Usage: @not(a)') unless @params == 1;
             return format_bool(not $params[0]);
         } elsif ($token eq '@cat') {
-            return cat(get_function_params());
+            # Defer the "cat" call if at least one parameter is
+            # deferred
+            my @params = get_function_params();
+            return contains_deferred(@params)
+              ? bless [\&deferred_cat, @params], 'deferred'
+              : cat(@params);
         } elsif ($token eq '@join') {
             my @params = get_function_params();
             return '' unless @params;
@@ -1711,6 +1727,15 @@ sub eval_bool($) {
         return @$value > 0;
     } else {
         die;
+    }
+}
+
+sub contains_deferred(@) {
+    foreach my $value (@_) {
+        if (ref $value) {
+            return 1 if ref $value eq 'deferred';
+            return 1 if ref $value eq 'ARRAY' and contains_deferred(@$value);
+        }
     }
 }
 
