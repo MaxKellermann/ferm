@@ -1722,6 +1722,10 @@ sub realize_deferred {
         if (ref $inside_value and ref $inside_value eq 'deferred') {
             my @args = @$inside_value;
             my $function = shift @args;
+
+            # realize nested deferred calls recursively
+            @args = realize_deferred($domain, @args);
+
             push @values, &$function($domain, @args);
         } else {
             push @values, $inside_value;
