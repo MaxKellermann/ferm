@@ -1360,6 +1360,9 @@ sub resolve($@) {
     @result = resolve($domain, \@result, undef)
       if $type eq 'NS' or $type eq 'MX';
 
+    # if there are no records, return an empty array instead of "undefined"
+    return [] unless length @result;
+
     return @result;
 }
 

@@ -12,6 +12,7 @@ v2.7 - not yet released
     - MASQUERADE: support "--random-fully"
     - support nfacct module
   - fix @resolve() wrapped in @ipfilter() and @cat()
+  - fix @resolve() with empty result
 
 v2.6 - 30 Jan 2021
   - apply $PREFIX to systemd service file during install
