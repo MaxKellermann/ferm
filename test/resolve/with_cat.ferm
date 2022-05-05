@@ -1,0 +1,4 @@
+@def $ip = @ipfilter(@resolve(ds.example.com));
+
+domain ip  table nat chain PREROUTING proto tcp dport 22222 DNAT to @cat($ip, ":22");
+domain ip6 table nat chain PREROUTING proto tcp dport 22222 DNAT to @cat("[", $ip, "]:22");

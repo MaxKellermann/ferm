@@ -1,0 +1,2 @@
+iptables -t nat -A PREROUTING -p tcp --dport 22222 -j DNAT --to-destination 192.0.2.2:22
+ip6tables -t nat -A PREROUTING -p tcp --dport 22222 -j DNAT --to-destination [2001:db8:0:0:0:0:0:2]:22
