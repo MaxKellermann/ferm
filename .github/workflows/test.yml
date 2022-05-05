@@ -20,5 +20,10 @@ jobs:
       - id: checkout
         uses: actions/checkout@v2
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y --no-install-recommends \
+            libnet-dns-resolver-mock-perl
+
       - name: Runt unit tests
         run: make -j$(nproc) check
