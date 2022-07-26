@@ -2763,7 +2763,10 @@ sub enter($$) {
                     my $defs = $match_defs{$domain_family}{$module};
 
                     append_option(%rule, 'match', $module);
-                    $rule{match}{$module} = 1;
+                    # ipset doesn't allow multiple '--match-set' for a single '-m set'
+                    # so we'll keep every '-m set' specified
+                    $rule{match}{$module} = 1
+                        unless $module =~ /^set$/;
 
                     merge_keywords(%rule, $defs->{keywords})
                       if defined $defs;
