@@ -542,7 +542,7 @@ And some examples of valid ports/ranges:
 
 =item B<syn>
 
-Specify that the SYN flag in a TCP package should be matched,
+Specify that the SYN flag in a TCP packet should be matched,
 which are used to build new TCP connections. You can identify
 incoming connections with this, and decide whether you want
 to allow it or not. Packets that do not have this flag are
@@ -908,7 +908,7 @@ Match IPVS connection properties.
 
 =item B<length>
 
-Check the package length.
+Check the packet length.
 
     mod length length 128; # exactly 128 bytes
     mod length length 512:768; # range
@@ -1508,7 +1508,7 @@ This target will strip TCP options off a TCP packet.
 
 =item B<TOS set-tos [value]>
 
-Set the TCP package Type Of Service bit to this value.  This will be
+Set the TCP packet Type Of Service bit to this value.  This will be
 used by whatever traffic scheduler is willing to, mostly your own
 Linux-machine, but maybe more. The original TOS-bits are blanked and
 overwritten by this value.
