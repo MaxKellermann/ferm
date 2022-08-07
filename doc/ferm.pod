@@ -914,6 +914,14 @@ Check the packet length.
     mod length length 512:768; # range
     mod length length ! 256; # negated
 
+=item B<length2>
+
+Check the packet length.
+
+    mod length2 length 128 layer3; # exactly 128 bytes
+    mod length2 length 512:768 layer4; # range
+    mod length2 length ! 256 layer5; # negated
+
 =item B<limit>
 
 Limits the packet rate.

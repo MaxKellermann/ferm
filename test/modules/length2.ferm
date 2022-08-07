@@ -1,0 +1,5 @@
+table filter chain INPUT mod length2 {
+    length 0:1024 layer3 ACCEPT;
+    length 16384 layer4 DROP;
+    length !8192 layer5 ACCEPT;
+}
