@@ -10,6 +10,7 @@
 v2.8 - not yet released
   - updated netfilter modules:
     * length2
+  - add parameter --no-legacy to not use xtables-legacy tools
 
 
 v2.7 - 5 May 2022

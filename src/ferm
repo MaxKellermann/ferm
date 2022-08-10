@@ -620,6 +620,7 @@ unshift @stack, {};
 # Get command line stuff
 if ($has_getopt) {
     my ($opt_noexec, $opt_flush, $opt_noflush, $opt_lines, $opt_interactive,
+        $opt_no_legacy,
         $opt_timeout, $opt_help,
         $opt_version, $opt_test, $opt_fast, $opt_slow, $opt_shell,
         $opt_domain);
@@ -657,6 +658,7 @@ if ($has_getopt) {
                remote => \$opt_test,
                fast => \$opt_fast,
                slow => \$opt_slow,
+               'no-legacy' => \$opt_no_legacy,
                shell => \$opt_shell,
                'domain=s' => \$opt_domain,
                'def=s' => \&opt_def,
@@ -680,6 +682,7 @@ if ($has_getopt) {
     $option{timeout} = defined $opt_timeout ? $opt_timeout : "30";
     $option{test} = $opt_test;
     $option{fast} = !$opt_slow;
+    $option{no_legacy} = $opt_no_legacy;
     $option{shell} = $opt_shell;
 
     foreach (@opt_test_mock_previous) {
@@ -883,14 +886,16 @@ sub find_tool($) {
     return $name if $option{test};
     my @path = ('/usr/sbin', '/sbin', split ':', $ENV{PATH});
 
-    if ($name =~ /^(.*tables)(.*)$/) {
-        # prefer the "legacy" xtables tools the new nft based tools
-        # are incompatible and sometimes break ferm
-        my $legacy_name = $1 . '-legacy' . $2;
-        foreach my $path (@path) {
-            my $ret = "$path/$legacy_name";
-            return $ret if -x $ret;
-        }
+    if (!$option{no_legacy}) {
+      if ($name =~ /^(.*tables)(.*)$/) {
+          # prefer the "legacy" xtables tools the new nft based tools
+          # are incompatible and sometimes break ferm
+          my $legacy_name = $1 . '-legacy' . $2;
+          foreach my $path (@path) {
+              my $ret = "$path/$legacy_name";
+              return $ret if -x $ret;
+          }
+      }
     }
 
     foreach my $path (@path) {
@@ -3236,6 +3241,7 @@ B<ferm> I<options> I<inputfiles>
  -V, --version     Show current version number
  -h, --help        Look at this text
  --slow            Slow mode, don't use iptables-restore
+ --no-legacy       Do not use xtables-legacy tools.
  --shell           Generate a shell script which calls iptables-restore
  --domain {ip|ip6} Handle only the specified domain
  --def '$name=v'   Override a variable
