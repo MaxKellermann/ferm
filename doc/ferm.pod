@@ -2024,6 +2024,11 @@ seconds (see B<--timeout>).  This is useful for remote firewall
 administration: you can test the rules without fearing to lock
 yourself out.
 
+=item B<--no-legacy>
+
+Do not use xtables-legacy tools.  This is useful for administrators
+that wish to use the newer nftables backend.
+
 =item B<--timeout S>
 
 If B<--interactive> is used, then roll back if there is no valid user
