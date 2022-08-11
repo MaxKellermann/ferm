@@ -10,6 +10,7 @@
 v2.8 - not yet released
   - updated netfilter modules:
     * length2
+    * string (add icase parameter)
 
 
 v2.7 - 5 May 2022

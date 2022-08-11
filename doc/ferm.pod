@@ -1147,7 +1147,7 @@ iptables(8) man page.
 Matches a string.
 
     mod string string "foo bar" ACCEPT;
-    mod string algo kmp from 64 to 128 hex-string "deadbeef" ACCEPT;
+    mod string icase algo kmp from 64 to 128 hex-string "deadbeef" ACCEPT;
 
 =item B<tcp>
 

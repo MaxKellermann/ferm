@@ -1,2 +1,2 @@
 iptables -t filter -A INPUT -m string --string 'foo bar' -j ACCEPT
-iptables -t filter -A INPUT -m string --algo kmp --from 64 --to 128 --hex-string deadbeef -j ACCEPT
+iptables -t filter -A INPUT -m string --algo kmp --from 64 --to 128 --icase --hex-string deadbeef -j ACCEPT
