@@ -1,4 +1,4 @@
 table filter chain INPUT {
     mod string string "foo bar" ACCEPT;
-    mod string algo kmp from 64 to 128 hex-string "deadbeef" ACCEPT;
+    mod string icase algo kmp from 64 to 128 hex-string "deadbeef" ACCEPT;
 }
